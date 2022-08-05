@@ -31,16 +31,17 @@ class Trade:
                                          user='root',
                                          password='tRaDiNgApP25!')
 
-            mySql_Create_Table_Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-            mySql_Create_Table_Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,
+            Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+            Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,
                                        newTrade.expiry,newTrade.strike,newTrade.value,newTrade.numOfShares,newTrade.rr,
                                        newTrade.pnl,newTrade.percentwl,newTrade.comment)
 
             cursor = connection.cursor()
-            result = cursor.execute(mySql_Create_Table_Query,mySql_Create_Table_Args)
+            result = cursor.execute(Query,Args)
             connection.commit()
-            print(cursor.rowcount, "Trade added successfully into Trade table")
-            response = "Trade added successfully into Trade table"
+            
+            print(cursor.rowcount, "Trade Added successfully into Trade table")
+            response = "Trade Added successfully into Trade table"
             cursor.close()
 
         except mysql.connector.Error as error:
@@ -52,15 +53,86 @@ class Trade:
                 print("MySQL connection is closed")
         
         return response
-    
-testTrade = Trade(None,1,"Swing Trade","Options","TSLA","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
-response = Trade.addTrade(testTrade)
-print(response)
         
-    #def updateTrade(tradeID, key, newValue):
+    def updateTrade(tradeID,changes):
         #tradeInfo.list.update({key: newValue})
         #Update DB entry for trade
         
+        try:
+            connection = mysql.connector.connect(host='localhost',
+                                         database='TradingApp',
+                                         user='root',
+                                         password='tRaDiNgApP25!')
+            
+            for key,value in changes.items():
+
+                Query = """UPDATE Trade SET {} = %s WHERE trade_id = %s""".format(key)
+                Args = (value,tradeID)
+
+                cursor = connection.cursor(dictionary=True)
+                result = cursor.execute(Query,Args)
+                connection.commit()
+
+            print("Trade Updated successfully into Trade table")
+            response = "Trade Updated successfully into Trade table"
+            cursor.close()
+
+        except mysql.connector.Error as error:
+            print("Failed to Update Trade in MySQL: {}".format(error))
+            response = "Failed to Update Trade in MySQL: {}".format(error)
+        finally:
+            if connection.is_connected():
+                connection.close()
+                print("MySQL connection is closed")
         
-    #def deleteTrade(tradeID):
+        return response
+        
+    def deleteTrade(tradeID):
         #Delete DB Entry
+        
+        try:
+            connection = mysql.connector.connect(host='localhost',
+                                         database='TradingApp',
+                                         user='root',
+                                         password='tRaDiNgApP25!')
+
+            Query = """DELETE FROM Trade WHERE trade_id = %s"""
+            Args = (tradeID,)
+
+            cursor = connection.cursor()
+            result = cursor.execute(Query,Args)
+            connection.commit()
+
+            print("Trade Deleted successfully from Trade table")
+            response = "Trade Deleted successfully from Trade table"
+            cursor.close()
+
+        except mysql.connector.Error as error:
+            print("Failed to Delete Trade in MySQL: {}".format(error))
+            response = "Failed to Delete Trade in MySQL: {}".format(error)
+        finally:
+            if connection.is_connected():
+                connection.close()
+                print("MySQL connection is closed")
+        
+        return response
+ 
+#--------Tests-------# 
+
+#Testing addTrade       
+#testTrade = Trade(None,1,"Swing Trade","Options","TSLA","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
+#response = Trade.addTrade(testTrade)
+
+#Testing updateTrade
+#testTradeID = 2;
+#testUpdateTradeInfo = {
+#    "ticker_name": "QQQ",
+#    "pnl": 250
+#}
+#response = Trade.updateTrade(testTradeID,testUpdateTradeInfo)
+
+#Testing deleteTrade
+#testTradeID = 2
+#response = Trade.deleteTrade(testTradeID)
+
+#print(response)
