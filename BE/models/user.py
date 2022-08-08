@@ -18,7 +18,38 @@ class User:
         self.city = city
         self.state = state
         self.country = country
+    
+    def getUser(userID):
+    
+        try:
+            connection = mysql.connector.connect(host='localhost',
+                                         database='TradingApp',
+                                         user='root',
+                                         password='tRaDiNgApP25!')
+
+            Query = """SELECT * FROM User WHERE user_id = %s"""
+            Args = (userID,)
+
+            cursor = connection.cursor()
+            cursor.execute(Query,Args)
+            result = cursor.fetchone() 
+            
+            print(result)
+            
+            print(cursor.rowcount, "User Retrieved successfully into User table")
+            response = "User Retrieved successfully into User table"
+            cursor.close()
+
+        except mysql.connector.Error as error:
+            print("Failed to Retrieve User in MySQL: {}".format(error))
+            response = "Failed to Retrieve User in MySQL: {}".format(error)
+        finally:
+            if connection.is_connected():
+                connection.close()
+                print("MySQL connection is closed")
         
+        return response  
+    
     def addUser(newUser):
         
         try:
@@ -127,6 +158,10 @@ class User:
 #Testing deleteUser
 #testUserID = 3
 #response = User.deleteUser(testUserID)
+
+#Testing getUser
+#testUserID = 2
+#response = User.getUser(testUserID)
 
 #print(response)
     

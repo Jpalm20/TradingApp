@@ -21,6 +21,37 @@ class Trade:
         self.pnl = pnl
         self.percentwl = percentwl
         self.comment = comment
+        
+    def getTrade(tradeID):
+        
+        try:
+            connection = mysql.connector.connect(host='localhost',
+                                         database='TradingApp',
+                                         user='root',
+                                         password='tRaDiNgApP25!')
+
+            Query = """SELECT * FROM Trade WHERE trade_id = %s"""
+            Args = (tradeID,)
+
+            cursor = connection.cursor()
+            cursor.execute(Query,Args)
+            result = cursor.fetchone() 
+            
+            print(result)
+            
+            print(cursor.rowcount, "Trade Retrieved successfully into User table")
+            response = "Trade Retrieved successfully into User table"
+            cursor.close()
+
+        except mysql.connector.Error as error:
+            print("Failed to Retrieve Trade in MySQL: {}".format(error))
+            response = "Failed to Retrieve Trade in MySQL: {}".format(error)
+        finally:
+            if connection.is_connected():
+                connection.close()
+                print("MySQL connection is closed")
+        
+        return response
     
     def addTrade(newTrade):
         
@@ -130,5 +161,9 @@ class Trade:
 #Testing deleteTrade
 #testTradeID = 2
 #response = Trade.deleteTrade(testTradeID)
+
+#Testing getTrade
+#testTradeID = 3
+#response = Trade.getTrade(testTradeID)
 
 #print(response)
