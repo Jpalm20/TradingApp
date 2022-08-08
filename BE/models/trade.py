@@ -24,7 +24,6 @@ class Trade:
     
     def addTrade(newTrade):
         
-        #Send to DB to Save
         try:
             connection = mysql.connector.connect(host='localhost',
                                          database='TradingApp',
@@ -55,8 +54,6 @@ class Trade:
         return response
         
     def updateTrade(tradeID,changes):
-        #tradeInfo.list.update({key: newValue})
-        #Update DB entry for trade
         
         try:
             connection = mysql.connector.connect(host='localhost',
@@ -88,7 +85,6 @@ class Trade:
         return response
         
     def deleteTrade(tradeID):
-        #Delete DB Entry
         
         try:
             connection = mysql.connector.connect(host='localhost',
@@ -117,7 +113,7 @@ class Trade:
         
         return response
  
-#--------Tests-------# 
+#--------Tests--------# 
 
 #Testing addTrade       
 #testTrade = Trade(None,1,"Swing Trade","Options","TSLA","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
