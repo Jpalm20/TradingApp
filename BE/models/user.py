@@ -50,6 +50,38 @@ class User:
         
         return response  
     
+    def getUserTrades(userID):
+        
+        try:
+            connection = mysql.connector.connect(host='localhost',
+                                         database='TradingApp',
+                                         user='root',
+                                         password='tRaDiNgApP25!')
+
+            Query = """SELECT * FROM Trade WHERE user_id = %s"""
+            Args = (userID,)
+
+            cursor = connection.cursor()
+            cursor.execute(Query,Args)
+            result = cursor.fetchall() 
+            
+            for x in result:
+                print(x)
+            
+            print(cursor.rowcount, "User's Trades Retrieved successfully into User table")
+            response = "User's Trades Retrieved successfully into User table"
+            cursor.close()
+
+        except mysql.connector.Error as error:
+            print("Failed to Retrieve User's Trades in MySQL: {}".format(error))
+            response = "Failed to Retrieve User's Trades in MySQL: {}".format(error)
+        finally:
+            if connection.is_connected():
+                connection.close()
+                print("MySQL connection is closed")
+        
+        return response  
+    
     def addUser(newUser):
         
         try:
@@ -162,6 +194,10 @@ class User:
 #Testing getUser
 #testUserID = 2
 #response = User.getUser(testUserID)
+
+#Testing getUserTrades
+#testUserID = 1
+#response = User.getUserTrades(testUserID)
 
 #print(response)
     
