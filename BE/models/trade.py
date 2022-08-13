@@ -1,7 +1,7 @@
 import json
+import utils
 
 from matplotlib import ticker
-import mysql.connector
 
 from sympy import sec
 
@@ -24,126 +24,40 @@ class Trade:
         
     def getTrade(tradeID):
         
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
-
-            Query = """SELECT * FROM Trade WHERE trade_id = %s"""
-            Args = (tradeID,)
-
-            cursor = connection.cursor()
-            cursor.execute(Query,Args)
-            result = cursor.fetchone() 
-            
-            print(result)
-            
-            print(cursor.rowcount, "Trade Retrieved successfully into User table")
-            response = "Trade Retrieved successfully into User table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Retrieve Trade in MySQL: {}".format(error))
-            response = "Failed to Retrieve Trade in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        Query = """SELECT * FROM Trade WHERE trade_id = %s"""
+        Args = (tradeID,)
+        response = utils.execute_db(Query,Args)
         return response
     
     def addTrade(newTrade):
         
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
-
-            Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-            Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,
-                                       newTrade.expiry,newTrade.strike,newTrade.value,newTrade.numOfShares,newTrade.rr,
-                                       newTrade.pnl,newTrade.percentwl,newTrade.comment)
-
-            cursor = connection.cursor()
-            result = cursor.execute(Query,Args)
-            connection.commit()
-            
-            print(cursor.rowcount, "Trade Added successfully into Trade table")
-            response = "Trade Added successfully into Trade table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Add Trade in MySQL: {}".format(error))
-            response = "Failed to Add Trade in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,
+                            newTrade.expiry,newTrade.strike,newTrade.value,newTrade.numOfShares,newTrade.rr,
+                            newTrade.pnl,newTrade.percentwl,newTrade.comment)
+        response = utils.execute_db(Query,Args)
         return response
         
     def updateTrade(tradeID,changes):
         
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
-            
-            for key,value in changes.items():
+        response = ""
+        
+        for key,value in changes.items():
 
-                Query = """UPDATE Trade SET {} = %s WHERE trade_id = %s""".format(key)
-                Args = (value,tradeID)
-
-                cursor = connection.cursor(dictionary=True)
-                result = cursor.execute(Query,Args)
-                connection.commit()
-
-            print("Trade Updated successfully into Trade table")
-            response = "Trade Updated successfully into Trade table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Update Trade in MySQL: {}".format(error))
-            response = "Failed to Update Trade in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
+            Query = """UPDATE Trade SET {} = %s WHERE trade_id = %s""".format(key)
+            Args = (value,tradeID)
+            response = response + '\n' + utils.execute_db(Query,Args)
         
         return response
         
     def deleteTrade(tradeID):
-        
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
 
-            Query = """DELETE FROM Trade WHERE trade_id = %s"""
-            Args = (tradeID,)
-
-            cursor = connection.cursor()
-            result = cursor.execute(Query,Args)
-            connection.commit()
-
-            print("Trade Deleted successfully from Trade table")
-            response = "Trade Deleted successfully from Trade table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Delete Trade in MySQL: {}".format(error))
-            response = "Failed to Delete Trade in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        Query = """DELETE FROM Trade WHERE trade_id = %s"""
+        Args = (tradeID,)
+        response = utils.execute_db(Query,Args)
         return response
- 
+    
+    
 #--------Tests--------# 
 
 #Testing addTrade       
@@ -151,7 +65,7 @@ class Trade:
 #response = Trade.addTrade(testTrade)
 
 #Testing updateTrade
-#testTradeID = 2;
+#testTradeID = 3;
 #testUpdateTradeInfo = {
 #    "ticker_name": "QQQ",
 #    "pnl": 250
@@ -159,7 +73,7 @@ class Trade:
 #response = Trade.updateTrade(testTradeID,testUpdateTradeInfo)
 
 #Testing deleteTrade
-#testTradeID = 2
+#testTradeID = 7
 #response = Trade.deleteTrade(testTradeID)
 
 #Testing getTrade

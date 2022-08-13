@@ -1,7 +1,7 @@
 import json
 
 from matplotlib import ticker
-import mysql.connector
+import utils
 
 from sympy import sec
 
@@ -21,174 +21,63 @@ class User:
     
     def getUser(userID):
     
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
-
-            Query = """SELECT * FROM User WHERE user_id = %s"""
-            Args = (userID,)
-
-            cursor = connection.cursor()
-            cursor.execute(Query,Args)
-            result = cursor.fetchone() 
-            
-            print(result)
-            
-            print(cursor.rowcount, "User Retrieved successfully into User table")
-            response = "User Retrieved successfully into User table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Retrieve User in MySQL: {}".format(error))
-            response = "Failed to Retrieve User in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        Query = """SELECT * FROM User WHERE user_id = %s"""
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
         return response  
     
     def getUserTrades(userID):
         
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
-
-            Query = """SELECT * FROM Trade WHERE user_id = %s"""
-            Args = (userID,)
-
-            cursor = connection.cursor()
-            cursor.execute(Query,Args)
-            result = cursor.fetchall() 
-            
-            for x in result:
-                print(x)
-            
-            print(cursor.rowcount, "User's Trades Retrieved successfully into User table")
-            response = "User's Trades Retrieved successfully into User table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Retrieve User's Trades in MySQL: {}".format(error))
-            response = "Failed to Retrieve User's Trades in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        Query = """SELECT * FROM Trade WHERE user_id = %s"""
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
         return response  
     
     def addUser(newUser):
-        
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
 
-            Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-            Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
+        Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)
-
-            cursor = connection.cursor()
-            result = cursor.execute(Query,Args)
-            connection.commit()
-            
-            print(cursor.rowcount, "User Added successfully into User table")
-            response = "User Added successfully into User table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Add User in MySQL: {}".format(error))
-            response = "Failed to Add User in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        response = utils.execute_db(Query,Args)
         return response
         
     def updateUser(userID,changes):
         
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
+        response = ""
             
-            for key,value in changes.items():
+        for key,value in changes.items():
 
-                Query = """UPDATE User SET {} = %s WHERE user_id = %s""".format(key)
-                Args = (value,userID)
-
-                cursor = connection.cursor(dictionary=True)
-                result = cursor.execute(Query,Args)
-                connection.commit()
-
-            print("User Updated successfully into User table")
-            response = "User Updated successfully into User table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Update User in MySQL: {}".format(error))
-            response = "Failed to Update User in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
+            Query = """UPDATE User SET {} = %s WHERE user_id = %s""".format(key)
+            Args = (value,userID)
+            response = utils.execute_db(Query,Args)
         
         return response
         
     def deleteUser(userID):
         
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                         database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
-
-            Query = """DELETE FROM User WHERE user_id = %s"""
-            Args = (userID,)
-
-            cursor = connection.cursor()
-            result = cursor.execute(Query,Args)
-            connection.commit()
-
-            print("User Deleted successfully from User table")
-            response = "User Deleted successfully from User table"
-            cursor.close()
-
-        except mysql.connector.Error as error:
-            print("Failed to Delete User in MySQL: {}".format(error))
-            response = "Failed to Delete User in MySQL: {}".format(error)
-        finally:
-            if connection.is_connected():
-                connection.close()
-                print("MySQL connection is closed")
-        
+        Query = """DELETE FROM User WHERE user_id = %s"""
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
         return response
+ 
  
 #--------Tests--------# 
 
 #Testing addUser       
-#testUser = User(None,"Jon","Palmiero","08-30-2020","palmierijon@gmail.com","password","11 Danand Lane","Patterson","NY","USA")
+#testUser = User(None,"Jon","Palmiery","08-30-2020","palmierijon@gmail.com","password","11 Danand Lane","Patterson","NY","USA")
 #response = User.addUser(testUser)
 
 #Testing updateUser
-#testUserID = 3;
+#testUserID = 4;
 #testUpdateUserInfo = {
-#    "birthday": "08-30-1998",
+#    "last_name": "Palmieri",
 #    "password": "testestest20"
 #}
 #response = User.updateUser(testUserID,testUpdateUserInfo)
 
 #Testing deleteUser
-#testUserID = 3
+#testUserID = 4
 #response = User.deleteUser(testUserID)
 
 #Testing getUser
@@ -196,8 +85,8 @@ class User:
 #response = User.getUser(testUserID)
 
 #Testing getUserTrades
-#testUserID = 1
-#response = User.getUserTrades(testUserID)
+testUserID = 1
+response = User.getUserTrades(testUserID)
 
 #print(response)
     
