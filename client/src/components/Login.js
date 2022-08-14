@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux'
 import { authenticate } from '../store/auth'
 import '../styles/login.css'
 
+
 export default function Login() {
   const dispatch = useDispatch();
   const [username, setUsername] = useState('');
@@ -20,7 +21,8 @@ export default function Login() {
       <p>Username</p>
       <input type='text' autoCapitalize='none' required />
       <p>Password</p>
-      <input type='text' className='password' autoCapitalize='none' required />
+      <input type='password' autoCapitalize='none' required />
+      <button className='submit'>Submit</button>
     </div>
   )
 }
