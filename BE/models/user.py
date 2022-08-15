@@ -85,8 +85,8 @@ class User:
 #response = User.getUser(testUserID)
 
 #Testing getUserTrades
-testUserID = 1
-response = User.getUserTrades(testUserID)
+#testUserID = 1
+#response = User.getUserTrades(testUserID)
 
 #print(response)
     
