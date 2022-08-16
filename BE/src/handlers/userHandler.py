@@ -16,23 +16,26 @@ def registerUser(response):
     response = user.User.addUser(newUser)
     return response
 
-#def changePassword(newPassJSON):
-#    response = 
-#    return response
+def changePassword(response):
+    #
+    response = user.User.updateUser(userID,changes)
+    return response
 
 #--------Tests--------# 
 
 #Testing registerUser()
-testUserDict = {
-    "first_name": "Stevie",
-    "last_name": "Wonder",
-    "birthday": "12-31-2014",
-    "email": "jpballer20@gmail.com",
-    "password": "testpassword",
-    "street_address": "25 Lenox Hill Rd",
-    "city": "Brewster",
-    "state": "MD",
-    "country": "US",
-}
-testUserJSON = json.dumps(testUserDict)
-response = registerUser(testUserJSON)
+#testUserDict = {
+#    "first_name": "Stevie",
+#    "last_name": "Wonder",
+#    "birthday": "12-31-2014",
+#    "email": "jpballer20@gmail.com",
+#    "password": "testpassword",
+#    "street_address": "25 Lenox Hill Rd",
+#    "city": "Brewster",
+#    "state": "MD",
+#    "country": "US",
+#}
+#testUserJSON = json.dumps(testUserDict)
+#response = registerUser(testUserJSON)
+
+#Testing changePassword()
