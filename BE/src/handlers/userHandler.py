@@ -7,7 +7,6 @@ import hashlib
 
 def registerUser(response):
     newUser_info = json.loads(response)
-    #hash PW and set user object based on user dict values
     if 'password' in newUser_info:
         hashPass = hashlib.sha256(newUser_info['password'].encode()).hexdigest()
     newUser = user.User(None,newUser_info['first_name'],newUser_info['last_name'],newUser_info['birthday'],
