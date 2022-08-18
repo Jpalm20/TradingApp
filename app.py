@@ -1,9 +1,18 @@
 from flask import Flask
+from flask import request
+import src.handlers.userHandler as userHandler
+
 app = Flask(__name__)
 
 @app.route('/')
 def hello_geek():
-    return '<h1>Hello from Flask & Docker</h2>'
+    return 'Health Check'
+
+@app.route('/user/register',methods = ['POST'])
+def register_user():
+    if request.method == 'POST':
+        return userHandler.registerUser(request.json)
+        
 
 
 if __name__ == "__main__":

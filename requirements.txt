@@ -1,1 +1,3 @@
-Flask
+flask
+mysql-client
+mysql-connector-python

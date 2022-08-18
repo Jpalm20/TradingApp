@@ -1,12 +1,17 @@
+import os
 import sys
-sys.path.append("/Users/jp/Documents/TradingApp/TradingApp/BE/models")
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
 import user
 
 import json
 import hashlib
 
-def registerUser(response):
-    newUser_info = json.loads(response)
+def registerUser(requestBody):
+    newUser_info1 = json.dumps(requestBody)
+    newUser_info = json.loads(newUser_info1)
     if 'password' in newUser_info:
         hashPass = hashlib.sha256(newUser_info['password'].encode()).hexdigest()
     newUser = user.User(None,newUser_info['first_name'],newUser_info['last_name'],newUser_info['birthday'],
@@ -38,3 +43,5 @@ def changePassword(response):
 #response = registerUser(testUserJSON)
 
 #Testing changePassword()
+
+#print(response)

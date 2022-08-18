@@ -3,10 +3,11 @@ import mysql.connector
 def execute_db(query,args):
     
     try:
-            connection = mysql.connector.connect(host='localhost',
+            connection = mysql.connector.connect(host='docker.for.mac.localhost',
+                                         port=3306,
                                          database='TradingApp',
-                                         user='root',
-                                         password='tRaDiNgApP25!')
+                                         user='jp',
+                                         password='LOCAL.MYSQL.PASSWORD')
 
             cursor = connection.cursor(dictionary=True)
             cursor.execute(query,args)
