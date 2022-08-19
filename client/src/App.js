@@ -8,26 +8,20 @@ import Signup from "./components/Signup";
 
 
 export default function App() {
-  const dispatch = useDispatch();
+/*  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const isLoggedIn = !!user;
 
   useEffect(() => {
     dispatch(me());
   }, []);
-
+*/
   return (
     <Router>
-      {isLoggedIn ? (
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      ) : (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Routes>
-      )}
     </Router>
   );
 }
