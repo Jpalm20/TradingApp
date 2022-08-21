@@ -6,23 +6,23 @@ import '../styles/login.css'
 
 export default function Login() {
   const dispatch = useDispatch();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const formName = 'login';
-    dispatch(authenticate({username, password, formName}));
+    dispatch(authenticate({email, password, formName}));
   }
 
   return (
     <div className='container'>
       <h1>Log in</h1>
-      <p>Username</p>
-      <input type='text' autoCapitalize='none' required />
+      <p>Email</p>
+      <input type='text' autoCapitalize='none' required onChange={(e)=>setEmail(e.target.value)}/>
       <p>Password</p>
-      <input type='password' autoCapitalize='none' required />
-      <button className='submit'>Submit</button>
+      <input type='password' autoCapitalize='none' required onChange={(e)=>setPassword(e.target.value)}/>
+      <button className='submit' onClick={handleSubmit}>Submit</button>
     </div>
   )
 }

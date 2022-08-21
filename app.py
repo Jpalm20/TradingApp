@@ -14,7 +14,11 @@ def hello_geek():
 def register_user():
     if request.method == 'POST':
         return userHandler.registerUser(request.json)
-        
+
+@app.route('/user/login',methods = ['POST'])
+def validate_user():
+    if request.method == 'POST':
+        return userHandler.validateUser(request.json)       
 
 
 if __name__ == "__main__":

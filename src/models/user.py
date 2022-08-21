@@ -14,10 +14,17 @@ class User:
         self.state = state
         self.country = country
     
-    def getUser(userID):
+    def getUserbyID(userID):
     
         Query = """SELECT * FROM User WHERE user_id = %s"""
         Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        return response  
+    
+    def getUserbyEmail(userEmail):
+        
+        Query = """SELECT * FROM User WHERE email = %s"""
+        Args = (userEmail,)
         response = utils.execute_db(Query,Args)
         return response  
     
@@ -75,9 +82,13 @@ class User:
 #testUserID = 4
 #response = User.deleteUser(testUserID)
 
-#Testing getUser
+#Testing getUserbyID
 #testUserID = 2
 #response = User.getUser(testUserID)
+
+#Test getUserbyEmail
+#testUserEmail = "testemail@gmail.com"   
+#response = User.getUserbyEmail(testUserEmail)
 
 #Testing getUserTrades
 #testUserID = 1
