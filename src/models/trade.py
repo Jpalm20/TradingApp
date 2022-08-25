@@ -1,9 +1,4 @@
-import json
 import utils
-
-from matplotlib import ticker
-
-from sympy import sec
 
 class Trade:
     
@@ -46,7 +41,7 @@ class Trade:
 
             Query = """UPDATE Trade SET {} = %s WHERE trade_id = %s""".format(key)
             Args = (value,tradeID)
-            response = response + '\n' + utils.execute_db(Query,Args)
+            response = response + '\n' + str(utils.execute_db(Query,Args)[0])
         
         return response
         

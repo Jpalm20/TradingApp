@@ -12,8 +12,9 @@ def execute_db(query,args):
             cursor = connection.cursor(dictionary=True)
             cursor.execute(query,args)
             result = cursor.fetchall() 
+            id = cursor.lastrowid
             connection.commit()
-            response = result
+            response = result,id
             cursor.close()
 
     except mysql.connector.Error as error:
