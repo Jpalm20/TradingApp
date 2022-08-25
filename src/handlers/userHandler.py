@@ -11,6 +11,11 @@ import json
 import hashlib
 
 def registerUser(requestBody):
+    response = user.User.getUserbyEmail(requestBody['email'])
+    if response[0] and 'email' in response[0][0]:
+        return {
+            "result": "A User with this Email Already Exist, User a Different Email"
+        }, 403
     if 'password' in requestBody:
         hashPass = hashlib.sha256(requestBody['password'].encode()).hexdigest()
     newUser = user.User(None,requestBody['first_name'],requestBody['last_name'],requestBody['birthday'],
@@ -106,18 +111,18 @@ def getUserTrades(user_id):
 #--------Tests--------# 
 
 #Testing registerUser()
-#testUserDict = {
-#    "first_name": "Stevie",
-#    "last_name": "Wonder",
-#    "birthday": "12-31-2014",
-#    "email": "jpballer20@gmail.com",
-#    "password": "testpassword",
-#    "street_address": "25 Lenox Hill Rd",
-#    "city": "Brewster",
-#    "state": "MD",
-#    "country": "US",
-#}
-#response = registerUser(testUserDict)
+testUserDict = {
+    "first_name": "Stevie",
+    "last_name": "Wonder",
+    "birthday": "12-31-2014",
+    "email": "xxx@gmail.com",
+    "password": "testpassword",
+    "street_address": "25 Lenox Hill Rd",
+    "city": "Brewster",
+    "state": "MD",
+    "country": "US",
+}
+response = registerUser(testUserDict)
 
 #Testing validateUser()
 #testUserDict = {
@@ -142,4 +147,4 @@ def getUserTrades(user_id):
 #Testing getUserTrades()
 #response = getUserTrades(1)
 
-#print(response)
+print(response)
