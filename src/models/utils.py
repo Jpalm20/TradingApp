@@ -1,9 +1,9 @@
 import mysql.connector
 
 def execute_db(query,args):
-#docker.for.mac.
+
     try:
-            connection = mysql.connector.connect(host='localhost',
+            connection = mysql.connector.connect(host='docker.for.mac.localhost',
                                          port=3306,
                                          database='TradingApp',
                                          user='jp',

@@ -5,19 +5,24 @@ script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import user
-import utils
 
-import json
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'validators',)
+sys.path.append( mymodule_dir )
+import userValidator
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'transformers',)
+sys.path.append( mymodule_dir )
+import userTransformer
+
 import hashlib
 
 def registerUser(requestBody):
-    response = user.User.getUserbyEmail(requestBody['email'])
-    if response[0] and 'email' in response[0][0]:
-        return {
-            "result": "A User with this Email Already Exist, User a Different Email"
-        }, 403
-    if 'password' in requestBody:
-        hashPass = hashlib.sha256(requestBody['password'].encode()).hexdigest()
+    response = userValidator.validateNewUser(requestBody)
+    if response != True:
+        return response
+    hashPass = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestBody['first_name'],requestBody['last_name'],requestBody['birthday'],
                         requestBody['email'],hashPass,requestBody['street_address'],
                         requestBody['city'],requestBody['state'],requestBody['country'])
@@ -40,14 +45,14 @@ def registerUser(requestBody):
 def validateUser(requestBody):
     response = user.User.getUserbyEmail(requestBody['email'])
     if 'password' in response[0][0]:
-        hashPass = hashlib.sha256(requestBody['password'].encode()).hexdigest()
+        hashPass = userTransformer.transformNewUser(requestBody)
         if response[0][0]['password'] == hashPass:
             return {
                 "result": "User " + str(response[0][0]['user_id']) + " Found, Logging In"
             }
         else:
             return {
-                "result": "No User Found with these Credentials, Please Try Again"
+                "result": "Incorrect Password, Please Try Again"
             }, 403
     else:
         return {
@@ -111,22 +116,22 @@ def getUserTrades(user_id):
 #--------Tests--------# 
 
 #Testing registerUser()
-testUserDict = {
-    "first_name": "Stevie",
-    "last_name": "Wonder",
-    "birthday": "12-31-2014",
-    "email": "xxx@gmail.com",
-    "password": "testpassword",
-    "street_address": "25 Lenox Hill Rd",
-    "city": "Brewster",
-    "state": "MD",
-    "country": "US",
-}
-response = registerUser(testUserDict)
+#testUserDict = {
+#    "first_name": "Stevie",
+#    "last_name": "Wonder",
+#    "birthday": "12-31-2014",
+#    "email": "xxxxxx@gmail.com",
+#    "password": "testpassword",
+#    "street_address": "25 Lenox Hill Rd",
+#    "city": "Brewster",
+#    "state": "MD",
+#    "country": "US",
+#}
+#response = registerUser(testUserDict)
 
 #Testing validateUser()
 #testUserDict = {
-#    "email": "testemail@gmail.com",
+#    "email": "xxxxxx@gmail.com",
 #    "password": "testpassword",
 #}
 #response = validateUser(testUserDict)
@@ -147,4 +152,4 @@ response = registerUser(testUserDict)
 #Testing getUserTrades()
 #response = getUserTrades(1)
 
-print(response)
+#print(response)

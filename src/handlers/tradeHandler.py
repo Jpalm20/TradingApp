@@ -6,9 +6,6 @@ mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import trade
 
-import json
-import hashlib
-
 def logTrade(requestBody):
     newTrade = trade.Trade(None,requestBody['user_id'],requestBody['trade_type'],requestBody['security_type'],
                         requestBody['ticker_name'],requestBody['expiry'],requestBody['strike'],
