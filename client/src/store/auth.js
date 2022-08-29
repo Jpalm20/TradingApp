@@ -26,7 +26,7 @@ export const register = createAsyncThunk(
   "auth/register",
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
-      const { first_name, last_name, birthday, email, password, street_address, city, state, country, formName } = formInfo;
+      const { first_name, last_name, birthday, email, password, street_address, city, state, country } = formInfo;
       const res = await axios.post(`http://localhost:8080/user/register`, {
         first_name,
         last_name,
@@ -51,7 +51,7 @@ export const authenticate = createAsyncThunk(
   "auth/authenticate",
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
-      const { email, password, formName } = formInfo;
+      const { email, password } = formInfo;
       const res = await axios.post(`http://localhost:8080/user/login`, {
         email,
         password,
