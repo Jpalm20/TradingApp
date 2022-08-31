@@ -10,7 +10,8 @@ import hashlib
 
 def transformNewUser(request):
     hashPass = hashPassword(request['password'])
-    return hashPass
+    request['password'] = hashPass
+    return request
 
 def hashPassword(password):
     hashPass = hashlib.sha256(password.encode()).hexdigest()

@@ -6,11 +6,25 @@ mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import trade
 
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'validators',)
+sys.path.append( mymodule_dir )
+import tradeValidator
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'transformers',)
+sys.path.append( mymodule_dir )
+import tradeTransformer
+
 def logTrade(requestBody):
-    newTrade = trade.Trade(None,requestBody['user_id'],requestBody['trade_type'],requestBody['security_type'],
-                        requestBody['ticker_name'],requestBody['expiry'],requestBody['strike'],
-                        requestBody['buy_value'],requestBody['units'],requestBody['rr'],requestBody['pnl'],
-                        requestBody['percent_wl'],requestBody['comments'])
+    response = tradeValidator.validateNewTrade(requestBody)
+    if response != True:
+        return response
+    requestTransformed = tradeTransformer.transformNewTrade(requestBody)
+    newTrade = trade.Trade(None,requestTransformed['user_id'],requestTransformed['trade_type'],requestTransformed['security_type'],
+                        requestTransformed['ticker_name'],requestTransformed['expiry'],requestTransformed['strike'],
+                        requestTransformed['buy_value'],requestTransformed['units'],requestTransformed['rr'],requestTransformed['pnl'],
+                        requestTransformed['percent_wl'],requestTransformed['comments'])
     response = trade.Trade.addTrade(newTrade)
     if response[0]:
         return response, 400

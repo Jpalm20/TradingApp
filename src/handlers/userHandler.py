@@ -22,10 +22,10 @@ def registerUser(requestBody):
     response = userValidator.validateNewUser(requestBody)
     if response != True:
         return response
-    hashPass = userTransformer.transformNewUser(requestBody)
-    newUser = user.User(None,requestBody['first_name'],requestBody['last_name'],requestBody['birthday'],
-                        requestBody['email'],hashPass,requestBody['street_address'],
-                        requestBody['city'],requestBody['state'],requestBody['country'])
+    requestTransformed = userTransformer.transformNewUser(requestBody)
+    newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
+                        requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'])
     response = user.User.addUser(newUser)
     if response[0]:
         return response, 400
