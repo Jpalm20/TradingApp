@@ -13,7 +13,7 @@ const initialState = {
 export const me = createAsyncThunk("auth/me", async () => {
   const token = await window.localStorage.getItem(TOKEN)
   if (token) {
-    const res = await axios.get("http://localhost:8080/auth/me", {
+    const res = await axios.get("http://localhost:8080/", {
       headers: {
         authorization: token,
       },

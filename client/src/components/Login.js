@@ -30,8 +30,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // const handleShowClick = () => setShowPassword(!showPassword);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(authenticate({ email, password }));
@@ -100,9 +98,7 @@ export default function Login() {
                   </Button>
                   </InputRightElement>
                 </InputGroup>
-                {/* <FormHelperText textAlign="right">
-                  <Link>forgot password?</Link>
-                </FormHelperText> */}
+
               </FormControl>
               <Button
                 borderRadius={0}

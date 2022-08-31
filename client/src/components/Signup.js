@@ -45,12 +45,12 @@ export default function Signup() {
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [birthday, setBirthday] = useState("");
-  const [email, setEmail] = useState();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState();
-  const [street_address, setStreetAddress] = useState();
-  const [city, setCity] = useState();
-  const [state, setState] = useState();
-  const [country, setCountry] = useState();
+  const [street_address, setStreetAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -159,25 +159,10 @@ export default function Signup() {
                     type="date"
                     max={maxDate}
                     min="1900-01-01"
-                    onChange={(e) => console.log(e.target.value)}
+                    onChange={(e) => setBirthday(e.target.value)}
                   />
                 </InputGroup>
               </FormControl>
-
-              {/* <Box display="flex">
-                <FormControl>
-                    <Input
-                      type="name"
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                </FormControl>
-                <FormControl>
-                    <Input
-                      type="name"
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                </FormControl>
-              </Box> */}
 
               <Button
                 borderRadius={0}

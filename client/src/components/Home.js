@@ -1,7 +1,8 @@
-import React from 'react'
+import React from 'react';
+import { Heading } from '@chakra-ui/react';
 
 export default function Home() {
   return (
-    <div>Home</div>
+    <Heading textAlign='center'>Home Page</Heading>
   )
 }
