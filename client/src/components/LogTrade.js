@@ -1,54 +1,294 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { create } from '../store/trade.js'   
+import { useSelector, useDispatch } from "react-redux";
+import { create , reset} from '../store/trade'
+import { Link as RouterLink, useNavigate} from "react-router-dom";
+// import { Link } from "react-router-dom";   
 
-export default function LogTrade() {
+import {
+  Flex,
+  Text,
+  Center,
+  Heading,
+  Input,
+  Button,
+  InputGroup,
+  Stack,
+  InputLeftElement,
+  Textarea,
+  Select,
+  chakra,
+  Box,
+  Link,
+  Avatar,
+  FormControl,
+  FormHelperText,
+  InputRightElement,
+  ButtonGroup
+} from "@chakra-ui/react";
+import { FaUserAlt, FaLock } from "react-icons/fa";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+
+const CFaUserAlt = chakra(FaUserAlt);
+const CFaLock = chakra(FaLock);
+
+export default function LogTrade({ user }) {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [trade_type, setTradeType] = useState();
-  const [security_type, setSecurityType] = useState();
-  const [ticker_name, setTickerName] = useState();
-  const [expiry, setExpiry] = useState();
-  const [strike, setStrike] = useState();
-  const [buy_value, setBuyValue] = useState();
-  const [units, setUnits] = useState();
-  const [rr, setRR] = useState();
-  const [pnl, setPNL] = useState();
-  const [percent_wl, setPercentWL] = useState();
-  const [comments, setComments] = useState();
+  const { trade } = useSelector((state) => state.trade);
+  const tradeLogged = ((trade && Object.keys(trade).length > 2) ? (true):(false));
+
+  const user_id = user.user_id;
+  const [trade_type, setTradeType] = useState("");
+  const [security_type, setSecurityType] = useState("");
+  const [ticker_name, setTickerName] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [strike, setStrike] = useState("");
+  const [buy_value, setBuyValue] = useState("");
+  const [units, setUnits] = useState("");
+  const [rr, setRR] = useState("");
+  const [pnl, setPNL] = useState("");
+  const [percent_wl, setPercentWL] = useState("");
+  const [comments, setComments] = useState(""); 
 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formName = 'logTrade';
-    dispatch(create({trade_type,security_type,ticker_name,expiry,strike,buy_value,units,rr,pnl,percent_wl,comments}));
+    dispatch(
+      create({
+        user_id,
+        trade_type,
+        security_type,
+        ticker_name,
+        expiry,
+        strike,
+        buy_value,
+        units,
+        rr,
+        pnl,
+        percent_wl,
+        comments
+      })
+    );
   }
 
+  const handleAnswerYes = (e) => {
+    e.preventDefault();
+    dispatch(
+      reset()
+    );
+    navigate("/logTrade")
+  }
+
+  const handleAnswerNo = (e) => {
+    e.preventDefault();
+    dispatch(
+      reset()
+    );
+    navigate("/")
+  }
+
+  // grabbing current date to set a max to the birthday input
+  const currentDate = new Date();
+  let [month, day, year] = currentDate.toLocaleDateString().split("/");
+  // input max field must have 08 instead of 8
+  month = month.length === 2 ? month : "0" + month;
+  day = day.length === 2 ? day : "0" + day;
+  const maxDate = year + "-" + month + "-" + day;
+
   return (
-    <div className='container'>
-      <h1>Log A Trade</h1>
-      <p>Trade Type</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setTradeType(e.target.value)}/>
-      <p>Security Type</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setSecurityType(e.target.value)}/>
-      <p>Ticker</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setTickerName(e.target.value)}/>
-      <p>Expiry (If Options, Otherwise NULL)</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setExpiry(e.target.value)}/>
-      <p>Strike Price (If Options, Otherwise 0)</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setStrike(e.target.value)}/>
-      <p>Buy Value Per Share/Contract</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setBuyValue(e.target.value)}/>
-      <p>Number of Units</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setUnits(e.target.value)}/>
-      <p>Risk/Reward</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setRR(e.target.value)}/>
-      <p>PNL</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setPNL(e.target.value)}/>
-      <p>Percent Win or Loss</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setPercentWL(e.target.value)}/>
-      <p>Comments</p>
-      <input type='text' autoCapitalize='none' required onChange={(e)=>setComments(e.target.value)}/>
-      <button className='submit' onClick={handleSubmit}>Submit</button>
-    </div>
-  )
+    <Flex
+      flexDirection="column"
+      width="100wh"
+      height="100vh"
+      backgroundColor="gray.200"
+      justifyContent="center"
+      alignItems="center"
+    >
+      {!tradeLogged ? (
+      <Stack
+        flexDir="column"
+        mb="2"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Avatar bg="teal.500" />
+        <Heading color="teal.400">Log A Trade</Heading>
+        <Box minW={{ base: "90%", md: "468px" }}>
+          <form>
+            <Stack
+              spacing={4}
+              p="1rem"
+              backgroundColor="whiteAlpha.900"
+              boxShadow="md"
+            >
+              <Box display="flex">
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Trade Type' onChange={(e) => setTradeType(e.target.value)}>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Security Type' onChange={(e) => setSecurityType(e.target.value)}>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <Input type="name" onChange={(e) => setTickerName(e.target.value)} />
+                </FormControl>
+              </Box>
+              
+              <Box display="flex">
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Expiry (Options Only) *
+                </FormHelperText>
+                <Input
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setExpiry(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Strike Price (Options Only) *
+                </FormHelperText>
+                <InputGroup>
+                  <Input
+                    type="name"
+                    onChange={(e) => setStrike(e.target.value)}
+                  />
+                </InputGroup>
+              </FormControl>
+              </Box>
+
+              <Box display="flex">
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Average Cost *
+                  </FormHelperText>
+                  <Input
+                    type="name"
+                    onChange={(e) => setBuyValue(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    # of Units *
+                  </FormHelperText>
+                  <Input
+                    type="name"
+                    onChange={(e) => setUnits(e.target.value)}
+                  />
+              </FormControl>
+              </Box>
+
+              <Box display="flex">
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Risk/Reward Ratio *
+                  </FormHelperText>
+                  <Input
+                    type="name"
+                    onChange={(e) => setRR(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    PNL *
+                  </FormHelperText>
+                  <Input
+                    type="name"
+                    onChange={(e) => setPNL(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    % Win or Loss *
+                  </FormHelperText>
+                  <Input
+                    type="name"
+                    onChange={(e) => setPercentWL(e.target.value)}
+                  />
+              </FormControl>
+              </Box>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Comments *
+                  </FormHelperText>
+                  <Textarea placeholder='Reflect on your Trade...' onChange={(e) => setComments(e.target.value)}/>
+              </FormControl>
+
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full"
+                onClick={handleSubmit}
+              >
+                Create Trade Entry
+              </Button>
+            </Stack>
+          </form>
+        </Box>
+      </Stack>
+      ) : (
+      <Stack
+        flexDir="column"
+        mb="2"
+        justifyContent="center"
+        alignItems="center"
+        spacing={4}
+        p="1rem"
+        backgroundColor="whiteAlpha.900"
+        boxShadow="md"
+      >
+          <Center color="teal.400" >Trade Logged Successfully<br></br>Would You Like to Log Another?</Center>
+          <ButtonGroup gap='2'>
+            <Link as={RouterLink} to="/logTrade">
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full"
+                onClick={handleAnswerYes}
+              >
+                Yes
+              </Button>
+            </Link>
+            <Link as={RouterLink} to="/">
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full"
+                onClick={handleAnswerNo}
+              >
+                No
+              </Button>
+            </Link>
+          </ButtonGroup>
+      </Stack>
+      )}
+    </Flex>
+  );
 }

@@ -1,8 +1,4 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { register } from "../store/auth";
-// import { Link } from "react-router-dom";
-
+import React, { useState } from 'react';
 import {
   Flex,
   Text,
@@ -11,6 +7,7 @@ import {
   Button,
   InputGroup,
   Stack,
+  StackDivider,
   InputLeftElement,
   chakra,
   Select,
@@ -21,81 +18,134 @@ import {
   FormHelperText,
   InputRightElement,
 } from "@chakra-ui/react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link as RouterLink } from "react-router-dom"
+import { logout, update } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
-export default function Signup() {
+export default function UserProfile({ user }) {
   const dispatch = useDispatch();
-  /*
-  const [userInfo, setUserInfo] = useState({
-    first_name: "",
-    last_name: "",
-    birthday: "",
-    email: "",
-    street_address: "",
-    city: "",
-    state: "",
-    country: ""
-  })
-  */
-  const [showPassword, setShowPassword] = useState(false);
+  const user_id = user.user_id;
+  const [selectPage, setSelectPage] = useState(true);
+  const [updateInfo, selectUpdateInfo] = useState(false);
 
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [birthday, setBirthday] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState();
   const [street_address, setStreetAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleGotoUpdate = (e) => {
+    e.preventDefault();
+    setSelectPage(false);
+    selectUpdateInfo(true);
+  };
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    setSelectPage(true);
+    selectUpdateInfo(false);
+    dispatch(logout());
+  };
+
+  const handleUpdate = (e) => {
     e.preventDefault();
     dispatch(
-      register({
+      update({
+        user_id,
         first_name,
         last_name,
-        birthday, //birthday.join("-"), // if its XX-XX-XXXX format
         email,
-        password,
+        birthday,
         street_address,
         city,
         state,
-        country,
+        country
       })
     );
-  };
+    setSelectPage(true);
+    selectUpdateInfo(false);
+  }
 
-  // grabbing current date to set a max to the birthday input
-  const currentDate = new Date();
-  let [month, day, year] = currentDate.toLocaleDateString().split("/");
-  // input max field must have 08 instead of 8
-  month = month.length === 2 ? month : "0" + month;
-  day = day.length === 2 ? day : "0" + day;
-  const maxDate = year + "-" + month + "-" + day;
+  const handleCancel = (e) => {
+    e.preventDefault();
+    setSelectPage(true);
+    selectUpdateInfo(false);
+  }
+
+    // grabbing current date to set a max to the birthday input
+    const currentDate = new Date();
+    let [month, day, year] = currentDate.toLocaleDateString().split("/");
+    // input max field must have 08 instead of 8
+    month = month.length === 2 ? month : "0" + month;
+    day = day.length === 2 ? day : "0" + day;
+    const maxDate = year + "-" + month + "-" + day;
 
   return (
-    <Flex
-      flexDirection="column"
-      width="100wh"
-      height="100vh"
-      backgroundColor="gray.200"
-      justifyContent="center"
-      alignItems="center"
-    >
-      <Stack
-        flexDir="column"
-        mb="2"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Avatar bg="teal.500" />
-        <Heading color="teal.400">Create an account</Heading>
-        <Box minW={{ base: "90%", md: "468px" }}>
+    selectPage ? (
+        <Flex
+          flexDirection="column"
+          width="100wh"
+          height="100vh"
+          backgroundColor="gray.200"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Stack
+            flexDir="column"
+            mb="2"
+            justifyContent="center"
+            alignItems="center"
+          >
+          <Avatar bg="teal.500" />
+          <Heading color="teal.400">Profile Page</Heading>
+          <Box minW={{ base: "90%", md: "250px" }}>
+            <Stack
+              spacing={4}
+              p="1rem"
+              backgroundColor="whiteAlpha.900"
+              boxShadow="md"
+              align='center'
+            >
+            <Link as={RouterLink} to="/">
+              <Button colorScheme='teal' border='1px' borderColor='black' onClick={handleGotoUpdate}>
+                Update Information
+              </Button>
+            </Link>
+            <Link as={RouterLink} to="/">
+              <Button colorScheme='teal' border='1px' borderColor='black' onClick={handleLogout}>
+                Logout
+              </Button>
+            </Link>
+            </Stack>
+          </Box>
+          </Stack>
+        </Flex>
+    ) : updateInfo ? (
+        <Flex
+          flexDirection="column"
+          width="100wh"
+          height="100vh"
+          backgroundColor="gray.200"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Stack
+            flexDir="column"
+            mb="2"
+            justifyContent="center"
+            alignItems="center"
+          >
+          <Avatar bg="teal.500" />
+          <Heading color="teal.400">Update Information</Heading>
+          <Box minW={{ base: "90%", md: "468px" }}>
           <form>
             <Stack
               spacing={4}
@@ -128,27 +178,6 @@ export default function Signup() {
                   Email *
                 </FormHelperText>
                 <Input type="name" onChange={(e) => setEmail(e.target.value)} />
-              </FormControl>
-              <FormControl>
-                <FormHelperText mb={2} ml={1}>
-                  Password *
-                </FormHelperText>
-                <InputGroup>
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <InputRightElement width="4.5rem">
-                    <Button
-                      variant={"ghost"}
-                      onClick={() =>
-                        setShowPassword((showPassword) => !showPassword)
-                      }
-                    >
-                      {showPassword ? <ViewIcon /> : <ViewOffIcon />}
-                    </Button>
-                  </InputRightElement>
-                </InputGroup>
               </FormControl>
 
               <FormControl>
@@ -265,20 +294,29 @@ export default function Signup() {
                 variant="solid"
                 colorScheme="teal"
                 width="full"
-                onClick={handleSubmit}
+                onClick={handleUpdate}
               >
-                Create account
+                Confirm Update
+              </Button>
+
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full"
+                onClick={handleCancel}
+              >
+                Cancel
               </Button>
             </Stack>
           </form>
-        </Box>
-      </Stack>
-      <Box>
-        Already have an account?{" "}
-        <Link color="teal.500" href="/login">
-          Log in
-        </Link>
-      </Box>
-    </Flex>
-  );
+          </Box>
+            
+          </Stack>
+        </Flex>   
+    ) : (
+      <Heading textAlign='center' backgroundColor="gray.200"> Error</Heading>
+    )
+  )
 }

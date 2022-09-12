@@ -26,7 +26,7 @@ export const register = createAsyncThunk(
   "auth/register",
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
-      const { first_name, last_name, birthday, email, password, street_address, city, state, country, formName } = formInfo;
+      const { first_name, last_name, birthday, email, password, street_address, city, state, country } = formInfo;
       const res = await axios.post(`http://localhost:8080/user/register`, {
         first_name,
         last_name,
@@ -40,6 +40,7 @@ export const register = createAsyncThunk(
       });
       await window.localStorage.setItem(TOKEN, res.data.token)
       //dispatch(me());
+      return res.data
     } catch (error) {
       console.error(error);
       return rejectWithValue(error);
@@ -51,13 +52,38 @@ export const authenticate = createAsyncThunk(
   "auth/authenticate",
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
-      const { email, password, formName } = formInfo;
+      const { email, password } = formInfo;
       const res = await axios.post(`http://localhost:8080/user/login`, {
         email,
         password,
       });
       await window.localStorage.setItem(TOKEN, res.data.token);
       //dispatch(me());
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const update = createAsyncThunk(
+  "auth/update",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { user_id, first_name, last_name, email, street_address, city, state, country } = formInfo;
+      const res = await axios.post(`http://localhost:8080/user/${user_id}`, {
+        first_name,
+        last_name,
+        email,
+        street_address,
+        city,
+        state,
+        country
+      });
+      await window.localStorage.setItem(TOKEN, res.data.token);
+      //dispatch(me());
+      return res.data
     } catch (error) {
       console.error(error);
       return rejectWithValue(error);
@@ -76,6 +102,7 @@ const authSlice = createSlice({
   extraReducers: {
     [me.fulfilled]: (state, action) => {
       state.user = action.payload;
+      state.success = true;
     },
     [register.fulfilled]: (state, action) => {
       state.loading = false;
@@ -97,6 +124,17 @@ const authSlice = createSlice({
       state.loading = true;
     },
     [authenticate.rejected]: (state) => {
+      state.error = true;
+    },
+    [update.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.user = action.payload;
+    },
+    [update.pending]: (state) => {
+      state.loading = true;
+    },
+    [update.rejected]: (state) => {
       state.error = true;
     },
     [logout.fulfilled]: (state) => {
