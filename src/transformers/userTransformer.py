@@ -16,3 +16,10 @@ def transformNewUser(request):
 def hashPassword(password):
     hashPass = hashlib.sha256(password.encode()).hexdigest()
     return hashPass
+
+def transformEditUser(request):
+    transformedRequest = {}
+    for key in request:
+        if request[key] != "":
+            transformedRequest[key] = request[key]
+    return transformedRequest

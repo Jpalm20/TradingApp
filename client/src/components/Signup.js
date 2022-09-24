@@ -95,7 +95,7 @@ export default function Signup() {
       >
         <Avatar bg="teal.500" />
         <Heading color="teal.400">Create an account</Heading>
-        <Box minW={{ base: "90%", md: "468px" }}>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
           <form>
             <Stack
               spacing={4}

@@ -4,6 +4,7 @@ import axios from "axios";
 const TOKEN = "token";
 
 const initialState = {
+  trades: [],
   user: {},
   success: false,
   error: false,
@@ -91,6 +92,22 @@ export const update = createAsyncThunk(
   }
 );
 
+export const getTrades = createAsyncThunk(
+  "auth/getTrades",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { user_id } = formInfo;
+      const res = await axios.get(`http://localhost:8080/user/trades/${user_id}`);
+      await window.localStorage.setItem(TOKEN, res.data.token);
+      //dispatch(me());
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const logout = createAsyncThunk("auth/logout", async () => {
   await window.localStorage.removeItem(TOKEN);
 });
@@ -103,6 +120,16 @@ const authSlice = createSlice({
     [me.fulfilled]: (state, action) => {
       state.user = action.payload;
       state.success = true;
+    },
+    [getTrades.fulfilled]: (state, action) => {
+      state.trades = action.payload;
+      state.success = true;
+    },
+    [getTrades.pending]: (state) => {
+      state.loading = true;
+    },
+    [getTrades.rejected]: (state) => {
+      state.error = true;
     },
     [register.fulfilled]: (state, action) => {
       state.loading = false;
@@ -140,6 +167,7 @@ const authSlice = createSlice({
     [logout.fulfilled]: (state) => {
       state.success = false;
       state.user = null;
+      state.trades = null;
     },
   },
 });

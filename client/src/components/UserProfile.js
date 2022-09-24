@@ -16,6 +16,8 @@ import {
   Avatar,
   FormControl,
   FormHelperText,
+  Badge,
+  Center,
   InputRightElement,
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
@@ -42,6 +44,17 @@ export default function UserProfile({ user }) {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
 
+  function clearFormStates() {
+    setFirstName("");
+    setLastName("");
+    setBirthday("");
+    setEmail("");
+    setStreetAddress("");
+    setCity("");
+    setState("");
+    setCountry("");
+  }
+
   const handleGotoUpdate = (e) => {
     e.preventDefault();
     setSelectPage(false);
@@ -55,9 +68,9 @@ export default function UserProfile({ user }) {
     dispatch(logout());
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    dispatch(
+    await dispatch(
       update({
         user_id,
         first_name,
@@ -70,12 +83,14 @@ export default function UserProfile({ user }) {
         country
       })
     );
+    clearFormStates();
     setSelectPage(true);
     selectUpdateInfo(false);
   }
 
   const handleCancel = (e) => {
     e.preventDefault();
+    clearFormStates();
     setSelectPage(true);
     selectUpdateInfo(false);
   }
@@ -106,20 +121,72 @@ export default function UserProfile({ user }) {
           >
           <Avatar bg="teal.500" />
           <Heading color="teal.400">Profile Page</Heading>
-          <Box minW={{ base: "90%", md: "250px" }}>
+          <Box minW={{ base: "90%", md: "250px" }} rounded="lg" overflow="hidden">
             <Stack
               spacing={4}
               p="1rem"
               backgroundColor="whiteAlpha.900"
               boxShadow="md"
-              align='center'
             >
-            <Link as={RouterLink} to="/">
+
+              <Box display="flex" justifyContent={"left"}>
+              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
+                <Center h='40px'>
+                  Full Name
+                </Center>
+              </Badge>
+              <Text as='b'>
+                <Center h='40px'>
+                  &nbsp;: {user.first_name} {user.last_name}
+                </Center>
+              </Text>
+              </Box>
+              
+
+              <Box display="flex" justifyContent={"left"}>
+              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
+                <Center h='40px'>
+                  Birthday
+                </Center>
+              </Badge>
+              <Text as='b'>
+                <Center h='40px'>
+                  &nbsp;: {user.birthday}&nbsp;&nbsp;
+                </Center>
+              </Text>
+              </Box>
+             
+              <Box display="flex">
+              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
+                <Center h='40px'>
+                  Email
+                </Center>
+              </Badge>
+              <Text as='b'>
+                <Center h='40px'>
+                  &nbsp;: {user.email}
+                </Center>
+              </Text>
+              </Box>
+              
+            <Box display="flex" justifyContent={"left"}>
+              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
+                <Center h='40px'>
+                  Address
+                </Center>
+              </Badge>
+              <Text as='b'>
+                <Center h='40px'>
+                  &nbsp;: {user.street_address}, {user.city}, {user.state}, {user.country}
+                </Center>
+              </Text>
+            </Box>
+            <Link as={RouterLink} to="/" align='center'>
               <Button colorScheme='teal' border='1px' borderColor='black' onClick={handleGotoUpdate}>
                 Update Information
               </Button>
             </Link>
-            <Link as={RouterLink} to="/">
+            <Link as={RouterLink} to="/" align='center'>
               <Button colorScheme='teal' border='1px' borderColor='black' onClick={handleLogout}>
                 Logout
               </Button>
@@ -145,7 +212,7 @@ export default function UserProfile({ user }) {
           >
           <Avatar bg="teal.500" />
           <Heading color="teal.400">Update Information</Heading>
-          <Box minW={{ base: "90%", md: "468px" }}>
+          <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
           <form>
             <Stack
               spacing={4}
@@ -160,6 +227,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    placeholder={user.first_name}
                     onChange={(e) => setFirstName(e.target.value)}
                   />
                 </FormControl>
@@ -169,6 +237,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    placeholder={user.last_name}
                     onChange={(e) => setLastName(e.target.value)}
                   />
                 </FormControl>
@@ -177,7 +246,7 @@ export default function UserProfile({ user }) {
                 <FormHelperText mb={2} ml={1}>
                   Email *
                 </FormHelperText>
-                <Input type="name" onChange={(e) => setEmail(e.target.value)} />
+                <Input type="name" placeholder={user.email} onChange={(e) => setEmail(e.target.value)} />
               </FormControl>
 
               <FormControl>
@@ -186,7 +255,9 @@ export default function UserProfile({ user }) {
                 </FormHelperText>
                 <InputGroup>
                   <Input
-                    type="date"
+                    placeholder={user.birthday}
+                    onFocus={(e) => (e.target.type = "date")}
+                    onBlur={(e) => (e.target.type = "text")}
                     max={maxDate}
                     min="1900-01-01"
                     onChange={(e) => setBirthday(e.target.value)}
@@ -201,6 +272,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    placeholder={user.street_address}
                     onChange={(e) => setStreetAddress(e.target.value)}
                   />
               </FormControl>
@@ -211,6 +283,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    placeholder={user.city}
                     onChange={(e) => setCity(e.target.value)}
                   />
               </FormControl>
@@ -221,7 +294,7 @@ export default function UserProfile({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     State *
                   </FormHelperText>
-                  <Select placeholder='Select State' onChange={(e) => setState(e.target.value)}>
+                  <Select placeholder={user.state} onChange={(e) => setState(e.target.value)}>
                     <option>AL</option>
                     <option>AK</option>
                     <option>AZ</option>
@@ -280,7 +353,7 @@ export default function UserProfile({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Country *
                   </FormHelperText>
-                  <Select placeholder='Select Country' onChange={(e) => setCountry(e.target.value)}>
+                  <Select placeholder={user.country} onChange={(e) => setCountry(e.target.value)}>
                     <option>United Arab Emirates</option>
                     <option>Nigeria</option>
                     <option>United States</option>

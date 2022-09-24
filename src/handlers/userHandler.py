@@ -85,7 +85,11 @@ def getExistingUser(user_id):
         return response, 400
 
 def editExistingUser(user_id,requestBody):
-    response = user.User.updateUser(user_id,requestBody)
+    response = userValidator.validateEditUser(requestBody)
+    if response != True:
+        return response
+    requestTransformed = userTransformer.transformEditUser(requestBody)
+    response = user.User.updateUser(user_id,requestTransformed)
     response = user.User.getUserbyID(user_id)
     if 'user_id' in response[0][0]:
         return {

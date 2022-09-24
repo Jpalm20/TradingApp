@@ -67,7 +67,11 @@ def getExistingTrade(trade_id):
         return response, 400
 
 def editExistingTrade(trade_id,requestBody):
-    response = trade.Trade.updateTrade(trade_id,requestBody)
+    response = tradeValidator.validateEditTrade(requestBody)
+    if response != True:
+        return response
+    requestTransformed = tradeTransformer.transformEditTrade(requestBody)
+    response = trade.Trade.updateTrade(trade_id,requestTransformed)
     response = trade.Trade.getTrade(trade_id)
     if 'trade_id' in response[0][0]:
         return {

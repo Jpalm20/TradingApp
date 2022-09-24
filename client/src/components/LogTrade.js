@@ -37,6 +37,8 @@ export default function LogTrade({ user }) {
   const { trade } = useSelector((state) => state.trade);
   const tradeLogged = ((trade && Object.keys(trade).length > 2) ? (true):(false));
 
+  const [visib, setVisib] = useState(true);
+
   const user_id = user.user_id;
   const [trade_type, setTradeType] = useState("");
   const [security_type, setSecurityType] = useState("");
@@ -50,10 +52,37 @@ export default function LogTrade({ user }) {
   const [percent_wl, setPercentWL] = useState("");
   const [comments, setComments] = useState(""); 
 
+  function clearFormStates() {
+    setTradeType("");
+    setSecurityType("");
+    setTickerName("");
+    setExpiry("");
+    setStrike("");
+    setBuyValue("");
+    setUnits("");
+    setRR("");
+    setPNL("");
+    setPercentWL("");
+    setComments("");
+  }
 
-  const handleSubmit = (e) => {
+  const changeShowOptions = (e) => {
+    const choiceOptions = document.getElementById("optionsSelection");
+    if (choiceOptions.value === "Shares"){
+      setVisib(false);
+      setExpiry("");
+      setStrike("");
+    }else if (choiceOptions.value === "Options"){
+      setVisib(true);
+      setExpiry("");
+      setStrike("");
+    }
+
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(
+    await dispatch(
       create({
         user_id,
         trade_type,
@@ -71,11 +100,18 @@ export default function LogTrade({ user }) {
     );
   }
 
+  const handleCancel = (e) => {
+    e.preventDefault();
+    clearFormStates();
+    navigate("/")
+  }
+
   const handleAnswerYes = (e) => {
     e.preventDefault();
     dispatch(
       reset()
     );
+    clearFormStates();
     navigate("/logTrade")
   }
 
@@ -84,6 +120,7 @@ export default function LogTrade({ user }) {
     dispatch(
       reset()
     );
+    clearFormStates();
     navigate("/")
   }
 
@@ -111,9 +148,8 @@ export default function LogTrade({ user }) {
         justifyContent="center"
         alignItems="center"
       >
-        <Avatar bg="teal.500" />
         <Heading color="teal.400">Log A Trade</Heading>
-        <Box minW={{ base: "90%", md: "468px" }}>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
           <form>
             <Stack
               spacing={4}
@@ -135,7 +171,7 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select placeholder='Select Security Type' onChange={(e) => setSecurityType(e.target.value)}>
+                  <Select id="optionsSelection" placeholder='Select Security Type' onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value)}}>
                     <option>Options</option>
                     <option>Shares</option>
                   </Select>
@@ -148,7 +184,7 @@ export default function LogTrade({ user }) {
                 </FormControl>
               </Box>
               
-              <Box display="flex">
+              <Box style={{display: visib ? "flex" : "none"}}>
               <FormControl>
                 <FormHelperText mb={2} ml={1}>
                   Expiry (Options Only) *
@@ -244,6 +280,17 @@ export default function LogTrade({ user }) {
                 onClick={handleSubmit}
               >
                 Create Trade Entry
+              </Button>
+
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full"
+                onClick={handleCancel}
+              >
+                Cancel
               </Button>
             </Stack>
           </form>

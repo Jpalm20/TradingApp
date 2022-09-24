@@ -11,3 +11,13 @@ def transformNewTrade(request):
         request['expiry'] = None
         request['strike'] = None
     return request
+
+def transformEditTrade(request):
+    transformedRequest = {}
+    for key in request:
+        if request[key] != "":
+            transformedRequest[key] = request[key]
+    if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
+        transformedRequest['expiry'] = None
+        transformedRequest['strike'] = None
+    return transformedRequest

@@ -44,11 +44,66 @@ export const create = createAsyncThunk(
   }
 );
 
+export const getTrade = createAsyncThunk(
+  "trade/getTrade",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { trade_id } = formInfo;
+      const res = await axios.get(`http://localhost:8080/trade/${trade_id}`);
+      await window.localStorage.setItem(TOKEN, res.data.token);
+      //dispatch(me());
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const update = createAsyncThunk(
+  "trade/update",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { trade_id, user_id, trade_type, security_type, ticker_name, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+      const res = await axios.post(`http://localhost:8080/trade/${trade_id}`, {
+        user_id,
+        trade_type,
+        security_type,
+        ticker_name,
+        expiry,
+        strike,
+        buy_value,
+        units,
+        rr,
+        pnl,
+        percent_wl,
+        comments
+      });
+      await window.localStorage.setItem(TOKEN, res.data.token);
+      //dispatch(me());
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const tradeSlice = createSlice({
     name: "trade",
     initialState,
     reducers: {},
     extraReducers: {
+      [getTrade.fulfilled]: (state, action) => {
+        state.trade = action.payload;
+        state.success = true;
+      },
+      [getTrade.pending]: (state) => {
+        state.loading = true;
+      },
+      [getTrade.rejected]: (state) => {
+        state.error = true;
+      },
       [create.fulfilled]: (state, action) => {
         state.loading = false;
         state.success = true;
@@ -58,6 +113,17 @@ const tradeSlice = createSlice({
         state.loading = true;
       },
       [create.rejected]: (state) => {
+        state.error = true;
+      },
+      [update.fulfilled]: (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.trade = action.payload;
+      },
+      [update.pending]: (state) => {
+        state.loading = true;
+      },
+      [update.rejected]: (state) => {
         state.error = true;
       },
       [reset.fulfilled]: (state) => {

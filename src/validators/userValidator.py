@@ -16,4 +16,14 @@ def validateNewUser(request):
         return {
             "result": "Must Include a Password, Please Try Again"
         }, 403
+        
+    #need to validate blanks as well, might be easier to set required fields on FE if possible
+    
+    return True
+
+def validateEditUser(request):
+    if 'password' in request:
+        return {
+            "result": "You Can't Change Password This Way, Please Try Again"
+        }, 403
     return True
