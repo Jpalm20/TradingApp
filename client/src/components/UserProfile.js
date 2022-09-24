@@ -25,6 +25,7 @@ import { Link as RouterLink } from "react-router-dom"
 import { logout, update } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import states from "../data/states";
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
