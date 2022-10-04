@@ -5,8 +5,24 @@ import { Link as RouterLink, useNavigate} from "react-router-dom";
 import {
   Flex,
   Text,
+  Table,
+  Thead,
+  Tbody,
+  Tfoot,
+  Tr,
+  Th,
+  Td,
+  TableCaption,
+  TableContainer,
   Center,
   Heading,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useDisclosure,
   Input,
   Button,
   InputGroup,
@@ -27,7 +43,7 @@ import {
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { update, getTrade, reset } from '../store/trade';
+import { update, getTrade, reset, deleteTrade } from '../store/trade';
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
@@ -67,7 +83,10 @@ export default function Summary({ user }) {
   const [filter_trade_type, setFilterTradeType] = useState("");
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
-  
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = React.useRef();
+  const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
   function clearFormStates() {
     setTradeType("");
@@ -117,7 +136,37 @@ export default function Summary({ user }) {
     setTradeID(trade_id);
     setEditTrade(true);
   };
-  
+
+
+  const handleDeleteButton = (e, trade_id) => {
+    setTradeID(trade_id);
+    setDeleteAlertDialog(true);
+    onOpen();
+  };
+
+  const handleConfirmDelete = async (e) => {
+    e.preventDefault();
+    await dispatch(
+      deleteTrade({
+        trade_id
+      })
+    );
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    );
+    dispatch(
+      reset()      
+    );
+    setDeleteAlertDialog(false);
+    onClose();
+  };
+
+  const handleCancelDelete = (e) => {
+    setDeleteAlertDialog(false);
+    onClose();
+  };
 
 
   const handleDoneEdit = async (e) => {
@@ -183,9 +232,9 @@ export default function Summary({ user }) {
         <Stack
                 p="1rem"
                 backgroundColor="whiteAlpha.900"
-                boxShadow="md"
                 align='center'
                 rounded="lg"
+                borderWidth="1px"
               >
         <Heading color="teal.400" w='full'>
           <Center>
@@ -215,9 +264,10 @@ export default function Summary({ user }) {
                 backgroundColor="whiteAlpha.900"
                 boxShadow="md"
                 align='center'
+                minWidth="30vh"
               >
-                <Heading color="teal.400">Filters</Heading>
-                <Box >
+                <Heading color="teal.400" size="md">Filters</Heading>
+                <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
@@ -243,11 +293,9 @@ export default function Summary({ user }) {
                   <Input type="name" placeholder='Enter Ticker' onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
               </Box>
-              <Link as={RouterLink} to="/">
                   <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-              </Link>
               </Stack>
             </Box>
           </Stack>
@@ -269,139 +317,112 @@ export default function Summary({ user }) {
               w="full"
               justifyContent="left"
             >
-              <Box borderWidth="1px" rounded="lg" overflow="hidden" display="flex" gap='0.5' align='stretch'>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Trade ID
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Trade Type
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Security Type
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Ticker Name
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Expiry
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Strike
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Avg Price
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    # of Units
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    Risk/Reward
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    PNL
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' color="teal.400" align='center'>
-                  <Center h='40px'>
-                    % W/L
-                  </Center>
-                </Badge>
-                <Badge width='100%' flexGrow="1" variant='outline' borderRadius='12' backgroundColor="grey" color="black" align='center'>
-                  <Center h='40px'>
-                    
-                  </Center>
-                </Badge>
-              </Box>
-              {hasTrades} ? (
-                <div>
-                {trades.trades.map((trades, index) => (
-                  <Box borderWidth="1px" rounded="lg" overflow="hidden" display="flex" gap='0.5' align='stretch' key={index}>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.trade_id}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.trade_type}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.security_type}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.ticker_name}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.expiry}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.strike}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.buy_value}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.units}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.rr}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.pnl}
-                    </Center>
-                  </Badge>
-                  <Badge width='100%' flexGrow="1" borderRadius='12' color="teal.400" align='center'>
-                    <Center h='40px'>
-                      {trades.percent_wl}
-                    </Center>
-                  </Badge>
-                  <Link as={RouterLink} to="/">
-                    <Button width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
-                      Edit Trade
-                    </Button>
-                  </Link>
-                  </Box>
-                ))}
-                </div>
-              ) : (
+            {{hasTrades} ? (
+            <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
+              <Table size='sm' variant='striped' colorScheme='teal'>
+                <Thead position="sticky" top={0} bgColor="lightgrey">
+                  <Tr>
+                    <Th>ID</Th>
+                    <Th>Trade<br></br>Type</Th>
+                    <Th>Security<br></br>Type</Th>
+                    <Th>Ticker</Th>
+                    <Th>Expiry</Th>
+                    <Th>Strike</Th>
+                    <Th>Avg<br></br>Price</Th>
+                    <Th># of<br></br>Units</Th>
+                    <Th>R/R</Th>
+                    <Th>PNL</Th>
+                    <Th>% W/L</Th>
+                    <Th>Comments</Th>
+                    <Th></Th>
+                  </Tr>
+                </Thead>
+                    <Tbody>
+                      {trades.trades.map((trades, index) => (
+                        <Tr>
+                          <Td>{trades.trade_id}</Td>
+                          <Td>{trades.trade_type}</Td>
+                          <Td>{trades.security_type}</Td>
+                          <Td>{trades.ticker_name}</Td>
+                          <Td>{trades.expiry}</Td>
+                          <Td isNumeric>{trades.strike}</Td>
+                          <Td isNumeric>{trades.buy_value}</Td>
+                          <Td isNumeric>{trades.units}</Td>
+                          <Td>{trades.rr}</Td>
+                          <Td isNumeric>{trades.pnl}</Td>
+                          <Td isNumeric>{trades.percent_wl}</Td>
+                          <Td whiteSpace="normal">{trades.comments}</Td>
+                          <Td>
+                            <Button width='100%' height='60%' colorScheme='teal' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
+                              Edit Trade
+                            </Button>
+                            <div>
+                            <Button width='100%' height='60%' colorScheme='red' border='1px' borderColor='black' onClick={e => handleDeleteButton(e, trades.trade_id)}>
+                              Delete Trade
+                            </Button>
+                            </div>
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+              </Table>
+            </TableContainer>
+            ) : (
+            <TableContainer>
+              <Table size='sm'>
+                <Thead>
+                  <Tr>
+                    <Th>Trade ID</Th>
+                    <Th>Trade Type</Th>
+                    <Th>Security Type</Th>
+                    <Th>Ticker</Th>
+                    <Th>Expiry</Th>
+                    <Th>Strike</Th>
+                    <Th>Avg Price</Th>
+                    <Th># of Units</Th>
+                    <Th>R/R</Th>
+                    <Th>PNL</Th>
+                    <Th>% W/L</Th>
+                    <Th>Comments</Th>
+                    <Th></Th>
+                  </Tr>
+                </Thead>
+              </Table>
+            </TableContainer>
+            )}
+            {deletealertdialog} ? (
+              <AlertDialog
+              motionPreset='slideInBottom'
+              isOpen={isOpen}
+              leastDestructiveRef={cancelRef}
+              onClose={e => handleCancelDelete(e)}
+              isCentered={true}
+              closeOnOverlayClick={false}
+            >
+              <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  Delete Trade
+                </AlertDialogHeader>
 
-              )
-              
+                <AlertDialogBody>
+                  Are you sure? You can't undo this action afterwards.
+                </AlertDialogBody>
+
+                <AlertDialogFooter>
+                  <Button ref={cancelRef} onClick={e => handleCancelDelete(e)}>
+                    Cancel
+                  </Button>
+                  <Button colorScheme='red' onClick={e => handleConfirmDelete(e)} ml={3}>
+                    Delete
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+              </AlertDialogOverlay>
+            </AlertDialog>
+            ) : (
+
+            )
             </Stack>
           </Box>
           </Stack>

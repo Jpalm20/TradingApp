@@ -23,6 +23,7 @@ export default function App() {
   const isLoggedIn = ((user && Object.keys(user).length > 2) ? (true):(false));
   const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 3) ? (true):(false));
 
+  
   useEffect(() => {
     async function getUserTrades(){
       if(isLoggedIn && !hasTrades){
@@ -33,6 +34,7 @@ export default function App() {
     getUserTrades();
   })
   
+  
   return (
     <Fragment>
       <Router>
@@ -40,9 +42,9 @@ export default function App() {
         <Routes>
           {isLoggedIn ? (
             <>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Home user={user}/>} />
               <Route path="/login" element={<Navigate to="/profile"/>} />
-              <Route path="/signup" element={<Navigate to="/profile"/>} />
+              <Route path="/signup" element={<Navigate to="/"/>} />
               <Route path="/logTrade" element={<LogTrade user={user}/>} />
               <Route path='/profile' element={<UserProfile user={user}/>} />
               <Route path='/summary' element={<Summary user={user}/>} />

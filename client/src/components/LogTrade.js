@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { create , reset} from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { getTrades } from '../store/auth'
 // import { Link } from "react-router-dom";   
 
 import {
@@ -98,12 +99,17 @@ export default function LogTrade({ user }) {
         comments
       })
     );
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    );
   }
 
   const handleCancel = (e) => {
     e.preventDefault();
     clearFormStates();
-    navigate("/")
+    navigate("/");
   }
 
   const handleAnswerYes = (e) => {
@@ -112,7 +118,7 @@ export default function LogTrade({ user }) {
       reset()
     );
     clearFormStates();
-    navigate("/logTrade")
+    navigate("/logTrade");
   }
 
   const handleAnswerNo = (e) => {
@@ -121,7 +127,7 @@ export default function LogTrade({ user }) {
       reset()
     );
     clearFormStates();
-    navigate("/")
+    navigate("/");
   }
 
   // grabbing current date to set a max to the birthday input
@@ -307,9 +313,11 @@ export default function LogTrade({ user }) {
         backgroundColor="whiteAlpha.900"
         boxShadow="md"
       >
-          <Center color="teal.400" >Trade Logged Successfully<br></br>Would You Like to Log Another?</Center>
-          <ButtonGroup gap='2'>
-            <Link as={RouterLink} to="/logTrade">
+          <Text fontSize='lg' as='b'>
+            <Center color="teal.400" >
+              Trade Logged Successfully<br></br>Would You Like to Log Another?
+            </Center>
+          </Text>
               <Button
                 borderRadius={0}
                 type="submit"
@@ -320,8 +328,6 @@ export default function LogTrade({ user }) {
               >
                 Yes
               </Button>
-            </Link>
-            <Link as={RouterLink} to="/">
               <Button
                 borderRadius={0}
                 type="submit"
@@ -332,8 +338,6 @@ export default function LogTrade({ user }) {
               >
                 No
               </Button>
-            </Link>
-          </ButtonGroup>
       </Stack>
       )}
     </Flex>

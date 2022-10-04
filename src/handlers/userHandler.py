@@ -118,8 +118,102 @@ def deleteExistingUser(user_id):
 def getUserTrades(user_id):
     response = user.User.getUserTrades(user_id)
     if "trade_id" in response[0][0]:
+        numTrades = 0
+        numLosses = 0
+        numWins = 0
+        numDT = 0
+        numDTWin = 0
+        numDTLoss = 0
+        numSwT = 0
+        numSwTWin = 0
+        numSwTLoss = 0
+        numOT = 0
+        numOTWin = 0
+        numOTLoss = 0
+        numShT = 0
+        numShTWin = 0
+        numShTLoss = 0
+        largestWin = 0
+        largestLoss = 0
+        sumWin = 0
+        sumLoss = 0
+        avgWin = 0
+        avgLoss = 0
+        totalPNL = 0
+        winPercent = 0
+        for trade in response[0]:
+            numTrades += 1
+            if (trade['pnl'] > 0):
+                numWins += 1
+                sumWin += trade['pnl']
+                totalPNL += trade['pnl']
+            else:
+                numLosses += 1
+                sumLoss += trade['pnl']
+                totalPNL += trade['pnl']
+                
+            if (trade['trade_type'] == "Day Trade"):
+                numDT += 1
+                if (trade['pnl'] > 0):
+                    numDTWin += 1
+                elif (trade['pnl'] < 0):
+                    numDTLoss += 1
+            elif (trade['trade_type'] == "Swing Trade"):
+                numSwT += 1
+                if (trade['pnl'] > 0):
+                    numSwTWin += 1
+                elif (trade['pnl'] < 0):
+                    numSwTLoss += 1
+                    
+            if (trade['security_type'] == "Options"):
+                numOT += 1
+                if (trade['pnl'] > 0):
+                    numOTWin += 1
+                elif (trade['pnl'] < 0):
+                    numOTLoss += 1
+            elif (trade['security_type'] == "Shares"):
+                numShT += 1
+                if (trade['pnl'] > 0):
+                    numShTWin += 1
+                elif (trade['pnl'] < 0):
+                    numShTLoss += 1
+            
+            if (trade['pnl'] > largestWin):
+                largestWin = trade['pnl']
+            elif (trade['pnl'] < largestLoss):
+                largestLoss = trade['pnl']
+        if(numWins > 0):
+            avgWin = sumWin/numWins
+        if(numLosses > 0):
+            avgLoss = sumLoss/numLosses  
+        if(numTrades > 0):
+            winPercent = (numWins/numTrades)*100 
+            
         return {
-            "trades": response[0]
+            "trades": response[0],
+            "stats": {
+                "num_trades": numTrades,
+                "num_losses": numLosses,
+                "num_wins": numWins,
+                "num_day": numDT,
+                "num_day_win": numDTWin,
+                "num_day_loss": numDTLoss,
+                "num_swing": numSwT,
+                "num_swing_win": numSwTWin,
+                "num_swing_loss": numSwTLoss,
+                "num_options": numOT,
+                "num_options_win": numOTWin,
+                "num_options_loss": numOTLoss,
+                "num_shares": numShT,
+                "num_shares_win": numShTWin,
+                "num_shares_loss": numShTLoss,
+                "largest_win": largestWin,
+                "largest_loss": largestLoss,
+                "avg_win": "{:.2f}".format(avgWin),
+                "avg_loss": "{:.2f}".format(avgLoss),
+                "total_pnl": totalPNL,
+                "win_percent": "{:.2f}".format(winPercent)
+            }
         }
     else:
         return response, 400

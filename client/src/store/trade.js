@@ -60,6 +60,22 @@ export const getTrade = createAsyncThunk(
   }
 );
 
+export const deleteTrade = createAsyncThunk(
+  "trade/deleteTrade",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { trade_id } = formInfo;
+      const res = await axios.delete(`http://localhost:8080/trade/${trade_id}`);
+      await window.localStorage.setItem(TOKEN, res.data.token);
+      //dispatch(me());
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const update = createAsyncThunk(
   "trade/update",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -102,6 +118,16 @@ const tradeSlice = createSlice({
         state.loading = true;
       },
       [getTrade.rejected]: (state) => {
+        state.error = true;
+      },
+      [deleteTrade.fulfilled]: (state, action) => {
+        state.trade = action.payload;
+        state.success = true;
+      },
+      [deleteTrade.pending]: (state) => {
+        state.loading = true;
+      },
+      [deleteTrade.rejected]: (state) => {
         state.error = true;
       },
       [create.fulfilled]: (state, action) => {

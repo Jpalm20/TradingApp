@@ -30,9 +30,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    dispatch(authenticate({ email, password }));
+    await dispatch(authenticate({ email, password }));
   };
 
   return (

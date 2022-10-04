@@ -21,7 +21,7 @@ import {
   InputRightElement,
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link as RouterLink } from "react-router-dom"
+import { Link as RouterLink, useNavigate } from "react-router-dom"
 import { logout, update } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
@@ -31,6 +31,7 @@ const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function UserProfile({ user }) {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const user_id = user.user_id;
   const [selectPage, setSelectPage] = useState(true);
@@ -67,6 +68,7 @@ export default function UserProfile({ user }) {
     setSelectPage(true);
     selectUpdateInfo(false);
     dispatch(logout());
+    navigate("/");
   };
 
   const handleUpdate = async (e) => {
@@ -182,16 +184,22 @@ export default function UserProfile({ user }) {
                 </Center>
               </Text>
             </Box>
-            <Link as={RouterLink} to="/" align='center'>
-              <Button colorScheme='teal' border='1px' borderColor='black' onClick={handleGotoUpdate}>
+              <Button  borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full" 
+                onClick={handleGotoUpdate}>
                 Update Information
               </Button>
-            </Link>
-            <Link as={RouterLink} to="/" align='center'>
-              <Button colorScheme='teal' border='1px' borderColor='black' onClick={handleLogout}>
+              <Button  borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full" 
+                onClick={handleLogout}>
                 Logout
               </Button>
-            </Link>
             </Stack>
           </Box>
           </Stack>
