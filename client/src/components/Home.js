@@ -57,7 +57,8 @@ export default function Home({ user }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trades } = useSelector((state) => state.auth);
-  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 3) ? (true):(false));
+  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
+  const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
 
   const [toggleFilter, setToggleFilter] = useState(false);
 
@@ -177,6 +178,7 @@ export default function Home({ user }) {
   const maxDate = year + "-" + month + "-" + day;        
 
   return (
+      
       <Flex           
         flexDirection="column"
         height="100vh"
@@ -391,7 +393,7 @@ export default function Home({ user }) {
                       chartType="PieChart"
                       data={
                         [["Trade Type", "Count"], 
-                        ["Day_Loss", trades.stats.num_day_loss], 
+                        ["Day Loss", trades.stats.num_day_loss], 
                         ["Swing Loss", trades.stats.num_swing_loss],
                         ["Day Win", trades.stats.num_day_win],
                         ["Swing Win", trades.stats.num_swing_win]
@@ -433,7 +435,7 @@ export default function Home({ user }) {
                       chartType="PieChart"
                       data={
                         [["Security Type", "Count"], 
-                        ["Options_Loss", trades.stats.num_options_loss], 
+                        ["Options Loss", trades.stats.num_options_loss], 
                         ["Shares Loss", trades.stats.num_shares_loss],
                         ["Options Win", trades.stats.num_options_win],
                         ["Shares Win", trades.stats.num_shares_win]

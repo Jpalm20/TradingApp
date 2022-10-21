@@ -30,6 +30,12 @@ class User:
     
     def getUserTrades(userID):
         
+        #Query = """SELECT COUNT(*) FROM Trade WHERE user_id = %s"""
+        #Args = (userID,)
+        #response = utils.execute_db(Query,Args)
+        #return response
+        #if response[0][0]
+        
         Query = """SELECT * FROM Trade WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
@@ -91,7 +97,7 @@ class User:
 #response = User.getUserbyEmail(testUserEmail)
 
 #Testing getUserTrades
-#testUserID = 1
+#testUserID = 77
 #response = User.getUserTrades(testUserID)
 
 #print(response)

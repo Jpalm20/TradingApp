@@ -21,12 +21,13 @@ export default function App() {
   const { user } = useSelector((state) => state.auth);
   const { trades } = useSelector((state) => state.auth);
   const isLoggedIn = ((user && Object.keys(user).length > 2) ? (true):(false));
-  const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 3) ? (true):(false));
+  const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
+  const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
 
   
   useEffect(() => {
     async function getUserTrades(){
-      if(isLoggedIn && !hasTrades){
+      if(isLoggedIn && !hasTrades && !noTrades){
         const user_id = user.user_id;
         await dispatch(getTrades({ user_id }));
       }

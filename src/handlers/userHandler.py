@@ -117,7 +117,7 @@ def deleteExistingUser(user_id):
 
 def getUserTrades(user_id):
     response = user.User.getUserTrades(user_id)
-    if "trade_id" in response[0][0]:
+    if len(response[0]) != 0 and "trade_id" in response[0][0]:
         numTrades = 0
         numLosses = 0
         numWins = 0
@@ -216,7 +216,55 @@ def getUserTrades(user_id):
             }
         }
     else:
-        return response, 400
+        numTrades = 0
+        numLosses = 0
+        numWins = 0
+        numDT = 0
+        numDTWin = 0
+        numDTLoss = 0
+        numSwT = 0
+        numSwTWin = 0
+        numSwTLoss = 0
+        numOT = 0
+        numOTWin = 0
+        numOTLoss = 0
+        numShT = 0
+        numShTWin = 0
+        numShTLoss = 0
+        largestWin = 0
+        largestLoss = 0
+        sumWin = 0
+        sumLoss = 0
+        avgWin = 0
+        avgLoss = 0
+        totalPNL = 0
+        winPercent = 0
+        return {
+            "trades": [],
+            "stats": {
+                "num_trades": numTrades,
+                "num_losses": numLosses,
+                "num_wins": numWins,
+                "num_day": numDT,
+                "num_day_win": numDTWin,
+                "num_day_loss": numDTLoss,
+                "num_swing": numSwT,
+                "num_swing_win": numSwTWin,
+                "num_swing_loss": numSwTLoss,
+                "num_options": numOT,
+                "num_options_win": numOTWin,
+                "num_options_loss": numOTLoss,
+                "num_shares": numShT,
+                "num_shares_win": numShTWin,
+                "num_shares_loss": numShTLoss,
+                "largest_win": largestWin,
+                "largest_loss": largestLoss,
+                "avg_win": "{:.2f}".format(avgWin),
+                "avg_loss": "{:.2f}".format(avgLoss),
+                "total_pnl": totalPNL,
+                "win_percent": "{:.2f}".format(winPercent)
+            }
+        }
         
 
 #--------Tests--------# 
@@ -256,6 +304,6 @@ def getUserTrades(user_id):
 #response = deleteExistingUser(62)
 
 #Testing getUserTrades()
-#response = getUserTrades(1)
+#response = getUserTrades(77)
 
 #print(response)

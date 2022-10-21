@@ -53,7 +53,8 @@ export default function Summary({ user }) {
   const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
   const { trades } = useSelector((state) => state.auth);
-  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 3) ? (true):(false));
+  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
+  const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
   const hasTrade = ((trade && Object.keys(trade).length > 2) ? (true):(false));
 
   const [editTrade, setEditTrade] = useState(false);
