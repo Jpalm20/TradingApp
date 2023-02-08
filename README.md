@@ -14,3 +14,21 @@ There will be a few different pages that will be served to the user
 4. Analysis Page - This is where the user can apply filters and other such things to their trades, organize by week/month/day/year whatever you would like, look at specific trade types. This is where the logic and creativity comes in to couple with trade analysis to provide the user with edge
 5. Calendar Page - This is where you view you pnl in a calendar type view so you can visually get a sense for how tthe week/month/year is going. This could possibly be added to the Trade Log Page but not sure yet
 
+Quickstart/Deployment Guide:
+  1. Pull Code:
+      - git clone https://github.com/Jpalm20/TradingApp.git
+  2. Docker:
+      - docker build --tag trading_app . 
+      - docker run -d -p 8080:5000 trading_app
+  3. Database
+      - Create Local DB with name "TradingApp"
+      - Grab the DDL files from repo and create Trade and User table
+  4. Run FE
+      - go to client folder in terminal
+      - npm run start
+  5. Register a User
+      - Click Sign Up link on login page when you land on app
+      - Fille out info, save login info
+  6. Login
+      - You should be returned to login page after registering successfully
+      - Use login info and now you are in app
