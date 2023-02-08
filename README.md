@@ -17,12 +17,13 @@ There will be a few different pages that will be served to the user
 Quickstart/Deployment Guide:
   1. Pull Code:
       - git clone https://github.com/Jpalm20/TradingApp.git
-  2. Docker:
-      - docker build --tag trading_app . 
-      - docker run -d -p 8080:5000 trading_app
-  3. Database
+  2. Database
       - Create Local DB with name "TradingApp"
       - Grab the DDL files from repo and create Trade and User table
+      - Go to src/models/utils.py and insert you credentials for the DB connection
+  3. Docker:
+      - docker build --tag trading_app . 
+      - docker run -d -p 8080:5000 trading_app
   4. Run FE
       - go to client folder in terminal
       - npm run start
