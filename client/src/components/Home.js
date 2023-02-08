@@ -57,7 +57,7 @@ export default function Home({ user }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trades } = useSelector((state) => state.auth);
-  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
+  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0 && trades.stats && Object.keys(trades.stats).length > 0) ? (true):(false)); //need to look into this for home error
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
 
   const [toggleFilter, setToggleFilter] = useState(false);

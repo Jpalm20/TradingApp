@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { register } from "../store/auth";
 import states from "../data/states";
@@ -11,6 +11,8 @@ import {
   Input,
   Button,
   InputGroup,
+  Toast,
+  useToast,
   Stack,
   InputLeftElement,
   chakra,
@@ -54,9 +56,9 @@ export default function Signup() {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(
+    await dispatch(
       register({
         first_name,
         last_name,

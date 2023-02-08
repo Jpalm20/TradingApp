@@ -35,6 +35,13 @@ class User:
         response = utils.execute_db(Query,Args)
         return response  
     
+    def getUserPnLbyYear(userID,year):
+            
+        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM Trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s GROUP BY trade_date ORDER BY trade_date ASC;"""
+        Args = (userID,year)
+        response = utils.execute_db(Query,Args)
+        return response  
+    
     def addUser(newUser):
 
         Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
@@ -93,6 +100,11 @@ class User:
 #Testing getUserTrades
 #testUserID = 77
 #response = User.getUserTrades(testUserID)
+
+#Testing getUserTradesbyYear
+#testUserID = 77
+#testYear = 2022
+#response = User.getUserTrades(testUserID,testYear)
 
 #print(response)
     

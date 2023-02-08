@@ -1,4 +1,5 @@
 import React from "react";
+import { getPnlByYear } from '../store/auth'
 import { 
   Flex, 
   Heading, 
@@ -13,14 +14,20 @@ import {
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
 import { useSelector, useDispatch } from "react-redux";
-import Home from './Home'
 
 export default function Navbar({ user }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
-
+  const today = new Date();
+  const year = today.getFullYear();
   const handleHome = (e) => {
     navigate("/");
+  }
+
+  const handlePnlCalendar = async (e, user_id) => {
+    await dispatch(getPnlByYear({ user_id, year }));
+    navigate("/PnlCalendar");
   }
 
   const handleTrades = (e) => {
@@ -42,6 +49,9 @@ export default function Navbar({ user }) {
           <ButtonGroup gap='2'>
             <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleHome(e.target.value)}>
               Home
+            </Button>
+            <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handlePnlCalendar(e.target.value, user.user_id)}>
+              Pnl Calendar
             </Button>
             <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleTrades(e.target.value)}>
               Trades

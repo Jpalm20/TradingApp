@@ -22,7 +22,7 @@ def logTrade(requestBody):
         return response
     requestTransformed = tradeTransformer.transformNewTrade(requestBody)
     newTrade = trade.Trade(None,requestTransformed['user_id'],requestTransformed['trade_type'],requestTransformed['security_type'],
-                        requestTransformed['ticker_name'],requestTransformed['expiry'],requestTransformed['strike'],
+                        requestTransformed['ticker_name'],requestTransformed['trade_date'],requestTransformed['expiry'],requestTransformed['strike'],
                         requestTransformed['buy_value'],requestTransformed['units'],requestTransformed['rr'],requestTransformed['pnl'],
                         requestTransformed['percent_wl'],requestTransformed['comments'])
     response = trade.Trade.addTrade(newTrade)
@@ -35,6 +35,7 @@ def logTrade(requestBody):
             "trade_type": newTrade.tradeType,
             "security_type": newTrade.securityType,
             "ticker_name": newTrade.tickerName,
+            "trade_date": newTrade.tradeDate,
             "expiry": newTrade.expiry,
             "strike": newTrade.strike,
             "buy_value": newTrade.value,
@@ -54,6 +55,7 @@ def getExistingTrade(trade_id):
             "trade_type": response[0][0]['trade_type'],
             "security_type": response[0][0]['security_type'],
             "ticker_name": response[0][0]['ticker_name'],
+            "trade_date": response[0][0]['trade_date'],
             "expiry": response[0][0]['expiry'],
             "strike": response[0][0]['strike'],
             "buy_value": response[0][0]['buy_value'],
@@ -80,6 +82,7 @@ def editExistingTrade(trade_id,requestBody):
             "trade_type": response[0][0]['trade_type'],
             "security_type": response[0][0]['security_type'],
             "ticker_name": response[0][0]['ticker_name'],
+            "trade_date": response[0][0]['trade_date'],
             "expiry": response[0][0]['expiry'],
             "strike": response[0][0]['strike'],
             "buy_value": response[0][0]['buy_value'],
@@ -109,6 +112,7 @@ def deleteExistingTrade(trade_id):
 #   "trade_type": "Day Trade",
 #    "security_type": "Options",
 #    "ticker_name": "SPY",
+#    "trade_date": "12-12-2022",
 #    "expiry": "8-30-1998",
 #    "strike": 420,
 #    "buy_value": 50,

@@ -30,6 +30,8 @@ import {
   InputLeftElement,
   Textarea,
   Select,
+  Toast,
+  useToast,
   chakra,
   Box,
   Link,
@@ -49,6 +51,8 @@ const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function Summary({ user }) {
+  const [toastMessage, setToastMessage] = useState(undefined);
+  const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
@@ -72,6 +76,7 @@ export default function Summary({ user }) {
   const [trade_type, setTradeType] = useState("");
   const [security_type, setSecurityType] = useState("");
   const [ticker_name, setTickerName] = useState("");
+  const [trade_date, setTradeDate] = useState("");
   const [expiry, setExpiry] = useState("");
   const [strike, setStrike] = useState("");
   const [buy_value, setBuyValue] = useState("");
@@ -89,10 +94,24 @@ export default function Summary({ user }) {
   const cancelRef = React.useRef();
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
+  useEffect(() => {
+    if (toastMessage) {
+      toast({
+        title: toastMessage,
+        variant: 'top-accent',
+        status: 'success',
+        duration: 9000,
+        isClosable: true
+      });
+    }
+    setToastMessage(undefined);
+  }, [toastMessage, toast]);
+
   function clearFormStates() {
     setTradeType("");
     setSecurityType("");
     setTickerName("");
+    setTradeDate("");
     setExpiry("");
     setStrike("");
     setBuyValue("");
@@ -162,6 +181,7 @@ export default function Summary({ user }) {
     );
     setDeleteAlertDialog(false);
     onClose();
+    setToastMessage("Trade Deleted Successfully");
   };
 
   const handleCancelDelete = (e) => {
@@ -179,6 +199,7 @@ export default function Summary({ user }) {
           trade_type,
           security_type,
           ticker_name,
+          trade_date,
           expiry,
           strike,
           buy_value,
@@ -199,6 +220,7 @@ export default function Summary({ user }) {
     );
     clearFormStates();
     setEditTrade(false);
+    setToastMessage("Trade Edited Successfully");
   };
 
   const handleCancel = (e) => {
@@ -327,6 +349,7 @@ export default function Summary({ user }) {
                     <Th>Trade<br></br>Type</Th>
                     <Th>Security<br></br>Type</Th>
                     <Th>Ticker</Th>
+                    <Th>Close<br></br>Date</Th>
                     <Th>Expiry</Th>
                     <Th>Strike</Th>
                     <Th>Avg<br></br>Price</Th>
@@ -345,6 +368,7 @@ export default function Summary({ user }) {
                           <Td>{trades.trade_type}</Td>
                           <Td>{trades.security_type}</Td>
                           <Td>{trades.ticker_name}</Td>
+                          <Td>{trades.trade_date}</Td>
                           <Td>{trades.expiry}</Td>
                           <Td isNumeric>{trades.strike}</Td>
                           <Td isNumeric>{trades.buy_value}</Td>
@@ -355,11 +379,11 @@ export default function Summary({ user }) {
                           <Td whiteSpace="normal">{trades.comments}</Td>
                           <Td>
                             <Button width='100%' height='60%' colorScheme='teal' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
-                              Edit Trade
+                              Edit
                             </Button>
                             <div>
                             <Button width='100%' height='60%' colorScheme='red' border='1px' borderColor='black' onClick={e => handleDeleteButton(e, trades.trade_id)}>
-                              Delete Trade
+                              Delete
                             </Button>
                             </div>
                           </Td>
@@ -377,6 +401,7 @@ export default function Summary({ user }) {
                     <Th>Trade Type</Th>
                     <Th>Security Type</Th>
                     <Th>Ticker</Th>
+                    <Th>Close Date</Th>
                     <Th>Expiry</Th>
                     <Th>Strike</Th>
                     <Th>Avg Price</Th>
@@ -510,6 +535,20 @@ export default function Summary({ user }) {
               </Box>
 
               <Box display="flex">
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Date Trade was Closed *
+                </FormHelperText>
+                <Input
+                    placeholder={trade.trade_date}
+                    onFocus={(e) => (e.target.type = "date")}
+                    onBlur={(e) => (e.target.type = "text")}
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setTradeDate(e.target.value)}
+                />
+              </FormControl>
+
               <FormControl>
                   <FormHelperText mb={2} ml={1}>
                     Average Cost *

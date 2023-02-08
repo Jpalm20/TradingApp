@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Flex,
   Text,
@@ -12,6 +12,8 @@ import {
   chakra,
   Select,
   Box,
+  Toast,
+  useToast,
   Link,
   Avatar,
   FormControl,
@@ -31,6 +33,8 @@ const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function UserProfile({ user }) {
+  const [toastMessage, setToastMessage] = useState(undefined);
+  const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user_id = user.user_id;
@@ -45,6 +49,19 @@ export default function UserProfile({ user }) {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
+
+  useEffect(() => {
+    if (toastMessage) {
+      toast({
+        title: toastMessage,
+        variant: 'top-accent',
+        status: 'success',
+        duration: 9000,
+        isClosable: true
+      });
+    }
+    setToastMessage(undefined);
+  }, [toastMessage, toast]);
 
   function clearFormStates() {
     setFirstName("");
@@ -89,6 +106,7 @@ export default function UserProfile({ user }) {
     clearFormStates();
     setSelectPage(true);
     selectUpdateInfo(false);
+    setToastMessage("User Edited Successfully");
   }
 
   const handleCancel = (e) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { create , reset} from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
@@ -19,6 +19,8 @@ import {
   Select,
   chakra,
   Box,
+  Toast,
+  useToast,
   Link,
   Avatar,
   FormControl,
@@ -33,6 +35,8 @@ const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function LogTrade({ user }) {
+  const [toastMessage, setToastMessage] = useState(undefined);
+  const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
@@ -44,6 +48,7 @@ export default function LogTrade({ user }) {
   const [trade_type, setTradeType] = useState("");
   const [security_type, setSecurityType] = useState("");
   const [ticker_name, setTickerName] = useState("");
+  const [trade_date, setTradeDate] = useState("");
   const [expiry, setExpiry] = useState("");
   const [strike, setStrike] = useState("");
   const [buy_value, setBuyValue] = useState("");
@@ -53,10 +58,24 @@ export default function LogTrade({ user }) {
   const [percent_wl, setPercentWL] = useState("");
   const [comments, setComments] = useState(""); 
 
+  useEffect(() => {
+    if (toastMessage) {
+      toast({
+        title: toastMessage,
+        variant: 'top-accent',
+        status: 'success',
+        duration: 9000,
+        isClosable: true
+      });
+    }
+    setToastMessage(undefined);
+  }, [toastMessage, toast]);
+
   function clearFormStates() {
     setTradeType("");
     setSecurityType("");
     setTickerName("");
+    setTradeDate("");
     setExpiry("");
     setStrike("");
     setBuyValue("");
@@ -89,6 +108,7 @@ export default function LogTrade({ user }) {
         trade_type,
         security_type,
         ticker_name,
+        trade_date,
         expiry,
         strike,
         buy_value,
@@ -104,6 +124,7 @@ export default function LogTrade({ user }) {
         user_id
       })
     );
+    setToastMessage("Trade Logged Successfully");
   }
 
   const handleCancel = (e) => {
@@ -218,6 +239,18 @@ export default function LogTrade({ user }) {
 
               <Box display="flex">
               <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Date Trade was Closed *
+                </FormHelperText>
+                <Input
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setTradeDate(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
                   <FormHelperText mb={2} ml={1}>
                     Average Cost *
                   </FormHelperText>
@@ -313,8 +346,9 @@ export default function LogTrade({ user }) {
         backgroundColor="whiteAlpha.900"
         boxShadow="md"
       >
+        
           <Text fontSize='lg' as='b'>
-            <Center color="teal.400" >
+            <Center color="teal.400">
               Trade Logged Successfully<br></br>Would You Like to Log Another?
             </Center>
           </Text>

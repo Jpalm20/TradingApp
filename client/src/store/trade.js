@@ -19,12 +19,13 @@ export const create = createAsyncThunk(
   "trade/create",
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
-      const { user_id, trade_type, security_type, ticker_name, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+      const { user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
       const res = await axios.post(`http://localhost:8080/trade/create`, {
         user_id,
         trade_type,
         security_type,
         ticker_name,
+        trade_date,
         expiry,
         strike,
         buy_value,
@@ -80,12 +81,13 @@ export const update = createAsyncThunk(
   "trade/update",
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
-      const { trade_id, user_id, trade_type, security_type, ticker_name, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+      const { trade_id, user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
       const res = await axios.post(`http://localhost:8080/trade/${trade_id}`, {
         user_id,
         trade_type,
         security_type,
         ticker_name,
+        trade_date,
         expiry,
         strike,
         buy_value,

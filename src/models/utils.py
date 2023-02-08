@@ -7,7 +7,7 @@ def execute_db(query,args):
                                          port=3306,
                                          database='TradingApp',
                                          user='jp',
-                                         password='{DB_PASSWORD}')
+                                         password='Jpalmieri20!')
 
             cursor = connection.cursor(dictionary=True)
             cursor.execute(query,args)

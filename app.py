@@ -26,6 +26,11 @@ def user_trades(user_id):
     if request.method == 'GET':
         return userHandler.getUserTrades(user_id)   
 
+@app.route('/user/pnlbyYear/<int:user_id>/<int:date_year>',methods = ['GET'])
+def pnl_year(user_id, date_year):
+    if request.method == 'GET':
+        return userHandler.getPnLbyYear(user_id, date_year)  
+
 @app.route('/trade/create',methods= ['POST'])
 def log_trade():
     if request.method == 'POST':

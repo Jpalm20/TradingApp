@@ -2,12 +2,13 @@ import utils
 
 class Trade:
     
-    def __init__(self,tradeID,userID,tradeType,securityType,tickerName,expiry,strike,value,numOfShares,rr,pnl,percentwl,comment):
+    def __init__(self,tradeID,userID,tradeType,securityType,tickerName,tradeDate,expiry,strike,value,numOfShares,rr,pnl,percentwl,comment):
         self.tradeID = tradeID
         self.userID = userID
         self.tradeType = tradeType
         self.securityType = securityType
         self.tickerName = tickerName
+        self.tradeDate = tradeDate
         self.expiry = expiry
         self.strike = strike
         self.value = value
@@ -26,8 +27,8 @@ class Trade:
     
     def addTrade(newTrade):
         
-        Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-        Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,
+        Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,newTrade.tradeDate,
                             newTrade.expiry,newTrade.strike,newTrade.value,newTrade.numOfShares,newTrade.rr,
                             newTrade.pnl,newTrade.percentwl,newTrade.comment)
         response = utils.execute_db(Query,Args)
@@ -56,7 +57,7 @@ class Trade:
 #--------Tests--------# 
 
 #Testing addTrade       
-#testTrade = Trade(None,1,"Swing Trade","Options","TSLA","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
+#testTrade = Trade(None,1,"Swing Trade","Options","TSLA","12-12-2022","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
 #response = Trade.addTrade(testTrade)
 
 #Testing updateTrade

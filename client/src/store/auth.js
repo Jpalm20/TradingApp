@@ -5,10 +5,12 @@ const TOKEN = "token";
 
 const initialState = {
   trades: [],
+  pnlYTD: {},
   user: {},
   success: false,
   error: false,
   loading: false,
+  info: {},
 };
 
 export const me = createAsyncThunk("auth/me", async () => {
@@ -108,6 +110,22 @@ export const getTrades = createAsyncThunk(
   }
 );
 
+export const getPnlByYear = createAsyncThunk(
+  "auth/getPnlByYear",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { user_id, year } = formInfo;
+      const res = await axios.get(`http://localhost:8080/user/pnlbyYear/${user_id}/${year}`);
+      await window.localStorage.setItem(TOKEN, res.data.token);
+      //dispatch(me());
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const logout = createAsyncThunk("auth/logout", async () => {
   await window.localStorage.removeItem(TOKEN);
 });
@@ -128,19 +146,32 @@ const authSlice = createSlice({
     [getTrades.pending]: (state) => {
       state.loading = true;
     },
-    [getTrades.rejected]: (state) => {
+    [getTrades.rejected]: (state, action) => {
       state.error = true;
+      state.info = action.payload;
+    },
+    [getPnlByYear.fulfilled]: (state, action) => {
+      state.pnlYTD = action.payload;
+      state.success = true;
+    },
+    [getPnlByYear.pending]: (state) => {
+      state.loading = true;
+    },
+    [getPnlByYear.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
     },
     [register.fulfilled]: (state, action) => {
       state.loading = false;
       state.success = true;
-      state.user = action.payload;
+      state.info = action.payload;
     },
     [register.pending]: (state) => {
       state.loading = true;
     },
-    [register.rejected]: (state) => {
+    [register.rejected]: (state, action) => {
       state.error = true;
+      state.info = action.payload;
     },
     [authenticate.fulfilled]: (state, action) => {
       state.loading = false;
@@ -150,8 +181,9 @@ const authSlice = createSlice({
     [authenticate.pending]: (state) => {
       state.loading = true;
     },
-    [authenticate.rejected]: (state) => {
+    [authenticate.rejected]: (state, action) => {
       state.error = true;
+      state.info = action.payload;
     },
     [update.fulfilled]: (state, action) => {
       state.loading = false;
@@ -161,13 +193,16 @@ const authSlice = createSlice({
     [update.pending]: (state) => {
       state.loading = true;
     },
-    [update.rejected]: (state) => {
+    [update.rejected]: (state, action) => {
       state.error = true;
+      state.info = action.payload;
     },
     [logout.fulfilled]: (state) => {
       state.success = false;
       state.user = null;
       state.trades = null;
+      state.pnlYTD = null;
+      state.info = null;
     },
   },
 });

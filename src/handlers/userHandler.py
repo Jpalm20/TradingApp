@@ -1,5 +1,8 @@
 import os
 import sys
+import numpy
+from datetime import datetime
+import json
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -265,6 +268,52 @@ def getUserTrades(user_id):
                 "win_percent": "{:.2f}".format(winPercent)
             }
         }
+        
+def getPnLbyYear(user_id, date_year):
+    response = user.User.getUserPnLbyYear(user_id, date_year)
+    months = numpy.zeros((12,31))
+    if len(response[0]) != 0 and "trade_date" in response[0][0]:
+        for day in response[0]:
+            date = datetime.strptime(day['trade_date'], "%Y-%m-%d")
+            curr_month = date.month
+            curr_day = date.day
+            months[curr_month-1][curr_day-1] = day['day_pnl'] 
+            monthsJSON = months.tolist() 
+        return {
+            "months": [
+                {"0" : monthsJSON[0]},
+                {"1" : monthsJSON[1]},
+                {"2" : monthsJSON[2]},
+                {"3" : monthsJSON[3]},
+                {"4" : monthsJSON[4]},
+                {"5" : monthsJSON[5]},
+                {"6" : monthsJSON[6]},
+                {"7" : monthsJSON[7]},
+                {"8" : monthsJSON[8]},
+                {"9" : monthsJSON[9]},
+                {"10" : monthsJSON[10]},
+                {"11" : monthsJSON[11]}
+            ]
+        }
+    else:
+        monthsJSON = months.tolist()
+        return {
+            "months": [
+                {"0" : monthsJSON[0]},
+                {"1" : monthsJSON[1]},
+                {"2" : monthsJSON[2]},
+                {"3" : monthsJSON[3]},
+                {"4" : monthsJSON[4]},
+                {"5" : monthsJSON[5]},
+                {"6" : monthsJSON[6]},
+                {"7" : monthsJSON[7]},
+                {"8" : monthsJSON[8]},
+                {"9" : monthsJSON[9]},
+                {"10" : monthsJSON[10]},
+                {"11" : monthsJSON[11]}
+            ]
+        }
+    
         
 
 #--------Tests--------# 

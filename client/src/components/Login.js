@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../store/auth";
 // import { Link } from "react-router-dom";
 import {
@@ -10,6 +10,11 @@ import {
   InputGroup,
   Stack,
   InputLeftElement,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Text,
   chakra,
   Box,
   Link,
@@ -26,14 +31,42 @@ const CFaLock = chakra(FaLock);
 
 export default function Login() {
   const dispatch = useDispatch();
+  const { error } = useSelector((state) => state.auth);
+  const { info } = useSelector((state) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errorFlag, setErrorFlag] = useState(false);
 
   const handleSubmit = async(e) => {
     e.preventDefault();
     await dispatch(authenticate({ email, password }));
   };
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setErrorFlag(true);
+    }
+    if(error === false){
+      setErrorFlag(false);
+    }
+  }
+
+  const handleErrorPopUp = () => {
+    if(errorFlag === true){
+      return (
+        <Alert status='error'>
+          <AlertIcon />
+          <AlertTitle>Login Error</AlertTitle>
+          <AlertDescription>{info.response.data.result}</AlertDescription>
+        </Alert>
+      )
+    }
+  }
 
   return (
     <Flex
@@ -110,6 +143,7 @@ export default function Login() {
               >
                 Login
               </Button>
+              {handleErrorPopUp()}
             </Stack>
           </form>
         </Box>
