@@ -1,4 +1,10 @@
 import mysql.connector
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+DB_PASSWORD = os.getenv(‘DBPASSWORD’)
 
 def execute_db(query,args):
 
@@ -6,7 +12,7 @@ def execute_db(query,args):
             connection = mysql.connector.connect(host='docker.for.mac.localhost',
                                          port=3306,
                                          database='TradingApp',
-                                         user='jp',
+                                         user='root',
                                          password='{DB_PASSWORD}')
 
             cursor = connection.cursor(dictionary=True)

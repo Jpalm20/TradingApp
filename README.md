@@ -26,6 +26,7 @@ Quickstart/Deployment Guide:
       - docker run -d -p 8080:5000 trading_app
   4. Run FE
       - go to client folder in terminal
+      - npm install
       - npm run start
   5. Register a User
       - Click Sign Up link on login page when you land on app
