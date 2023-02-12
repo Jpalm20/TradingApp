@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-DB_PASSWORD = os.getenv(‘DBPASSWORD’)
+DB_PASSWORD = os.getenv("DBPASSWORD")
 
 def execute_db(query,args):
 
