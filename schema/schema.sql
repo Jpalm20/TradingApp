@@ -16,7 +16,7 @@ CREATE TABLE `Trade` (
   PRIMARY KEY (`trade_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `trade_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+);
 
 CREATE TABLE `User` (
   `user_id` int NOT NULL AUTO_INCREMENT,
@@ -30,4 +30,4 @@ CREATE TABLE `User` (
   `state` varchar(255) DEFAULT NULL,
   `country` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+);

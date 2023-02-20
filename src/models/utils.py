@@ -9,11 +9,11 @@ DB_PASSWORD = os.getenv("DBPASSWORD")
 def execute_db(query,args):
 
     try:
-            connection = mysql.connector.connect(host='docker.for.mac.localhost',
+            connection = mysql.connector.connect(host='localhost',
                                          port=3306,
-                                         database='TradingApp',
+                                         database='tradingapp',
                                          user='root',
-                                         password='{DB_PASSWORD}')
+                                         password='DB PASSWORD ')
 
             cursor = connection.cursor(dictionary=True)
             cursor.execute(query,args)

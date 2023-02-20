@@ -74,8 +74,8 @@ class User:
 #--------Tests--------# 
 
 #Testing addUser       
-#testUser = User(None,"Jon","Palmiery","08-30-2020","palmierijon@gmail.com","password","11 Danand Lane","Patterson","NY","USA")
-#response = User.addUser(testUser)
+# testUser = User(None,"Jon","Palmiery","08-30-2020","palmierijon@gmail.com","password","11 Danand Lane","Patterson","NY","USA")
+# response = User.addUser(testUser)
 
 #Testing updateUser
 #testUserID = 4;
