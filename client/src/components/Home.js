@@ -34,6 +34,8 @@ import {
   Box,
   Link,
   Avatar,
+  Toast,
+  useToast,
   FormControl,
   FormHelperText,
   InputRightElement,
@@ -52,11 +54,16 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
+
 export default function Home({ user }) {
   ChartJS.register(ArcElement, Tooltip, Legend);
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trades } = useSelector((state) => state.auth);
+  const { error } = useSelector((state) => state.auth);
+  const { info } = useSelector((state) => state.auth);
   const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0 && trades.stats && Object.keys(trades.stats).length > 0) ? (true):(false)); //need to look into this for home error
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
 
@@ -168,6 +175,29 @@ export default function Home({ user }) {
     e.preventDefault();
     setToggleFilter(!toggleFilter);
   }
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
 
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();

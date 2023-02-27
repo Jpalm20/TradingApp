@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { register } from "../store/auth";
 import states from "../data/states";
 // import { Link } from "react-router-dom";
@@ -46,6 +46,11 @@ export default function Signup() {
   */
   const [showPassword, setShowPassword] = useState(false);
 
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const toast = useToast();
+  const { error } = useSelector((state) => state.auth);
+  const { info } = useSelector((state) => state.auth);
+
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [birthday, setBirthday] = useState("");
@@ -72,6 +77,29 @@ export default function Signup() {
       })
     );
   };
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
 
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();

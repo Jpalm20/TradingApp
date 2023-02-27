@@ -1,11 +1,21 @@
-from flask import Flask
+import os
+from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
 import src.handlers.userHandler as userHandler
 import src.handlers.tradeHandler as tradeHandler
+import src.handlers.sessionHandler as sessionHandler
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 CORS(app)
+
+app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
+app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
+jwt = JWTManager(app)
+
 
 @app.route('/')
 def hello_geek():
@@ -23,36 +33,106 @@ def validate_user():
 
 @app.route('/user/trades/<int:user_id>',methods = ['GET'])
 def user_trades(user_id):
-    if request.method == 'GET':
-        return userHandler.getUserTrades(user_id)   
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'GET':
+                return userHandler.getUserTrades(user_id) 
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+  
 
 @app.route('/user/pnlbyYear/<int:user_id>/<int:date_year>',methods = ['GET'])
 def pnl_year(user_id, date_year):
-    if request.method == 'GET':
-        return userHandler.getPnLbyYear(user_id, date_year)  
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'GET':
+                return userHandler.getPnLbyYear(user_id, date_year) 
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+     
 
 @app.route('/trade/create',methods= ['POST'])
 def log_trade():
-    if request.method == 'POST':
-        return tradeHandler.logTrade(request.json) 
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'POST':
+                return tradeHandler.logTrade(request.json) 
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+
 
 @app.route('/user/<int:user_id>',methods = ['GET','POST','DELETE'])
 def existing_user(user_id):
-    if request.method == 'GET':
-        return userHandler.getExistingUser(user_id)
-    elif request.method == 'POST':
-        return userHandler.editExistingUser(user_id,request.json)
-    if request.method == 'DELETE':
-        return userHandler.deleteExistingUser(user_id)
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'GET':
+                return userHandler.getExistingUser(user_id)
+            elif request.method == 'POST':
+                return userHandler.editExistingUser(user_id,request.json)
+            if request.method == 'DELETE':
+                return userHandler.deleteExistingUser(user_id)
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+
 
 @app.route('/trade/<int:trade_id>',methods = ['GET','POST','DELETE'])
 def existing_trade(trade_id):
-    if request.method == 'GET':
-        return tradeHandler.getExistingTrade(trade_id)
-    elif request.method == 'POST':
-        return tradeHandler.editExistingTrade(trade_id,request.json)
-    if request.method == 'DELETE':
-        return tradeHandler.deleteExistingTrade(trade_id)
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'GET':
+                return tradeHandler.getExistingTrade(trade_id)
+            elif request.method == 'POST':
+                return tradeHandler.editExistingTrade(trade_id,request.json)
+            if request.method == 'DELETE':
+                return tradeHandler.deleteExistingTrade(trade_id)
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -3,3 +3,5 @@ mysql-client
 mysql-connector-python
 flask_cors
 numpy
+flask_jwt_extended
+python-dotenv

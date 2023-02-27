@@ -16,15 +16,25 @@ import {
   useToast,
   Link,
   Avatar,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useDisclosure,
   FormControl,
   FormHelperText,
+  Card, 
+  CardBody,
   Badge,
   Center,
   InputRightElement,
+  HStack,
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update } from '../store/auth';
+import { logout, update, deleteUser } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
@@ -34,6 +44,10 @@ const CFaLock = chakra(FaLock);
 
 export default function UserProfile({ user }) {
   const [toastMessage, setToastMessage] = useState(undefined);
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const { error } = useSelector((state) => state.auth);
+  const { info } = useSelector((state) => state.auth);
+  const { success } = useSelector((state) => state.auth);
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -50,18 +64,56 @@ export default function UserProfile({ user }) {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
 
+  const [deletealertdialog, setDeleteAlertDialog] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = React.useRef();
+
+
+  useEffect(() => {
+    evaluateSuccess();
+  }, [success]); 
+
+  const evaluateSuccess = () => {
+    if(success === true && user.result === "User Edited Successfully"){
+        setToastMessage(user.result);
+    }
+  }
+
   useEffect(() => {
     if (toastMessage) {
       toast({
         title: toastMessage,
         variant: 'top-accent',
         status: 'success',
-        duration: 9000,
+        duration: 3000,
         isClosable: true
       });
     }
     setToastMessage(undefined);
   }, [toastMessage, toast]);
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
 
   function clearFormStates() {
     setFirstName("");
@@ -80,12 +132,38 @@ export default function UserProfile({ user }) {
     selectUpdateInfo(true);
   };
 
+  const handleChangePassword = (e) => {
+    e.preventDefault();
+  };
+
   const handleLogout = (e) => {
     e.preventDefault();
     setSelectPage(true);
     selectUpdateInfo(false);
     dispatch(logout());
     navigate("/");
+  };
+
+  const handleDeleteButton = (e) => {
+    setDeleteAlertDialog(true);
+    onOpen();
+  };
+
+  const handleConfirmDelete = async (e) => {
+    e.preventDefault();
+    await dispatch(
+      deleteUser({
+        user_id
+      })
+    );
+    handleLogout(e);    
+    setDeleteAlertDialog(false);
+    onClose();
+  };
+
+  const handleCancelDelete = (e) => {
+    setDeleteAlertDialog(false);
+    onClose();
   };
 
   const handleUpdate = async (e) => {
@@ -106,7 +184,6 @@ export default function UserProfile({ user }) {
     clearFormStates();
     setSelectPage(true);
     selectUpdateInfo(false);
-    setToastMessage("User Edited Successfully");
   }
 
   const handleCancel = (e) => {
@@ -142,7 +219,7 @@ export default function UserProfile({ user }) {
           >
           <Avatar bg="teal.500" />
           <Heading color="teal.400">Profile Page</Heading>
-          <Box minW={{ base: "90%", md: "250px" }} rounded="lg" overflow="hidden">
+          <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden">
             <Stack
               spacing={4}
               p="1rem"
@@ -150,58 +227,45 @@ export default function UserProfile({ user }) {
               boxShadow="md"
             >
 
-              <Box display="flex" justifyContent={"left"}>
-              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
-                <Center h='40px'>
-                  Full Name
-                </Center>
-              </Badge>
-              <Text as='b'>
-                <Center h='40px'>
-                  &nbsp;: {user.first_name} {user.last_name}
-                </Center>
-              </Text>
-              </Box>
-              
-
-              <Box display="flex" justifyContent={"left"}>
-              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
-                <Center h='40px'>
-                  Birthday
-                </Center>
-              </Badge>
-              <Text as='b'>
-                <Center h='40px'>
-                  &nbsp;: {user.birthday}&nbsp;&nbsp;
-                </Center>
-              </Text>
-              </Box>
-             
-              <Box display="flex">
-              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
-                <Center h='40px'>
-                  Email
-                </Center>
-              </Badge>
-              <Text as='b'>
-                <Center h='40px'>
-                  &nbsp;: {user.email}
-                </Center>
-              </Text>
-              </Box>
-              
-            <Box display="flex" justifyContent={"left"}>
-              <Badge width="100px" variant='outline' borderRadius='12' color="teal.400" >
-                <Center h='40px'>
-                  Address
-                </Center>
-              </Badge>
-              <Text as='b'>
-                <Center h='40px'>
-                  &nbsp;: {user.street_address}, {user.city}, {user.state}, {user.country}
-                </Center>
-              </Text>
-            </Box>
+              <Card>
+                <CardBody>
+                  <Stack divider={<StackDivider />} spacing='3'>
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase'>
+                        Full Name
+                      </Heading>
+                      <Text pt='2' fontSize='sm'>
+                        {user.first_name} {user.last_name}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase'>
+                        Email Address
+                      </Heading>
+                      <Text pt='2' fontSize='sm'>
+                        {user.email}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase'>
+                        Birthday
+                      </Heading>
+                      <Text pt='2' fontSize='sm'>
+                        {user.birthday}&nbsp;&nbsp;
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase'>
+                        Address
+                      </Heading>
+                      <Text pt='2' fontSize='sm'>
+                        {user.street_address}, {user.city}, {user.state}, {user.country}
+                      </Text>
+                    </Box>
+                  </Stack>
+                </CardBody>
+              </Card>
+              <HStack>
               <Button  borderRadius={0}
                 type="submit"
                 variant="solid"
@@ -215,10 +279,57 @@ export default function UserProfile({ user }) {
                 variant="solid"
                 colorScheme="teal"
                 width="full" 
+                onClick={handleChangePassword}>
+                Change Password
+              </Button>
+              </HStack>
+              <Button  borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full" 
                 onClick={handleLogout}>
                 Logout
               </Button>
+              <Button borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="red"
+                width="full"
+                onClick={e => handleDeleteButton(e)}>
+                Delete Account
+              </Button>
             </Stack>
+            {deletealertdialog}
+              <AlertDialog
+              motionPreset='slideInBottom'
+              isOpen={isOpen}
+              leastDestructiveRef={cancelRef}
+              onClose={e => handleCancelDelete(e)}
+              isCentered={true}
+              closeOnOverlayClick={false}
+            >
+              <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  Delete User
+                </AlertDialogHeader>
+
+                <AlertDialogBody>
+                  Are you sure? You can't undo this action afterwards. All User data and Trade information will be lost.
+                </AlertDialogBody>
+
+                <AlertDialogFooter>
+                  <Button ref={cancelRef} onClick={e => handleCancelDelete(e)}>
+                    Cancel
+                  </Button>
+                  <Button colorScheme='red' onClick={e => handleConfirmDelete(e)} ml={3}>
+                    Delete
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+              </AlertDialogOverlay>
+            </AlertDialog>
           </Box>
           </Stack>
         </Flex>

@@ -53,6 +53,13 @@ class Trade:
         response = utils.execute_db(Query,Args)
         return response
     
+    def deleteUserTrades(userID):
+    
+        Query = """DELETE FROM Trade WHERE user_id = %s"""
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        return response
+    
     
 #--------Tests--------# 
 

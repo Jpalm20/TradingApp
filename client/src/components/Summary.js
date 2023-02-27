@@ -56,7 +56,13 @@ export default function Summary({ user }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
+  const { success } = useSelector((state) => state.trade);
   const { trades } = useSelector((state) => state.auth);
+  const tradeError = useSelector((state) => state.trade.error);
+  const tradeInfo = useSelector((state) => state.trade.info);
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const { error } = useSelector((state) => state.auth);
+  const { info } = useSelector((state) => state.auth);
   const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
   const hasTrade = ((trade && Object.keys(trade).length > 2) ? (true):(false));
@@ -95,17 +101,56 @@ export default function Summary({ user }) {
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
   useEffect(() => {
+    evaluateSuccess();
+  }, [success]); 
+
+  const evaluateSuccess = () => {
+    if(success === true && trade.result === "Trade Edited Successfully"){
+        setToastMessage(trade.result);
+    }
+    if(success === true && trade.result === "Trade " + trade_id + " Successfully Deleted"){
+      setToastMessage(trade.result);
+    }
+  }
+
+  useEffect(() => {
     if (toastMessage) {
       toast({
         title: toastMessage,
         variant: 'top-accent',
         status: 'success',
-        duration: 9000,
+        duration: 3000,
         isClosable: true
       });
     }
     setToastMessage(undefined);
   }, [toastMessage, toast]);
+
+  useEffect(() => {
+    evaluateError();
+  }, [error, tradeError]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+    if(tradeError === true){
+      setToastErrorMessage(tradeInfo.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
 
   function clearFormStates() {
     setTradeType("");
@@ -124,7 +169,6 @@ export default function Summary({ user }) {
   
   const changeShowOptions = (e) => {
     const choiceOptions = document.getElementById("optionsSelection");
-    console.log(choiceOptions.value);
     if (choiceOptions.value === "Shares"){
       setVisib(false);
       setExpiry("");
@@ -181,7 +225,6 @@ export default function Summary({ user }) {
     );
     setDeleteAlertDialog(false);
     onClose();
-    setToastMessage("Trade Deleted Successfully");
   };
 
   const handleCancelDelete = (e) => {
@@ -220,7 +263,6 @@ export default function Summary({ user }) {
     );
     clearFormStates();
     setEditTrade(false);
-    setToastMessage("Trade Edited Successfully");
   };
 
   const handleCancel = (e) => {

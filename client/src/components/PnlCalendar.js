@@ -17,6 +17,8 @@ import {
   StackDivider,
   Select,
   chakra,
+  Toast,
+  useToast,
   Box,
   Grid,
   GridItem,
@@ -35,6 +37,10 @@ export default function PnlCalendar({ user }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { pnlYTD } = useSelector((state) => state.auth);
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const toast = useToast();
+  const { error } = useSelector((state) => state.auth);
+  const { info } = useSelector((state) => state.auth);
   const hasPnLInfo = ((pnlYTD && Object.keys(pnlYTD).length > 0 && pnlYTD.months && Object.keys(pnlYTD.months).length > 0) ? (true):(false));
 
   const [toggleFilter, setToggleFilter] = useState(false);
@@ -84,7 +90,7 @@ export default function PnlCalendar({ user }) {
     let content = [];
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     for (let i = 0; i < firstDay; i++) {
-      content.push(<GridItem w='100%' h='100%' bg='gray.200' >
+      content.push(<GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -100,7 +106,7 @@ export default function PnlCalendar({ user }) {
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     let spotsLeft = 42-totalDays-1-firstDay;
     for (let i = 0; i < spotsLeft; i++) {
-      content.push(<GridItem w='100%' h='100%' bg='gray.200' >
+      content.push(<GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -170,7 +176,7 @@ export default function PnlCalendar({ user }) {
       pnlDayCount += 1;
     }
     for (let i = 0; i < weekTotals.length; i++) {
-      content.push(<GridItem w='100%' h='100%' bg={colorChange(weekTotals[i])} >
+      content.push(<GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg={colorChange(weekTotals[i])} >
                   -
                   <Center fontWeight='bold' isNumeric>
                     {formatter.format(weekTotals[i])}
@@ -182,7 +188,7 @@ export default function PnlCalendar({ user }) {
 
   const getPnlDays = () => {
     let content = pnlYTD.months[calMonth][calMonth].map((pnl, index) => ( 
-      <GridItem key={index} w='100%' h='100%' bg={colorChange(pnl)}>
+      <GridItem key={index} boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg={colorChange(pnl)}>
         {index+1}
         <Center fontWeight='bold' isNumeric>
           {formatter.format(pnl)}
@@ -201,6 +207,29 @@ export default function PnlCalendar({ user }) {
     e.preventDefault();
     setToggleFilter(!toggleFilter);
   }
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
        
 
   return (
@@ -350,37 +379,37 @@ export default function PnlCalendar({ user }) {
                 align='stretch'
               >
               <Grid templateColumns='repeat(7, 1fr)' gap={3}>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Sunday
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Monday
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Tuesday
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Wednesday
                   </Center>
                 </GridItem>                
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Thursday
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Friday
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Saturday
                   </Center>
@@ -400,7 +429,7 @@ export default function PnlCalendar({ user }) {
                 display='flex'
               >
               <Grid templateColumns='repeat(1, 1fr)' templateRows='repeat(1, 1fr)' gap={3}>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Weekly Totals
                   </Center>
@@ -412,22 +441,22 @@ export default function PnlCalendar({ user }) {
               </VStack>
               </HStack>
               <Grid templateColumns='repeat(4, 1fr)' gap={10}>
-                <GridItem w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
                   <Center fontWeight='bold'>
                     Monthly PnL: {formatter.format(getMonthlyTotal())}
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Green Days: {getGreenDayTotal()}
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     Red Days: {getRedDayTotal()}
                   </Center>
                 </GridItem>
-                <GridItem w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
                   <Center fontWeight='bold'>
                     % Green Days: {percent.format(getGreenDayPercent())}
                   </Center>

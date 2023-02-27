@@ -36,12 +36,15 @@ const CFaLock = chakra(FaLock);
 
 export default function LogTrade({ user }) {
   const [toastMessage, setToastMessage] = useState(undefined);
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
+  const { error } = useSelector((state) => state.trade);
+  const { info } = useSelector((state) => state.trade);
+  const { success } = useSelector((state) => state.trade);
   const tradeLogged = ((trade && Object.keys(trade).length > 2) ? (true):(false));
-
   const [visib, setVisib] = useState(true);
 
   const user_id = user.user_id;
@@ -59,17 +62,50 @@ export default function LogTrade({ user }) {
   const [comments, setComments] = useState(""); 
 
   useEffect(() => {
+    evaluateSuccess();
+  }, [success]); 
+
+  const evaluateSuccess = () => {
+    if(success === true && trade.result === "Trade Logged Successfully"){
+        setToastMessage(trade.result);
+    }
+  }
+
+  useEffect(() => {
     if (toastMessage) {
       toast({
         title: toastMessage,
         variant: 'top-accent',
         status: 'success',
-        duration: 9000,
+        duration: 3000,
         isClosable: true
       });
     }
     setToastMessage(undefined);
   }, [toastMessage, toast]);
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
 
   function clearFormStates() {
     setTradeType("");
@@ -124,7 +160,6 @@ export default function LogTrade({ user }) {
         user_id
       })
     );
-    setToastMessage("Trade Logged Successfully");
   }
 
   const handleCancel = (e) => {

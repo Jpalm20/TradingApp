@@ -43,7 +43,8 @@ def logTrade(requestBody):
             "rr": newTrade.rr,
             "pnl": newTrade.pnl,
             "percent_wl": newTrade.percentwl,
-            "comments": newTrade.comment
+            "comments": newTrade.comment,
+            "result": "Trade Logged Successfully"
         }
         
 def getExistingTrade(trade_id):
@@ -90,7 +91,8 @@ def editExistingTrade(trade_id,requestBody):
             "rr": response[0][0]['rr'],
             "pnl": response[0][0]['pnl'],
             "percent_wl": response[0][0]['percent_wl'],
-            "comments": response[0][0]['comments']
+            "comments": response[0][0]['comments'],
+            "result": "Trade Edited Successfully"
         }
     else:
         return response, 400
@@ -101,7 +103,7 @@ def deleteExistingTrade(trade_id):
         return response, 400
     else:
         return {
-            "result": "Trade " + str(trade_id) + " Successfully Deleted"
+            "result": "Trade Successfully Deleted"
         }
         
 #--------Tests--------# 

@@ -1,13 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const TOKEN = "token";
+const TOKEN = "";
 
 const initialState = {
   trade: {},
   success: false,
   error: false,
   loading: false,
+  info: {},
 };
 
 export const reset = createAsyncThunk(
@@ -18,26 +19,32 @@ export const reset = createAsyncThunk(
 export const create = createAsyncThunk(
   "trade/create",
   async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
     try {
-      const { user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
-      const res = await axios.post(`http://localhost:8080/trade/create`, {
-        user_id,
-        trade_type,
-        security_type,
-        ticker_name,
-        trade_date,
-        expiry,
-        strike,
-        buy_value,
-        units,
-        rr,
-        pnl,
-        percent_wl,
-        comments
-      });
-      await window.localStorage.setItem(TOKEN, res.data.token)
-      //dispatch(me());
-      return res.data
+      if (token) {
+        const { user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+        const res = await axios.post(`http://localhost:8080/trade/create`, {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          user_id,
+          trade_type,
+          security_type,
+          ticker_name,
+          trade_date,
+          expiry,
+          strike,
+          buy_value,
+          units,
+          rr,
+          pnl,
+          percent_wl,
+          comments
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token)
+        //dispatch(me());
+        return res.data
+      }
     } catch (error) {
       console.error(error);
       return rejectWithValue(error);
@@ -48,12 +55,19 @@ export const create = createAsyncThunk(
 export const getTrade = createAsyncThunk(
   "trade/getTrade",
   async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
     try {
-      const { trade_id } = formInfo;
-      const res = await axios.get(`http://localhost:8080/trade/${trade_id}`);
-      await window.localStorage.setItem(TOKEN, res.data.token);
-      //dispatch(me());
-      return res.data
+      if (token) {
+        const { trade_id } = formInfo;
+        const res = await axios.get(`http://localhost:8080/trade/${trade_id}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
     } catch (error) {
       console.error(error);
       return rejectWithValue(error);
@@ -64,12 +78,19 @@ export const getTrade = createAsyncThunk(
 export const deleteTrade = createAsyncThunk(
   "trade/deleteTrade",
   async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
     try {
-      const { trade_id } = formInfo;
-      const res = await axios.delete(`http://localhost:8080/trade/${trade_id}`);
-      await window.localStorage.setItem(TOKEN, res.data.token);
-      //dispatch(me());
-      return res.data
+      if (token) {
+        const { trade_id } = formInfo;
+        const res = await axios.delete(`http://localhost:8080/trade/${trade_id}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
     } catch (error) {
       console.error(error);
       return rejectWithValue(error);
@@ -80,26 +101,32 @@ export const deleteTrade = createAsyncThunk(
 export const update = createAsyncThunk(
   "trade/update",
   async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
     try {
-      const { trade_id, user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
-      const res = await axios.post(`http://localhost:8080/trade/${trade_id}`, {
-        user_id,
-        trade_type,
-        security_type,
-        ticker_name,
-        trade_date,
-        expiry,
-        strike,
-        buy_value,
-        units,
-        rr,
-        pnl,
-        percent_wl,
-        comments
-      });
-      await window.localStorage.setItem(TOKEN, res.data.token);
-      //dispatch(me());
-      return res.data
+      if (token) {
+        const { trade_id, user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+        const res = await axios.post(`http://localhost:8080/trade/${trade_id}`, {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          user_id,
+          trade_type,
+          security_type,
+          ticker_name,
+          trade_date,
+          expiry,
+          strike,
+          buy_value,
+          units,
+          rr,
+          pnl,
+          percent_wl,
+          comments
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
     } catch (error) {
       console.error(error);
       return rejectWithValue(error);
@@ -115,44 +142,60 @@ const tradeSlice = createSlice({
       [getTrade.fulfilled]: (state, action) => {
         state.trade = action.payload;
         state.success = true;
+        state.error = false;
       },
       [getTrade.pending]: (state) => {
         state.loading = true;
+        state.error = false;
+        state.success = false;
       },
-      [getTrade.rejected]: (state) => {
+      [getTrade.rejected]: (state, action) => {
         state.error = true;
+        state.info = action.payload;
       },
       [deleteTrade.fulfilled]: (state, action) => {
         state.trade = action.payload;
         state.success = true;
+        state.error = false;
       },
       [deleteTrade.pending]: (state) => {
         state.loading = true;
+        state.error = false;
+        state.success = false;
       },
-      [deleteTrade.rejected]: (state) => {
+      [deleteTrade.rejected]: (state, action) => {
         state.error = true;
+        state.info = action.payload;
       },
       [create.fulfilled]: (state, action) => {
         state.loading = false;
         state.success = true;
         state.trade = action.payload;
+        state.error = false;
       },
       [create.pending]: (state) => {
         state.loading = true;
+        state.error = false;
+        state.success = false;
       },
-      [create.rejected]: (state) => {
+      [create.rejected]: (state, action) => {
         state.error = true;
+        state.info = action.payload;
       },
       [update.fulfilled]: (state, action) => {
         state.loading = false;
         state.success = true;
         state.trade = action.payload;
+        state.error = false;
       },
       [update.pending]: (state) => {
         state.loading = true;
+        state.error = false;
+        state.success = false;
       },
-      [update.rejected]: (state) => {
+      [update.rejected]: (state, action) => {
         state.error = true;
+        state.info = action.payload;
       },
       [reset.fulfilled]: (state) => {
         state.success = false;

@@ -17,6 +17,8 @@ import {
   Text,
   chakra,
   Box,
+  Toast,
+  useToast,
   Link,
   Avatar,
   FormControl,
@@ -30,6 +32,8 @@ const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function Login() {
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const toast = useToast();
   const dispatch = useDispatch();
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
@@ -49,14 +53,37 @@ export default function Login() {
 
   const evaluateError = () => {
     if(error === true){
+      setToastErrorMessage(info.response.data.result);
+      /*
       setErrorFlag(true);
+      setTimeout(() => {
+        setErrorFlag(false);
+      }, 3000);
+      */
     }
     if(error === false){
+      /*
       setErrorFlag(false);
+      */
     }
   }
 
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
+
+  
   const handleErrorPopUp = () => {
+    /*
     if(errorFlag === true){
       return (
         <Alert status='error'>
@@ -66,7 +93,9 @@ export default function Login() {
         </Alert>
       )
     }
+     */
   }
+ 
 
   return (
     <Flex

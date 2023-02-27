@@ -30,13 +30,20 @@ export default function App() {
   const { trades } = useSelector((state) => state.auth);
   const isLoggedIn = ((user && Object.keys(user).length > 2) ? (true):(false));
   const [registered, setRegistered] = useState(true);
-  const isRegistered = ((info && Object.keys(info).length > 2) ? (true):(false));
+  const isRegistered = ((info && Object.keys(info).length > 2 && info.result && info.result === "User Created Successfully") ? (true):(false));
+  const [deleted, setDeleted] = useState(true);
+  const isDeleted = ((info && Object.keys(info).length === 1 && info.result && info.result === "User Successfully Deleted") ? (true):(false));
   const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
 
   if(isRegistered === true && registered === true){
-    setToastMessage("User Created Successfully");
+    setToastMessage(info.result);
     setRegistered(false);
+  }
+
+  if(isDeleted === true && deleted === true){
+    setToastMessage(info.result);
+    setDeleted(false);
   }
   
   useEffect(() => {

@@ -1,13 +1,24 @@
 import os
 import sys
 import numpy
-from datetime import datetime
+from datetime import date, datetime, timedelta
 import json
+from flask_jwt_extended import create_access_token
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import user
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import session
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import trade
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'validators',)
@@ -42,33 +53,41 @@ def registerUser(requestBody):
             "street_address": newUser.streetAddress,
             "city": newUser.city,
             "state": newUser.state,
-            "country": newUser.country
+            "country": newUser.country,
+            "result": "User Created Successfully"
         }
 
 def validateUser(requestBody):
     response = user.User.getUserbyEmail(requestBody['email'])
-    if 'password' in response[0][0]:
+    if not response[0]:
+        return {
+            "result": "No User Found with this Email, Please Use a Different Email or Create an Account"
+        }, 403
+    elif 'password' in response[0][0]:
         hashPass = userTransformer.hashPassword(requestBody['password'])
         if response[0][0]['password'] == hashPass:
-            return {
-                "user_id": response[0][0]['user_id'],
-                "first_name": response[0][0]['first_name'],
-                "last_name": response[0][0]['last_name'],
-                "birthday": response[0][0]['birthday'],
-                "email": response[0][0]['email'],
-                "street_address": response[0][0]['street_address'],
-                "city": response[0][0]['city'],
-                "state": response[0][0]['state'],
-                "country": response[0][0]['country']
-            }
+            access_token = create_access_token(identity=response[0][0]['user_id']) 
+            newSession = session.Session(None,response[0][0]['user_id'],access_token,datetime.now()+timedelta(hours=24))
+            sessionResponse = session.Session.addSession(newSession)
+            if sessionResponse[0]:
+                return sessionResponse, 400
+            else:
+                return {
+                    "token": access_token,
+                    "user_id": response[0][0]['user_id'],
+                    "first_name": response[0][0]['first_name'],
+                    "last_name": response[0][0]['last_name'],
+                    "birthday": response[0][0]['birthday'],
+                    "email": response[0][0]['email'],
+                    "street_address": response[0][0]['street_address'],
+                    "city": response[0][0]['city'],
+                    "state": response[0][0]['state'],
+                    "country": response[0][0]['country']
+                }
         else:
             return {
                 "result": "Incorrect Password, Please Try Again"
             }, 403
-    else:
-        return {
-            "result": "No User Found with these Credentials, Please Try Again"
-        }, 403
         
 def getExistingUser(user_id):
     response = user.User.getUserbyID(user_id)
@@ -104,18 +123,21 @@ def editExistingUser(user_id,requestBody):
             "street_address": response[0][0]['street_address'],
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
-            "country": response[0][0]['country']
+            "country": response[0][0]['country'],
+            "result": "User Edited Successfully"
         }
     else:
         return response, 400
 
 def deleteExistingUser(user_id):
+    response = trade.Trade.deleteUserTrades(user_id)
+    response = session.Session.deleteUserSessions(user_id)
     response = user.User.deleteUser(user_id)
     if response[0]:
         return response, 400
     else:
         return {
-            "result": "User " + str(user_id) + " Successfully Deleted"
+            "result": "User Successfully Deleted"
         }
 
 def getUserTrades(user_id):
@@ -334,8 +356,8 @@ def getPnLbyYear(user_id, date_year):
 
 #Testing validateUser()
 #testUserDict = {
-#    "email": "xxxxxx@gmail.com",
-#    "password": "testpassword",
+#    "email": "alexi.bollella@gmail.com",
+#    "password": "Modperl1!",
 #}
 #response = validateUser(testUserDict)
 

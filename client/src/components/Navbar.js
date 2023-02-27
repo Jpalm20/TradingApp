@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getPnlByYear } from '../store/auth'
 import { 
   Flex, 
@@ -8,6 +8,8 @@ import {
   Text,
   Center,
   ButtonGroup,
+  Toast,
+  useToast,
   Button,
   Spacer, 
   Icon} from "@chakra-ui/react";
@@ -16,9 +18,13 @@ import { RiStockFill } from "react-icons/ri";
 import { useSelector, useDispatch } from "react-redux";
 
 export default function Navbar({ user }) {
+  const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
+  const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { trade } = useSelector((state) => state.trade);
+  const { error } = useSelector((state) => state.trade);
+  const { info } = useSelector((state) => state.trade);
   const today = new Date();
   const year = today.getFullYear();
   const handleHome = (e) => {
@@ -37,6 +43,31 @@ export default function Navbar({ user }) {
   const handleLogTrade = (e) => {
     navigate("/logTrade");
   }
+
+  /*
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 9000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
+  */
   
   return (
     <Flex justify="space-between" backgroundColor="teal.600">
