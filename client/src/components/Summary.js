@@ -15,6 +15,7 @@ import {
   TableCaption,
   TableContainer,
   Center,
+  Spinner,
   Heading,
   AlertDialog,
   AlertDialogBody,
@@ -100,6 +101,9 @@ export default function Summary({ user }) {
   const cancelRef = React.useRef();
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
+  const authLoading = useSelector((state) => state.auth.loading);
+  const tradeLoading = useSelector((state) => state.trade.loading);
+
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
@@ -108,7 +112,7 @@ export default function Summary({ user }) {
     if(success === true && trade.result === "Trade Edited Successfully"){
         setToastMessage(trade.result);
     }
-    if(success === true && trade.result === "Trade " + trade_id + " Successfully Deleted"){
+    if(success === true && trade.result === "Trade Successfully Deleted"){
       setToastMessage(trade.result);
     }
   }
@@ -373,6 +377,26 @@ export default function Summary({ user }) {
           >
           
           <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+          {authLoading ?
+            <Stack
+            flex="auto"
+            p="1rem"
+            backgroundColor="whiteAlpha.900"
+            boxShadow="md"
+            h="full"
+            w="full"
+            >
+            <Center>
+            <Spinner
+                thickness='4px'
+                speed='0.65s'
+                emptyColor='gray.200'
+                color='blue.500'
+                size='xl'
+            />
+            </Center>
+            </Stack>
+          :
             <Stack
               flex="auto"
               p="1rem"
@@ -467,6 +491,21 @@ export default function Summary({ user }) {
               isCentered={true}
               closeOnOverlayClick={false}
             >
+            {tradeLoading ?
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+              <Center>
+                <Spinner
+                    thickness='4px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='blue.500'
+                    size='xl'
+                />
+              </Center>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+            :
               <AlertDialogOverlay>
               <AlertDialogContent>
                 <AlertDialogHeader fontSize='lg' fontWeight='bold'>
@@ -487,11 +526,13 @@ export default function Summary({ user }) {
                 </AlertDialogFooter>
               </AlertDialogContent>
               </AlertDialogOverlay>
+            }
             </AlertDialog>
             ) : (
 
             )
             </Stack>
+          }
           </Box>
           </Stack>
         </Flex>
@@ -513,6 +554,24 @@ export default function Summary({ user }) {
         >
         <Heading color="teal.400">Update Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+          {tradeLoading ? 
+            <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor="whiteAlpha.900"
+                boxShadow="md"
+              >
+              <Center>
+              <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+              />
+              </Center>
+            </Stack>
+          :
           <form>
             <Stack
               spacing={4}
@@ -679,6 +738,7 @@ export default function Summary({ user }) {
               </Button>
             </Stack>
           </form>
+        }
         </Box>
       </Stack>
     </Flex>

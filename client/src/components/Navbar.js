@@ -7,6 +7,7 @@ import {
   Link,
   Text,
   Center,
+  Spinner,
   ButtonGroup,
   Toast,
   useToast,
@@ -27,13 +28,16 @@ export default function Navbar({ user }) {
   const { info } = useSelector((state) => state.trade);
   const today = new Date();
   const year = today.getFullYear();
+
+  const authLoading = useSelector((state) => state.auth.loading);
+
   const handleHome = (e) => {
     navigate("/");
   }
 
   const handlePnlCalendar = async (e, user_id) => {
-    await dispatch(getPnlByYear({ user_id, year }));
     navigate("/PnlCalendar");
+    await dispatch(getPnlByYear({ user_id, year }));
   }
 
   const handleTrades = (e) => {

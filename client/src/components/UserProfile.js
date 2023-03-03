@@ -11,6 +11,7 @@ import {
   InputLeftElement,
   chakra,
   Select,
+  Spinner,
   Box,
   Toast,
   useToast,
@@ -34,7 +35,7 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser } from '../store/auth';
+import { logout, update, deleteUser, changePassword } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
@@ -64,9 +65,21 @@ export default function UserProfile({ user }) {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
 
+  const [changepwdialog, setChangePwAlertDialog] = useState(false);
+  const [curr_pass, setCurrPass] = useState("");
+  const [new_pass_1, setNewPass1] = useState("");
+  const [new_pass_2, setNewPass2] = useState("");
+  const [showCurrPassword, setShowCurrPassword] = useState(false);
+  const [showNewPassword1, setShowNewPassword1] = useState(false);
+  const [showNewPassword2, setShowNewPassword2] = useState(false);
+
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
+  
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
+
+  const authLoading = useSelector((state) => state.auth.loading);
+  const tradeLoading = useSelector((state) => state.trade.loading);
 
 
   useEffect(() => {
@@ -133,7 +146,28 @@ export default function UserProfile({ user }) {
   };
 
   const handleChangePassword = (e) => {
+    setChangePwAlertDialog(true);
+    onOpen();
+  };
+
+  const handleConfirmChangePw = async (e) => {
     e.preventDefault();
+    await dispatch(
+      changePassword({
+        user_id,
+        curr_pass,
+        new_pass_1,
+        new_pass_2
+      })
+    );
+    handleLogout(e);    
+    setChangePwAlertDialog(false);
+    onClose();
+  };
+
+  const handleCancelChangePw = (e) => {
+    setChangePwAlertDialog(false);
+    onClose();
   };
 
   const handleLogout = (e) => {
@@ -220,6 +254,24 @@ export default function UserProfile({ user }) {
           <Avatar bg="teal.500" />
           <Heading color="teal.400">Profile Page</Heading>
           <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden">
+          {authLoading && !changepwdialog && !deletealertdialog? 
+            <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor="whiteAlpha.900"
+                boxShadow="md"
+              >
+              <Center>
+              <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+              />
+              </Center>
+            </Stack>
+          :
             <Stack
               spacing={4}
               p="1rem"
@@ -300,15 +352,31 @@ export default function UserProfile({ user }) {
                 Delete Account
               </Button>
             </Stack>
+            }
             {deletealertdialog}
               <AlertDialog
               motionPreset='slideInBottom'
-              isOpen={isOpen}
+              isOpen={deletealertdialog}
               leastDestructiveRef={cancelRef}
               onClose={e => handleCancelDelete(e)}
               isCentered={true}
               closeOnOverlayClick={false}
             >
+            {authLoading || tradeLoading ?
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+              <Center>
+                <Spinner
+                    thickness='4px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='blue.500'
+                    size='xl'
+                />
+              </Center>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+            :
               <AlertDialogOverlay>
               <AlertDialogContent>
                 <AlertDialogHeader fontSize='lg' fontWeight='bold'>
@@ -329,6 +397,115 @@ export default function UserProfile({ user }) {
                 </AlertDialogFooter>
               </AlertDialogContent>
               </AlertDialogOverlay>
+            }
+            </AlertDialog>
+            {changepwdialog}
+              <AlertDialog
+              motionPreset='slideInBottom'
+              isOpen={changepwdialog}
+              leastDestructiveRef={cancelRef}
+              onClose={e => handleChangePassword(e)}
+              isCentered={true}
+              closeOnOverlayClick={false}
+            >
+            {authLoading || tradeLoading ?
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+              <Center>
+                <Spinner
+                    thickness='4px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='blue.500'
+                    size='xl'
+                />
+              </Center>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+            :
+              <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  Change Password
+                </AlertDialogHeader>
+
+                <AlertDialogBody>
+                  <FormControl>
+                    <FormHelperText mb={2} ml={1}>
+                      Current Password *
+                    </FormHelperText>
+                    <InputGroup>
+                      <Input
+                        type={showCurrPassword ? "text" : "password"}
+                        onChange={(e) => setCurrPass(e.target.value)}
+                      />
+                      <InputRightElement width="4.5rem">
+                        <Button
+                          variant={"ghost"}
+                          onClick={() =>
+                            setShowCurrPassword((showCurrPassword) => !showCurrPassword)
+                          }
+                        >
+                          {showCurrPassword ? <ViewIcon /> : <ViewOffIcon />}
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
+                  </FormControl>
+                  <FormControl>
+                    <FormHelperText mb={2} ml={1}>
+                      New Password *
+                    </FormHelperText>
+                    <InputGroup>
+                      <Input
+                        type={showNewPassword1 ? "text" : "password"}
+                        onChange={(e) => setNewPass1(e.target.value)}
+                      />
+                      <InputRightElement width="4.5rem">
+                        <Button
+                          variant={"ghost"}
+                          onClick={() =>
+                            setShowNewPassword1((showNewPassword1) => !showNewPassword1)
+                          }
+                        >
+                          {showNewPassword1 ? <ViewIcon /> : <ViewOffIcon />}
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
+                  </FormControl>
+                  <FormControl>
+                    <FormHelperText mb={2} ml={1}>
+                      Confirm New Password *
+                    </FormHelperText>
+                    <InputGroup>
+                      <Input
+                        type={showNewPassword2 ? "text" : "password"}
+                        onChange={(e) => setNewPass2(e.target.value)}
+                      />
+                      <InputRightElement width="4.5rem">
+                        <Button
+                          variant={"ghost"}
+                          onClick={() =>
+                            setShowNewPassword2((showNewPassword2) => !showNewPassword2)
+                          }
+                        >
+                          {showNewPassword2 ? <ViewIcon /> : <ViewOffIcon />}
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
+                  </FormControl>
+                </AlertDialogBody>
+
+                <AlertDialogFooter>
+                  <Button ref={cancelRef} onClick={e => handleCancelChangePw(e)}>
+                    Cancel
+                  </Button>
+                  <Button colorScheme='teal' onClick={e => handleConfirmChangePw(e)} ml={3}>
+                    Change Password
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+              </AlertDialogOverlay>
+            }
             </AlertDialog>
           </Box>
           </Stack>
@@ -351,6 +528,24 @@ export default function UserProfile({ user }) {
           <Avatar bg="teal.500" />
           <Heading color="teal.400">Update Information</Heading>
           <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+          {authLoading && !changepwdialog && !deletealertdialog? 
+            <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor="whiteAlpha.900"
+                boxShadow="md"
+              >
+              <Center>
+              <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+              />
+              </Center>
+            </Stack>
+          :
           <form>
             <Stack
               spacing={4}
@@ -472,6 +667,7 @@ export default function UserProfile({ user }) {
               </Button>
             </Stack>
           </form>
+          }
           </Box>
             
           </Stack>

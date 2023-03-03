@@ -86,6 +86,24 @@ def log_trade():
         return {
             "result": "Authorization Header is Missing"
         }, 401
+        
+@app.route('/user/changePassword/<int:user_id>',methods= ['POST'])
+def change_Password(user_id):
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'POST':
+                return userHandler.changePassword(user_id, request.json) 
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
 
 
 @app.route('/user/<int:user_id>',methods = ['GET','POST','DELETE'])

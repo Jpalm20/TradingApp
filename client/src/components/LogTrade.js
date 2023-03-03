@@ -16,6 +16,7 @@ import {
   Stack,
   InputLeftElement,
   Textarea,
+  Spinner,
   Select,
   chakra,
   Box,
@@ -60,6 +61,8 @@ export default function LogTrade({ user }) {
   const [pnl, setPNL] = useState("");
   const [percent_wl, setPercentWL] = useState("");
   const [comments, setComments] = useState(""); 
+
+  const tradeLoading = useSelector((state) => state.trade.loading);
 
   useEffect(() => {
     evaluateSuccess();
@@ -212,6 +215,24 @@ export default function LogTrade({ user }) {
       >
         <Heading color="teal.400">Log A Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        {tradeLoading ? 
+            <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor="whiteAlpha.900"
+                boxShadow="md"
+              >
+              <Center>
+              <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+              />
+              </Center>
+            </Stack>
+          :
           <form>
             <Stack
               spacing={4}
@@ -368,6 +389,7 @@ export default function LogTrade({ user }) {
               </Button>
             </Stack>
           </form>
+        }
         </Box>
       </Stack>
       ) : (

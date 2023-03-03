@@ -14,6 +14,8 @@ import {
   Toast,
   useToast,
   Stack,
+  Center,
+  Spinner,
   InputLeftElement,
   chakra,
   Select,
@@ -60,6 +62,9 @@ export default function Signup() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
+
+  const authLoading = useSelector((state) => state.auth.loading);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,6 +132,24 @@ export default function Signup() {
         <Avatar bg="teal.500" />
         <Heading color="teal.400">Create an account</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        {authLoading ? 
+          <Stack
+              spacing={4}
+              p="1rem"
+              backgroundColor="whiteAlpha.900"
+              boxShadow="md"
+            >
+            <Center>
+            <Spinner
+                thickness='4px'
+                speed='0.65s'
+                emptyColor='gray.200'
+                color='blue.500'
+                size='xl'
+            />
+            </Center>
+          </Stack>
+        :
           <form>
             <Stack
               spacing={4}
@@ -252,6 +275,7 @@ export default function Signup() {
               </Button>
             </Stack>
           </form>
+        }
         </Box>
       </Stack>
       <Box>

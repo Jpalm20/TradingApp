@@ -77,9 +77,6 @@ export const update = createAsyncThunk(
       if (token) {
         const { user_id, first_name, last_name, email, street_address, city, state, country } = formInfo;
         const res = await axios.post(`http://localhost:8080/user/${user_id}`, {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
           first_name,
           last_name,
           email,
@@ -87,6 +84,10 @@ export const update = createAsyncThunk(
           city,
           state,
           country
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
@@ -168,6 +169,35 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
+
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { user_id, curr_pass, new_pass_1, new_pass_2 } = formInfo;
+        const res = await axios.post(`http://localhost:8080/user/changePassword/${user_id}`,{
+          curr_pass,
+          new_pass_1,
+          new_pass_2
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
 export const logout = createAsyncThunk("auth/logout", async () => {
   await window.localStorage.removeItem(TOKEN);
 });
@@ -185,6 +215,7 @@ const authSlice = createSlice({
     [getTrades.fulfilled]: (state, action) => {
       state.trades = action.payload;
       state.success = true;
+      state.loading = false;
       state.info = null;
       state.error = false;
     },
@@ -196,10 +227,12 @@ const authSlice = createSlice({
     [getTrades.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
+      state.loading = false;
     },
     [getPnlByYear.fulfilled]: (state, action) => {
       state.pnlYTD = action.payload;
       state.success = true;
+      state.loading = false;
       state.info = null;
       state.error = false;
     },
@@ -211,6 +244,7 @@ const authSlice = createSlice({
     [getPnlByYear.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
+      state.loading = false;
     },
     [register.fulfilled]: (state, action) => {
       state.loading = false;
@@ -226,6 +260,7 @@ const authSlice = createSlice({
     [register.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
+      state.loading = false;
     },
     [authenticate.fulfilled]: (state, action) => {
       state.loading = false;
@@ -242,6 +277,7 @@ const authSlice = createSlice({
     [authenticate.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
+      state.loading = false;
     },
     [update.fulfilled]: (state, action) => {
       state.loading = false;
@@ -258,6 +294,23 @@ const authSlice = createSlice({
     [update.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
+      state.loading = false;
+    },
+    [changePassword.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [changePassword.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [changePassword.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
     },
     [deleteUser.fulfilled]: (state, action) => {
       state.loading = false;
@@ -276,6 +329,7 @@ const authSlice = createSlice({
     [deleteUser.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
+      state.loading = false;
     },
     [logout.fulfilled]: (state) => {
       state.success = false;

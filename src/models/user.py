@@ -69,6 +69,13 @@ class User:
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         return response
+    
+    def updatePass(userID, newPass):
+        
+        Query = """UPDATE User SET password = %s WHERE user_id = %s"""
+        Args = (newPass,userID)
+        response = utils.execute_db(Query,Args)
+        return response
  
  
 #--------Tests--------# 

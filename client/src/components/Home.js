@@ -34,6 +34,7 @@ import {
   Box,
   Link,
   Avatar,
+  Spinner,
   Toast,
   useToast,
   FormControl,
@@ -81,6 +82,8 @@ export default function Home({ user }) {
   const [filter_switch_month, setFilterSwitchMonth] = useState(false);
   const [filter_switch_week, setFilterSwitchWeek] = useState(false);
   const [filter_switch_day, setFilterSwitchDay] = useState(false);
+
+  const authLoading = useSelector((state) => state.auth.loading);
 
 
   var formatter = new Intl.NumberFormat('en-US', {
@@ -314,6 +317,26 @@ export default function Home({ user }) {
           >
           
           <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+          {authLoading ?
+            <Stack
+            flex="auto"
+            p="1rem"
+            backgroundColor="whiteAlpha.900"
+            boxShadow="md"
+            h="full"
+            w="full"
+            >
+            <Center>
+            <Spinner
+                thickness='4px'
+                speed='0.65s'
+                emptyColor='gray.200'
+                color='blue.500'
+                size='xl'
+            />
+            </Center>
+            </Stack>
+          :
             <Stack
               flex="auto"
               p="1rem"
@@ -483,6 +506,7 @@ export default function Home({ user }) {
               </Text>
             )}
             </Stack>
+          }
           </Box>
           </Stack>
         </Flex>

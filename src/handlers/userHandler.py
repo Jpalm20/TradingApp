@@ -88,6 +88,31 @@ def validateUser(requestBody):
             return {
                 "result": "Incorrect Password, Please Try Again"
             }, 403
+            
+def changePassword(user_id, requestBody):
+    response = userValidator.validateChangePassword(requestBody)
+    if response != True:
+        return response
+    response = user.User.getUserbyID(user_id)
+    if not response[0]:
+        return {
+            "result": "User Does Not Exist"
+        }, 403
+    elif 'password' in response[0][0]:
+        hashPass = userTransformer.hashPassword(requestBody['curr_pass'])
+        if response[0][0]['password'] == hashPass:
+            hashPass = userTransformer.hashPassword(requestBody['new_pass_1'])
+            response = user.User.updatePass(user_id,hashPass)
+            if response[0]:
+                return response, 400
+            else:
+                return {
+                    "result": "Password Successfully Changed"
+                }
+        else:
+            return {
+                "result": "Incorrect Current Password, Please Try Again"
+            }, 403
         
 def getExistingUser(user_id):
     response = user.User.getUserbyID(user_id)

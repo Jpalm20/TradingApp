@@ -10,6 +10,7 @@ import {
 import {
   Toast,
   useToast,
+  Spinner
 } from "@chakra-ui/react";
 import { me, getTrades } from "./store/auth";
 import Home from "./components/Home";
@@ -33,8 +34,11 @@ export default function App() {
   const isRegistered = ((info && Object.keys(info).length > 2 && info.result && info.result === "User Created Successfully") ? (true):(false));
   const [deleted, setDeleted] = useState(true);
   const isDeleted = ((info && Object.keys(info).length === 1 && info.result && info.result === "User Successfully Deleted") ? (true):(false));
+  const [changed, setChanged] = useState(true);
+  const isChanged = ((info && Object.keys(info).length === 1 && info.result && info.result === "Password Successfully Changed") ? (true):(false));
   const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
-  const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
+  const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false)); 
+  
 
   if(isRegistered === true && registered === true){
     setToastMessage(info.result);
@@ -44,6 +48,11 @@ export default function App() {
   if(isDeleted === true && deleted === true){
     setToastMessage(info.result);
     setDeleted(false);
+  }
+
+  if(isChanged === true && changed === true){
+    setToastMessage(info.result);
+    setChanged(false);
   }
   
   useEffect(() => {

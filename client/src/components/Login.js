@@ -17,6 +17,7 @@ import {
   Text,
   chakra,
   Box,
+  Spinner,
   Toast,
   useToast,
   Link,
@@ -24,6 +25,7 @@ import {
   FormControl,
   FormHelperText,
   InputRightElement,
+  Center,
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
@@ -41,6 +43,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorFlag, setErrorFlag] = useState(false);
+
+  const authLoading = useSelector((state) => state.auth.loading);
 
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -115,6 +119,24 @@ export default function Login() {
         <Avatar bg="teal.500" />
         <Heading color="teal.400">Welcome</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        {authLoading ? 
+          <Stack
+              spacing={4}
+              p="1rem"
+              backgroundColor="whiteAlpha.900"
+              boxShadow="md"
+            >
+            <Center>
+            <Spinner
+                thickness='4px'
+                speed='0.65s'
+                emptyColor='gray.200'
+                color='blue.500'
+                size='xl'
+            />
+            </Center>
+          </Stack>
+        :
           <form>
             <Stack
               spacing={4}
@@ -175,6 +197,7 @@ export default function Login() {
               {handleErrorPopUp()}
             </Stack>
           </form>
+        }
         </Box>
       </Stack>
       <Box>

@@ -24,9 +24,6 @@ export const create = createAsyncThunk(
       if (token) {
         const { user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
         const res = await axios.post(`http://localhost:8080/trade/create`, {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
           user_id,
           trade_type,
           security_type,
@@ -40,6 +37,10 @@ export const create = createAsyncThunk(
           pnl,
           percent_wl,
           comments
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
         });
         //await window.localStorage.setItem(TOKEN, res.data.token)
         //dispatch(me());
@@ -62,7 +63,7 @@ export const getTrade = createAsyncThunk(
         const res = await axios.get(`http://localhost:8080/trade/${trade_id}`,{
           headers: {
             Authorization: "Bearer " + token,
-          },
+          }
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
@@ -85,7 +86,7 @@ export const deleteTrade = createAsyncThunk(
         const res = await axios.delete(`http://localhost:8080/trade/${trade_id}`,{
           headers: {
             Authorization: "Bearer " + token,
-          },
+          }
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
@@ -106,9 +107,6 @@ export const update = createAsyncThunk(
       if (token) {
         const { trade_id, user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
         const res = await axios.post(`http://localhost:8080/trade/${trade_id}`, {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
           user_id,
           trade_type,
           security_type,
@@ -122,6 +120,10 @@ export const update = createAsyncThunk(
           pnl,
           percent_wl,
           comments
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
@@ -143,6 +145,7 @@ const tradeSlice = createSlice({
         state.trade = action.payload;
         state.success = true;
         state.error = false;
+        state.loading = false;
       },
       [getTrade.pending]: (state) => {
         state.loading = true;
@@ -152,11 +155,13 @@ const tradeSlice = createSlice({
       [getTrade.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
+        state.loading = false;
       },
       [deleteTrade.fulfilled]: (state, action) => {
         state.trade = action.payload;
         state.success = true;
         state.error = false;
+        state.loading = false;
       },
       [deleteTrade.pending]: (state) => {
         state.loading = true;
@@ -166,6 +171,7 @@ const tradeSlice = createSlice({
       [deleteTrade.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
+        state.loading = false;
       },
       [create.fulfilled]: (state, action) => {
         state.loading = false;
@@ -181,6 +187,7 @@ const tradeSlice = createSlice({
       [create.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
+        state.loading = false;
       },
       [update.fulfilled]: (state, action) => {
         state.loading = false;
@@ -196,10 +203,12 @@ const tradeSlice = createSlice({
       [update.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
+        state.loading = false;
       },
       [reset.fulfilled]: (state) => {
         state.success = false;
         state.trade = null;
+        state.loading = false;
       },
     },
   });

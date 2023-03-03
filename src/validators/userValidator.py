@@ -40,3 +40,14 @@ def validateEditUser(request):
             "result": "A User with this Email Already Exist, Try Updating with a Different Email"
         }, 403
     return True
+
+def validateChangePassword(request):
+    if ('curr_pass' not in request or request['curr_pass'] == '' or len(request['curr_pass']) < 8) or ('new_pass_1' not in request or request['new_pass_1'] == '' or len(request['new_pass_1']) < 8) or ('new_pass_2' not in request or request['new_pass_2'] == '' or len(request['new_pass_2']) < 8):
+        return {
+            "result": "All Passwords Must be at Least 8 Characters, Please Try Again"
+        }, 403 
+    if ('new_pass_1' == 'new_pass_2'):
+        return {
+            "result": "Both New Password Entries Must Match, Please Try Again"
+        }, 403 
+    return True
