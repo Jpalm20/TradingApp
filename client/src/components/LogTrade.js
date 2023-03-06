@@ -16,7 +16,14 @@ import {
   Stack,
   InputLeftElement,
   Textarea,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Spinner,
+  useDisclosure,
   Select,
   chakra,
   Box,
@@ -61,6 +68,9 @@ export default function LogTrade({ user }) {
   const [pnl, setPNL] = useState("");
   const [percent_wl, setPercentWL] = useState("");
   const [comments, setComments] = useState(""); 
+  const cancelRef = React.useRef();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
 
   const tradeLoading = useSelector((state) => state.trade.loading);
 
@@ -206,7 +216,6 @@ export default function LogTrade({ user }) {
       justifyContent="center"
       alignItems="center"
     >
-      {!tradeLogged ? (
       <Stack
         flexDir="column"
         mb="2"
@@ -392,45 +401,36 @@ export default function LogTrade({ user }) {
         }
         </Box>
       </Stack>
-      ) : (
-      <Stack
-        flexDir="column"
-        mb="2"
-        justifyContent="center"
-        alignItems="center"
-        spacing={4}
-        p="1rem"
-        backgroundColor="whiteAlpha.900"
-        boxShadow="md"
+      {tradeLogged}
+      <AlertDialog
+        motionPreset='slideInBottom'
+        isOpen={tradeLogged}
+        leastDestructiveRef={cancelRef}
+        onClose={e => handleAnswerNo(e)}
+        isCentered={true}
+        closeOnOverlayClick={false}
       >
-        
-          <Text fontSize='lg' as='b'>
-            <Center color="teal.400">
-              Trade Logged Successfully<br></br>Would You Like to Log Another?
-            </Center>
-          </Text>
-              <Button
-                borderRadius={0}
-                type="submit"
-                variant="solid"
-                colorScheme="teal"
-                width="full"
-                onClick={handleAnswerYes}
-              >
-                Yes
-              </Button>
-              <Button
-                borderRadius={0}
-                type="submit"
-                variant="solid"
-                colorScheme="teal"
-                width="full"
-                onClick={handleAnswerNo}
-              >
-                No
-              </Button>
-      </Stack>
-      )}
+        <AlertDialogOverlay>
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+            Trade Logged Successfully
+          </AlertDialogHeader>
+
+          <AlertDialogBody>
+            Would You Like to Log Another?
+          </AlertDialogBody>
+
+          <AlertDialogFooter>
+            <Button colorScheme='teal' onClick={e => handleAnswerYes(e)}>
+              Yes
+            </Button>
+            <Button ref={cancelRef} colorScheme='red' onClick={e => handleAnswerNo(e)} ml={3}>
+              No
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Flex>
   );
 }
