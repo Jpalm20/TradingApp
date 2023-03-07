@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getTrades } from '../store/auth'
+import { getTrades, getTradesFiltered } from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import {
   Flex,
@@ -278,9 +278,38 @@ export default function Summary({ user }) {
     setEditTrade(false);
   }
 
-  const handleSubmitFilter = (e) => {
+  const handleSubmitFilter = async (e) => {
     e.preventDefault();
-    setToggleFilter(!toggleFilter);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    await dispatch(
+      getTradesFiltered({
+        filters,
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  const handleClearFilter = async (e) => {
+    e.preventDefault();
+    setFilterTradeType('');
+    setFilterSecurityType('');
+    setFilterTickerName('');
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
   }
 
   // grabbing current date to set a max to the birthday input
@@ -341,7 +370,7 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
                   </FormHelperText>
-                  <Select placeholder='Select Trade Type' onChange={(e) => setFilterTradeType(e.target.value)}>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
                     <option>Swing Trade</option>
                     <option>Day Trade</option>
                   </Select>
@@ -350,7 +379,7 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select placeholder='Select Security Type' onChange={(e) => setFilterSecurityType(e.target.value)}>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
                     <option>Options</option>
                     <option>Shares</option>
                   </Select>
@@ -359,11 +388,14 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
               </Box>
                   <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
+                  </Button>
+                  <Button colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                    Clear Filter
                   </Button>
               </Stack>
             </Box>

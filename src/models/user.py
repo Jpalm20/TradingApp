@@ -35,6 +35,20 @@ class User:
         response = utils.execute_db(Query,Args)
         return response  
     
+    def getUserTradesFilter(userID,filters):
+        
+        Query = """SELECT * FROM Trade WHERE user_id = %s"""
+        if filters:
+            Query += " AND "
+        conditions = []
+        for key, value in filters.items():
+            if value:
+                conditions.append(f"{key}='{value}'")
+        Query += " AND ".join(conditions)
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        return response 
+    
     def getUserPnLbyYear(userID,year):
             
         Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM Trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s GROUP BY trade_date ORDER BY trade_date ASC;"""
@@ -107,6 +121,15 @@ class User:
 #Testing getUserTrades
 #testUserID = 77
 #response = User.getUserTrades(testUserID)
+
+#Testing getUserTradesFilter
+#testUserID = 71
+#testFilters = {
+#   "ticker_name": "SPY",
+#   "trade_type": "Swing Trade",
+#   "security_type": "Options"
+#}
+#response = User.getUserTradesFilter(testUserID,testFilters)
 
 #Testing getUserTradesbyYear
 #testUserID = 77

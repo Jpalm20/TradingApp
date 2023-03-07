@@ -38,8 +38,12 @@ def user_trades(user_id):
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
         if eval:
-            if request.method == 'GET':
-                return userHandler.getUserTrades(user_id) 
+            if request.args is not None:
+                if request.method == 'GET':
+                    return userHandler.getUserTrades(user_id, request.args) 
+            else: 
+                if request.method == 'GET':
+                    return userHandler.getUserTrades(user_id) 
         else:
             return {
                 "result": message

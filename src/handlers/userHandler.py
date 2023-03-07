@@ -165,8 +165,11 @@ def deleteExistingUser(user_id):
             "result": "User Successfully Deleted"
         }
 
-def getUserTrades(user_id):
-    response = user.User.getUserTrades(user_id)
+def getUserTrades(user_id,filters=None):
+    if filters is None:
+        response = user.User.getUserTrades(user_id)
+    else:
+        response = user.User.getUserTradesFilter(user_id,filters)
     if len(response[0]) != 0 and "trade_id" in response[0][0]:
         numTrades = 0
         numLosses = 0
@@ -401,5 +404,14 @@ def getPnLbyYear(user_id, date_year):
 
 #Testing getUserTrades()
 #response = getUserTrades(77)
+
+#Testing getUserTradesFilter
+#testUserID = 71
+#testFilters = {
+#   "ticker_name": "SPY",
+#   "trade_type": "Swing Trade",
+#   "security_type": "Options"
+#}
+#response = getUserTrades(testUserID,testFilters)
 
 #print(response)

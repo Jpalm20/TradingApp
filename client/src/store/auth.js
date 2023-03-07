@@ -123,6 +123,30 @@ export const getTrades = createAsyncThunk(
   }
 );
 
+export const getTradesFiltered = createAsyncThunk(
+  "auth/getTradesFiltered",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { user_id, filters } = formInfo;
+        const res = await axios.get(`http://localhost:8080/user/trades/${user_id}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const getPnlByYear = createAsyncThunk(
   "auth/getPnlByYear",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -225,6 +249,23 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getTrades.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getTradesFiltered.fulfilled]: (state, action) => {
+      state.trades = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getTradesFiltered.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getTradesFiltered.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;
