@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getPnlByYear } from '../store/auth';
+import { getPnlByYear, getPnlByYearFiltered } from '../store/auth';
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import monthsString from "../data/months";
 
@@ -206,9 +206,37 @@ export default function PnlCalendar({ user }) {
     dispatch(getPnlByYear({ user_id, year }));
   }, [calYear]); 
 
-  const handleSubmitFilter = (e) => {
+  const handleSubmitFilter = async (e) => {
     e.preventDefault();
-    setToggleFilter(!toggleFilter);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    let year = calYear;
+    await dispatch(
+      getPnlByYearFiltered({
+        filters,
+        user_id,
+        year
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  const handleClearFilter = async (e) => {
+    e.preventDefault();
+    setFilterTradeType('');
+    setFilterSecurityType('');
+    setFilterTickerName('');
+    let year = calYear;
+    await dispatch(getPnlByYear({ user_id, year }));
+    //setToggleFilter(!toggleFilter);
   }
 
   useEffect(() => {
@@ -310,6 +338,9 @@ export default function PnlCalendar({ user }) {
               </Box>
                   <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
+                  </Button>
+                  <Button colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                    Clear Filter
                   </Button>
               </Stack>
             </Box>

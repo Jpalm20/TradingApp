@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear } from '../store/auth'
+import { getPnlByYear, getTrades } from '../store/auth'
 import { 
   Flex, 
   Heading, 
@@ -31,8 +31,9 @@ export default function Navbar({ user }) {
 
   const authLoading = useSelector((state) => state.auth.loading);
 
-  const handleHome = (e) => {
+  const handleHome = async (e, user_id) => {
     navigate("/");
+    await dispatch(getTrades({ user_id }));
   }
 
   const handlePnlCalendar = async (e, user_id) => {
@@ -40,8 +41,9 @@ export default function Navbar({ user }) {
     await dispatch(getPnlByYear({ user_id, year }));
   }
 
-  const handleTrades = (e) => {
+  const handleTrades = async (e, user_id) => {
     navigate("/summary");
+    await dispatch(getTrades({ user_id }));
   }
 
   const handleLogTrade = (e) => {
@@ -82,13 +84,13 @@ export default function Navbar({ user }) {
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <><Spacer /><Center h="65px">
           <ButtonGroup gap='2'>
-            <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleHome(e.target.value)}>
+            <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleHome(e.target.value, user.user_id)}>
               Home
             </Button>
             <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handlePnlCalendar(e.target.value, user.user_id)}>
               Pnl Calendar
             </Button>
-            <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleTrades(e.target.value)}>
+            <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleTrades(e.target.value, user.user_id)}>
               Trades
             </Button>
             <Button backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>

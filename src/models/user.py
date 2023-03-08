@@ -42,8 +42,12 @@ class User:
             Query += " AND "
         conditions = []
         for key, value in filters.items():
+            if key == 'date_range':
+                continue
             if value:
                 conditions.append(f"{key}='{value}'")
+        if 'date_range' in filters: 
+            conditions.append(filters['date_range'])
         Query += " AND ".join(conditions)
         Args = (userID,)
         response = utils.execute_db(Query,Args)
@@ -55,6 +59,21 @@ class User:
         Args = (userID,year)
         response = utils.execute_db(Query,Args)
         return response  
+    
+    def getUserPnLbyYearFilter(userID,year,filters):
+        
+        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM Trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
+        if filters:
+            Query += " AND "
+        conditions = []
+        for key, value in filters.items():
+            if value:
+                conditions.append(f"{key}='{value}'")
+        Query += " AND ".join(conditions)
+        Query += " GROUP BY trade_date ORDER BY trade_date ASC;"
+        Args = (userID,year)
+        response = utils.execute_db(Query,Args)
+        return response 
     
     def addUser(newUser):
 

@@ -61,8 +61,11 @@ def pnl_year(user_id, date_year):
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
         if eval:
-            if request.method == 'GET':
-                return userHandler.getPnLbyYear(user_id, date_year) 
+            if request.args is not None:
+                if request.method == 'GET':
+                    return userHandler.getPnLbyYear(user_id, date_year, request.args) 
+                else:
+                    return userHandler.getPnLbyYear(user_id, date_year)
         else:
             return {
                 "result": message

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getTrades } from '../store/auth'
+import { getTrades, getTradesFiltered } from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
@@ -77,11 +77,7 @@ export default function Home({ user }) {
   const [filter_trade_type, setFilterTradeType] = useState("");
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
-  const [filter_switch_at, setFilterSwitchAT] = useState(true);
-  const [filter_switch_ytd, setFilterSwitchYTD] = useState(false);
-  const [filter_switch_month, setFilterSwitchMonth] = useState(false);
-  const [filter_switch_week, setFilterSwitchWeek] = useState(false);
-  const [filter_switch_day, setFilterSwitchDay] = useState(false);
+  const [filter_switch_time, setFilterSwitchDate] = useState("");
 
   const authLoading = useSelector((state) => state.auth.loading);
 
@@ -174,9 +170,42 @@ export default function Home({ user }) {
   };
 
 
-  const handleSubmitFilter = (e) => {
+  const handleSubmitFilter = async (e) => {
     e.preventDefault();
-    setToggleFilter(!toggleFilter);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_switch_time !== ''){
+      filters.date_range = filter_switch_time;
+    }
+    await dispatch(
+      getTradesFiltered({
+        filters,
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  const handleClearFilter = async (e) => {
+    e.preventDefault();
+    setFilterTradeType('');
+    setFilterSecurityType('');
+    setFilterTickerName('');
+    setFilterSwitchDate('');
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
   }
 
   useEffect(() => {
@@ -260,7 +289,7 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
                   </FormHelperText>
-                  <Select placeholder='Select Trade Type' onChange={(e) => setFilterTradeType(e.target.value)}>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
                     <option>Swing Trade</option>
                     <option>Day Trade</option>
                   </Select>
@@ -269,7 +298,7 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select placeholder='Select Security Type' onChange={(e) => setFilterSecurityType(e.target.value)}>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
                     <option>Options</option>
                     <option>Shares</option>
                   </Select>
@@ -278,32 +307,26 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
-                <Stack align='center' direction='row' paddingTop={5} paddingStart={2} paddingEnd={20} justifyContent="space-between">
-                  <Text as="b">All Time</Text>
-                  <Switch size='md' colorScheme='teal'/>
-                </Stack>
-                <Stack align='center' direction='row' paddingTop={5} paddingStart={2} paddingEnd={20} justifyContent="space-between">
-                  <Text as="b">YTD</Text>
-                  <Switch size='md' colorScheme='teal'/>
-                </Stack>
-                <Stack align='center' direction='row' paddingTop={5} paddingStart={2} paddingEnd={20} justifyContent="space-between">
-                  <Text as="b">Month</Text>
-                  <Switch size='md' colorScheme='teal'/>
-                </Stack>
-                <Stack align='center' direction='row' paddingTop={5} paddingStart={2} paddingEnd={20} justifyContent="space-between">
-                  <Text as="b">Week</Text>
-                  <Switch size='md' colorScheme='teal'/>
-                </Stack>
-                <Stack align='center' direction='row' paddingTop={5} paddingStart={2} paddingEnd={20} justifyContent="space-between">
-                  <Text as="b">Day</Text>
-                  <Switch size='md' colorScheme='teal'/>
-                </Stack>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Time Frame
+                  </FormHelperText>
+                  <Select placeholder='Select Time Frame' value={filter_switch_time} onChange={(e) => setFilterSwitchDate(e.target.value)}>
+                    <option>Year</option>
+                    <option>Month</option>
+                    <option>Week</option>
+                    <option>Day</option>
+                  </Select>
+                </FormControl>
 
               </Box>
                   <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
+                  </Button>
+                  <Button colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                    Clear Filter
                   </Button>
               </Stack>
             </Box>

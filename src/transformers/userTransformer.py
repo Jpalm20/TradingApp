@@ -23,3 +23,15 @@ def transformEditUser(request):
         if request[key] != "":
             transformedRequest[key] = request[key]
     return transformedRequest
+
+def transformDateRange(date_range):
+    query = "trade_date >= "
+    if date_range == "Year":
+        query += "DATE_ADD(NOW(), INTERVAL -1 YEAR)"
+    elif date_range == "Month":
+        query += "DATE_ADD(NOW(), INTERVAL -1 MONTH)"
+    elif date_range == "Week":
+        query += "DATE_ADD(NOW(), INTERVAL -1 WEEK)"
+    elif date_range == "Day":
+        query += "DATE_ADD(NOW(), INTERVAL -1 DAY)"
+    return query

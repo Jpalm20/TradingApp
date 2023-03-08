@@ -170,6 +170,30 @@ export const getPnlByYear = createAsyncThunk(
   }
 );
 
+export const getPnlByYearFiltered = createAsyncThunk(
+  "auth/getPnlByYearFiltered",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { user_id, year, filters } = formInfo;
+        const res = await axios.get(`http://localhost:8080/user/pnlbyYear/${user_id}/${year}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const deleteUser = createAsyncThunk(
   "auth/deleteUser",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -283,6 +307,23 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getPnlByYear.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getPnlByYearFiltered.fulfilled]: (state, action) => {
+      state.pnlYTD = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getPnlByYearFiltered.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getPnlByYearFiltered.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;

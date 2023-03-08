@@ -169,7 +169,10 @@ def getUserTrades(user_id,filters=None):
     if filters is None:
         response = user.User.getUserTrades(user_id)
     else:
-        response = user.User.getUserTradesFilter(user_id,filters)
+        filterBody = filters.to_dict()
+        if 'date_range' in filters:
+            filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        response = user.User.getUserTradesFilter(user_id,filterBody)
     if len(response[0]) != 0 and "trade_id" in response[0][0]:
         numTrades = 0
         numLosses = 0
@@ -319,8 +322,11 @@ def getUserTrades(user_id,filters=None):
             }
         }
         
-def getPnLbyYear(user_id, date_year):
-    response = user.User.getUserPnLbyYear(user_id, date_year)
+def getPnLbyYear(user_id, date_year, filters=None):
+    if filters is None:
+        response = user.User.getUserPnLbyYear(user_id, date_year)
+    else:
+        response = user.User.getUserPnLbyYearFilter(user_id, date_year, filters)
     months = numpy.zeros((12,31))
     if len(response[0]) != 0 and "trade_date" in response[0][0]:
         for day in response[0]:
