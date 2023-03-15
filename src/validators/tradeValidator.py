@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import date, datetime, timedelta
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -27,6 +28,10 @@ def validateNewTrade(request):
         return {
             "result": "Must Include a Valid Risk to Reward Ratio"
         }, 400
+    elif ('trade_date' in request and datetime.strptime(request['trade_date'], '%Y-%m-%d') >= datetime.now()):
+        return {
+            "result": "Trade Closure Date Can't be in the Future"
+        }, 400
     #need to validate blanks as well, might be easier to set required fields on FE if possible
     
     return True
@@ -47,5 +52,9 @@ def validateEditTrade(request):
     elif ('rr' in request and request['rr'] != "" and (request['rr'] == " " or ':' not in request['rr'])):
         return {
             "result": "Must Include a Valid Risk to Reward Ratio"
+        }, 400
+    elif ('trade_date' in request and datetime.strptime(request['trade_date'], '%Y-%m-%d') >= datetime.now()):
+        return {
+            "result": "Trade Closure Date Can't be in the Future"
         }, 400
     return True

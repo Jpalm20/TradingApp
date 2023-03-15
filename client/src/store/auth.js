@@ -5,6 +5,7 @@ const TOKEN = "";
 
 const initialState = {
   trades: [],
+  tradesOfDay: [],
   pnlYTD: {},
   user: {},
   success: false,
@@ -125,6 +126,30 @@ export const getTrades = createAsyncThunk(
 
 export const getTradesFiltered = createAsyncThunk(
   "auth/getTradesFiltered",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { user_id, filters } = formInfo;
+        const res = await axios.get(`http://localhost:8080/user/trades/${user_id}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getTradesOfDateFiltered = createAsyncThunk(
+  "auth/getTradesOfDateFiltered",
   async (formInfo, { dispatch, rejectWithValue }) => {
     const token = await window.localStorage.getItem(TOKEN);
     try {
@@ -294,6 +319,23 @@ const authSlice = createSlice({
       state.info = action.payload;
       state.loading = false;
     },
+    [getTradesOfDateFiltered.fulfilled]: (state, action) => {
+      state.tradesOfDay = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getTradesOfDateFiltered.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getTradesOfDateFiltered.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [getPnlByYear.fulfilled]: (state, action) => {
       state.pnlYTD = action.payload;
       state.success = true;
@@ -400,6 +442,7 @@ const authSlice = createSlice({
       state.user = null;
       state.trades = null;
       state.pnlYTD = null;
+      state.tradesOfDay = null;
       state.info = action.payload;
       state.error = false;
     },
@@ -417,6 +460,7 @@ const authSlice = createSlice({
       state.success = false;
       state.user = null;
       state.trades = null;
+      state.tradesOfDay = null;
       state.pnlYTD = null;
       state.info = null;
       state.error = false;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getPnlByYear, getPnlByYearFiltered } from '../store/auth';
+import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../store/auth';
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import monthsString from "../data/months";
 
@@ -14,12 +14,29 @@ import {
   Input,
   Button,
   Spinner,
+  Badge,
+  Table,
+  Thead,
+  Tbody,
+  Tfoot,
+  Tr,
+  Th,
+  Td,
+  TableCaption,
+  TableContainer,
   Stack,
   StackDivider,
+  useDisclosure,
   Select,
   chakra,
   Toast,
   useToast,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Box,
   Grid,
   GridItem,
@@ -38,11 +55,13 @@ export default function PnlCalendar({ user }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { pnlYTD } = useSelector((state) => state.auth);
+  const trades = useSelector((state) => state.auth.tradesOfDay);
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const toast = useToast();
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
   const hasPnLInfo = ((pnlYTD && Object.keys(pnlYTD).length > 0 && pnlYTD.months && Object.keys(pnlYTD.months).length > 0) ? (true):(false));
+  const hasTradesofDay = ((trades && Object.keys(trades).length > 0 && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
 
   const [toggleFilter, setToggleFilter] = useState(false);
 
@@ -50,16 +69,25 @@ export default function PnlCalendar({ user }) {
   const year = today.getFullYear();
   const month = today.getMonth();
 
+  const [calDay, setCalDay] = useState(0)
   const [calMonth, setCalMonth] = useState(month);
   const [calYear, setCalYear] = useState(year);
+  console.log(calYear,calMonth,calDay);
+
 
   const user_id = user.user_id;
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = React.useRef();
+
+  const [tradesOfDayPopUp, setTradesOfDayPopUp] = useState(false);
 
   const [filter_trade_type, setFilterTradeType] = useState("");
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
 
   const authLoading = useSelector((state) => state.auth.loading);
+  const tradeLoading = useSelector((state) => state.trade.loading);
 
 
   var formatter = new Intl.NumberFormat('en-US', {
@@ -72,6 +100,36 @@ export default function PnlCalendar({ user }) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  const handleTradesOfDay = async (e, cal_day) => {
+    e.preventDefault();
+    setTradesOfDayPopUp(true);
+    onOpen();
+    setCalDay(cal_day);
+    const cal_date = new Date(calYear,calMonth,cal_day);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.trade_date = cal_date.toISOString().split('T')[0]
+    await dispatch(
+      getTradesOfDateFiltered({
+        filters,
+        user_id
+      })
+    );
+  };
+
+  const handleCancelTradesOfDay = (e) => {
+    setTradesOfDayPopUp(false);
+    onClose();
+  };
 
   const colorChange = (pnl) => {
     let bgColor;
@@ -103,7 +161,7 @@ export default function PnlCalendar({ user }) {
     return content;
   };
 
-    const getBlanksForEndOfMonth = () => {
+  const getBlanksForEndOfMonth = () => {
     let content = [];
     let totalDays = getDays(calYear, calMonth);
     let firstDay = new Date(calYear, calMonth, 1).getDay();
@@ -191,11 +249,11 @@ export default function PnlCalendar({ user }) {
 
   const getPnlDays = () => {
     let content = pnlYTD.months[calMonth][calMonth].map((pnl, index) => ( 
-      <GridItem key={index} boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg={colorChange(pnl)}>
-        {index+1}
-        <Center fontWeight='bold' isNumeric>
-          {formatter.format(pnl)}
-        </Center>
+      <GridItem key={index} boxShadow='inner' rounded='md' p='1' w='100%' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl)} onClick={e => handleTradesOfDay(e, index+1)}>
+          {index+1}
+          <Center fontWeight='bold' isNumeric>
+            {formatter.format(pnl)}
+          </Center>
       </GridItem>
     ));
     return content;
@@ -313,7 +371,7 @@ export default function PnlCalendar({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
                   </FormHelperText>
-                  <Select placeholder='Select Trade Type' onChange={(e) => setFilterTradeType(e.target.value)}>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
                     <option>Swing Trade</option>
                     <option>Day Trade</option>
                   </Select>
@@ -322,7 +380,7 @@ export default function PnlCalendar({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select placeholder='Select Security Type' onChange={(e) => setFilterSecurityType(e.target.value)}>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
                     <option>Options</option>
                     <option>Shares</option>
                   </Select>
@@ -331,7 +389,7 @@ export default function PnlCalendar({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
                 
 
@@ -354,7 +412,7 @@ export default function PnlCalendar({ user }) {
           >
           
           <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
-          {authLoading ?
+          {authLoading && !tradesOfDayPopUp ?
             <Stack
             flex="auto"
             p="1rem"
@@ -475,6 +533,81 @@ export default function PnlCalendar({ user }) {
                 {getPnlDays()}
                 {getBlanksForEndOfMonth()}
               </Grid>
+              {tradesOfDayPopUp} ? (
+              <AlertDialog
+                motionPreset='slideInBottom'
+                isOpen={isOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={e => handleCancelTradesOfDay(e)}
+                isCentered={true}
+                closeOnOverlayClick={true}
+                size="xl"
+              >
+              {authLoading ?
+              <AlertDialogOverlay>
+                <AlertDialogContent>
+                <Center>
+                  <Spinner
+                      thickness='4px'
+                      speed='0.65s'
+                      emptyColor='gray.200'
+                      color='blue.500'
+                      size='xl'
+                  />
+                </Center>
+                </AlertDialogContent>
+              </AlertDialogOverlay>
+              :
+                <AlertDialogOverlay>
+                <AlertDialogContent>
+                  <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  <Center>
+                    Trades Closed on {(new Date(calYear, calMonth, calDay)).toDateString()}
+                  </Center>
+                  </AlertDialogHeader>
+
+                  <AlertDialogBody>
+                  {hasTradesofDay ? (
+                  <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
+                    <Table size='sm' variant='striped' colorScheme='teal'>
+                      <Thead position="sticky" top={0} bgColor="lightgrey">
+                        <Tr>
+                          <Th>Trade<br></br>Type</Th>
+                          <Th>Security<br></br>Type</Th>
+                          <Th>Ticker</Th>
+                          <Th>PNL</Th>
+                          <Th>% W/L</Th>
+                        </Tr>
+                      </Thead>
+                          <Tbody>
+                            {trades.trades.map((trades, index) => (
+                              <Tr>
+                                <Td>{trades.trade_type}</Td>
+                                <Td>{trades.security_type}</Td>
+                                <Td>{trades.ticker_name}</Td>
+                                <Td isNumeric>{trades.pnl}</Td>
+                                <Td isNumeric>{trades.percent_wl}</Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                    </Table>
+                  </TableContainer>
+                  ) : (
+                  <Center>
+                    <Badge variant='subtle' colorScheme='red' fontSize='0.8em'>
+                      No Trades Closed on This Day
+                    </Badge>
+                  </Center>
+                  )}
+                  </AlertDialogBody>
+
+                  <AlertDialogFooter>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialogOverlay>
+              }
+              </AlertDialog>
+              )
               </VStack>
               <VStack
                 divider={<StackDivider borderColor='gray.200' />}
