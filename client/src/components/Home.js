@@ -11,7 +11,16 @@ import {
   Switch,
   Center,
   Heading,
+  StackDivider,
   Input,
+  Grid,
+  GridItem,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  StatGroup,
   Table,
   Thead,
   Tbody,
@@ -167,6 +176,26 @@ export default function Home({ user }) {
     legend: {
       position: "none",
     },
+  };
+
+  const colorChange = (pnl) => {
+    let bgColor;
+    if (pnl > 0){
+      bgColor = "green.400"
+    } else if (pnl < 0) {
+      bgColor = "red.400"
+    } else {
+      bgColor = "black"
+    }
+    return bgColor;
+  };
+
+  const pnlValue = (pnl) => {
+    if (pnl.includes("-")){
+      return "(".concat(pnl.substring(1),")")
+    } else {
+      return pnl
+    }
   };
 
 
@@ -371,100 +400,162 @@ export default function Home({ user }) {
             >
             {{hasTrades} ? (
             <HStack h="full" w="full" align='top'>
-            <Box w="50%" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch" >
-              <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
-                <Center>
-                  Statistics
-                </Center>
-              </Heading>
-            <TableContainer padding={0} maxHeight="100vh" >
-              <Table size='sm' variant='striped' colorScheme="facebook">
-                    <Tbody>
-                        <Tr>
-                          <Td># of Trades</Td>
-                          <Td isNumeric>{trades.stats.num_trades + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td># of Wins</Td>
-                          <Td isNumeric>{trades.stats.num_wins + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td># of Losses</Td>
-                          <Td isNumeric>{trades.stats.num_losses + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td># of Day Trades</Td>
-                          <Td isNumeric>{trades.stats.num_day + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td># of Swing Trades</Td>
-                          <Td isNumeric>{trades.stats.num_swing + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td># of Options Trades</Td>
-                          <Td isNumeric>{trades.stats.num_options + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td># of Shares Trades</Td>
-                          <Td isNumeric>{trades.stats.num_shares + " Trades"}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Largest Win</Td>
-                          <Td isNumeric>{formatter.format(trades.stats.largest_win)}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Largest Loss</Td>
-                          <Td isNumeric>{formatter.format(trades.stats.largest_loss)}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Average Win</Td>
-                          <Td isNumeric>{formatter.format(trades.stats.avg_win)}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Average Loss</Td>
-                          <Td isNumeric>{formatter.format(trades.stats.avg_loss)}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Total PNL</Td>
-                          <Td isNumeric>{formatter.format(trades.stats.total_pnl)}</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Win %</Td>
-                          <Td isNumeric>{percent.format(trades.stats.win_percent/100)}</Td>
-                        </Tr>
-                    </Tbody>
-              </Table>
-            </TableContainer>
+            <VStack w='100%' h='100%'>
+            <Heading color="teal.400" w='full' paddingTop={1} paddingBottom={3} size="md">
+              <Center>
+                Statistics
+              </Center>
+            </Heading>
+            
+            <Box w="100%" h='100%' borderWidth="1px" rounded="lg" overflow="hidden" >
+              <Grid templateColumns='repeat(1, 1fr)' w='100%' h='12%' >
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Trades</StatLabel>
+                    <StatNumber>{trades.stats.num_trades + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+              </Grid>
+              <Grid templateColumns='repeat(2, 7fr)' w='100%' h='70%'>
+              <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Total PNL</StatLabel>
+                    <StatNumber color={colorChange(trades.stats.total_pnl)}>{pnlValue(formatter.format(trades.stats.total_pnl))}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%'  >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Win %</StatLabel>
+                    <StatNumber>{percent.format(trades.stats.win_percent/100)}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Wins</StatLabel>
+                    <StatNumber color="green.400">{trades.stats.num_wins + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Losses</StatLabel>
+                    <StatNumber color="red.400">{trades.stats.num_losses + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Day Trades</StatLabel>
+                    <StatNumber>{trades.stats.num_day + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Swing Trades</StatLabel>
+                    <StatNumber>{trades.stats.num_swing + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Options Trades</StatLabel>
+                    <StatNumber>{trades.stats.num_options + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel># of Shares Trades</StatLabel>
+                    <StatNumber>{trades.stats.num_shares + " Trades"}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%'  >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Largest Win</StatLabel>
+                    <StatNumber color="green.400">{formatter.format(trades.stats.largest_win)}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Largest Loss</StatLabel>
+                    <StatNumber color="red.400">{formatter.format(trades.stats.largest_loss)}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Average Win</StatLabel>
+                    <StatNumber color="green.400">{formatter.format(trades.stats.avg_win)}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Average Loss</StatLabel>
+                    <StatNumber color="red.400">{formatter.format(trades.stats.avg_loss)}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+              </Grid>
             </Box>
-            <VStack h="full" w="full">
-              <Box h="full" w="full" borderWidth="1px" rounded="lg" overflow="hidden" >
-                <HStack h="full" w="full">
-                  <Box h="full" w="35vh" borderWidth="1px" rounded="lg" overflow="hidden" align="center">
+            </VStack>
+            <VStack h="full" w="full" rounded="lg">
+              <Box h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
+                <HStack h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
+                  <Box h="full" w="35vh" overflow="hidden" align="center" >
                     <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
                       <Center>
                         Day Trade vs Swing Trade
                       </Center>
                     </Heading>
-                    <List align="center" paddingTop={10}>
-                      <ListItem fontSize={16} >
-                        <ListIcon as={RiCheckboxBlankFill} color="lightgreen"></ListIcon>
-                        Day Trade Win
-                      </ListItem>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="green"></ListIcon>
-                        Swing Trade Win
-                      </ListItem>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="red.200"></ListIcon>
-                        Day Trade Loss
-                      </ListItem>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="red"></ListIcon>
-                        Swing Trade Loss
-                      </ListItem>
-                    </List>
+                    <TableContainer align="center" padding={10} paddingTop={10}voverflowY="auto">
+                    <Table size='sm' borderWidth='2px' variant='striped' colorScheme='whiteAlpha' rounded="lg">
+                      <Thead position="sticky" top={0} bgColor="lightgrey">
+                        <Tr>
+                          <Th>
+                            <Center>
+                              Key
+                            </Center>
+                          </Th>
+                        </Tr>
+                      </Thead>
+                          <Tbody align="center">
+                              <Tr bg="green.100">
+                                Day Trade Win
+                              </Tr>
+                              <Tr bg="green.300">
+                                Swing Trade Win
+                              </Tr>
+                              <Tr bg="red.100">
+                                Day Trade Loss
+                              </Tr>
+                              <Tr bg="red.300">
+                                Swing Trade Loss
+                              </Tr>
+                          </Tbody>
+                    </Table>
+                  </TableContainer>
                   </Box>
-                  <Box h="42vh" w="70vh" borderWidth="1px" rounded="lg" alignItems="center">
+                  <Box h="42vh" w="70vh" alignItems="center">
                     <Chart
                       chartType="PieChart"
                       data={
@@ -479,34 +570,43 @@ export default function Home({ user }) {
                   </Box>
                 </HStack>
               </Box>
-              <Box h="full" w="full" borderWidth="1px" rounded="lg" overflow="hidden" >
-                <HStack h="full" w="full" >
-                  <Box h="full" w="35vh" borderWidth="1px" rounded="lg" overflow="hidden" align="center">
+              <Box h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
+                <HStack h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
+                  <Box h="full" w="35vh" overflow="hidden" align="center">
                     <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
                       <Center>
                         Options vs Shares
                       </Center>
                     </Heading>
-                  <List align="center" paddingTop={10}>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="lightgreen"></ListIcon>
-                        Options Win
-                      </ListItem>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="green"></ListIcon>
-                        Shares Win
-                      </ListItem>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="red.200"></ListIcon>
-                        Options Loss
-                      </ListItem>
-                      <ListItem fontSize={16}>
-                        <ListIcon as={RiCheckboxBlankFill} color="red"></ListIcon>
-                        Shares Loss
-                      </ListItem>
-                    </List>
+                    <TableContainer align="center" padding={10} paddingTop={10}voverflowY="auto">
+                      <Table size='sm' borderWidth='2px' variant='striped' colorScheme='whiteAlpha' rounded="lg">
+                        <Thead position="sticky" top={0} bgColor="lightgrey">
+                          <Tr>
+                            <Th>
+                              <Center>
+                                Key
+                              </Center>
+                            </Th>
+                          </Tr>
+                        </Thead>
+                            <Tbody align="center">
+                                <Tr bg="green.100">
+                                  Options Win
+                                </Tr>
+                                <Tr bg="green.300">
+                                  Shares Win
+                                </Tr>
+                                <Tr bg="red.100">
+                                  Options Loss
+                                </Tr>
+                                <Tr bg="red.300">
+                                  Shares Loss
+                                </Tr>
+                            </Tbody>
+                      </Table>
+                    </TableContainer>
                   </Box>
-                  <Box h="42vh" w="70vh" borderWidth="1px" rounded="lg"  alignItems="center">
+                  <Box h="42vh" w="70vh" alignItems="center">
                     <Chart
                       chartType="PieChart"
                       data={

@@ -15,6 +15,12 @@ import {
   Button,
   Spinner,
   Badge,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  StatGroup,
   Table,
   Thead,
   Tbody,
@@ -72,8 +78,6 @@ export default function PnlCalendar({ user }) {
   const [calDay, setCalDay] = useState(0)
   const [calMonth, setCalMonth] = useState(month);
   const [calYear, setCalYear] = useState(year);
-  console.log(calYear,calMonth,calDay);
-
 
   const user_id = user.user_id;
 
@@ -138,9 +142,29 @@ export default function PnlCalendar({ user }) {
     } else if (pnl < 0) {
       bgColor = "red.200"
     } else {
-      bgColor = "gray.200"
+      bgColor = "gray.100"
     }
     return bgColor;
+  };
+
+  const colorChangeDay = (pnl) => {
+    let bgColor;
+    if (pnl > 0){
+      bgColor = "green.400"
+    } else if (pnl < 0) {
+      bgColor = "red.400"
+    } else {
+      bgColor = "black"
+    }
+    return bgColor;
+  };
+
+  const pnlValue = (pnl) => {
+    if (pnl.includes("-")){
+      return "(".concat(pnl.substring(1),")")
+    } else {
+      return pnl
+    }
   };
 
   const getDays = (yearr, monthh) => {
@@ -151,7 +175,7 @@ export default function PnlCalendar({ user }) {
     let content = [];
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     for (let i = 0; i < firstDay; i++) {
-      content.push(<GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -163,11 +187,11 @@ export default function PnlCalendar({ user }) {
 
   const getBlanksForEndOfMonth = () => {
     let content = [];
-    let totalDays = getDays(calYear, calMonth);
+    let totalDays = getDays(calYear, calMonth+1);
     let firstDay = new Date(calYear, calMonth, 1).getDay();
-    let spotsLeft = 42-totalDays-1-firstDay;
+    let spotsLeft = 42-totalDays-1-firstDay-(30-totalDays);
     for (let i = 0; i < spotsLeft; i++) {
-      content.push(<GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -237,10 +261,10 @@ export default function PnlCalendar({ user }) {
       pnlDayCount += 1;
     }
     for (let i = 0; i < weekTotals.length; i++) {
-      content.push(<GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg={colorChange(weekTotals[i])} >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorChange(weekTotals[i])} >
                   -
                   <Center fontWeight='bold' isNumeric>
-                    {formatter.format(weekTotals[i])}
+                    {pnlValue(formatter.format(weekTotals[i]))}
                   </Center>
                 </GridItem>);
     }
@@ -249,10 +273,10 @@ export default function PnlCalendar({ user }) {
 
   const getPnlDays = () => {
     let content = pnlYTD.months[calMonth][calMonth].map((pnl, index) => ( 
-      <GridItem key={index} boxShadow='inner' rounded='md' p='1' w='100%' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl)} onClick={e => handleTradesOfDay(e, index+1)}>
+      <GridItem key={index} boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl)} onClick={e => handleTradesOfDay(e, index+1)}>
           {index+1}
           <Center fontWeight='bold' isNumeric>
-            {formatter.format(pnl)}
+            {pnlValue(formatter.format(pnl))}
           </Center>
       </GridItem>
     ));
@@ -455,13 +479,15 @@ export default function PnlCalendar({ user }) {
               align='center'
             >
               <HStack align='center'>
-                <Select w='75%' size="lg" variant='filled' placeholder={monthsString[calMonth]} onChange={(e) => setCalMonth(monthsString.indexOf(e.target.value))}>
+                <Select w='75%' border='1px' borderColor='darkgray' size="lg" variant='filled' placeholder={monthsString[calMonth]} onChange={(e) => setCalMonth(monthsString.indexOf(e.target.value))}>
                   {monthsString.map((mmonth) => (<option key={mmonth}>{mmonth}</option>))}
                 </Select>
                 <Select 
                 w='50%' 
                 size="lg" 
                 variant='filled' 
+                border='1px' 
+                borderColor='darkgray'
                 placeholder={calYear} 
                 onChange={(e) => {
                   setCalYear(e.target.value); 
@@ -491,37 +517,37 @@ export default function PnlCalendar({ user }) {
                 align='stretch'
               >
               <Grid templateColumns='repeat(7, 1fr)' gap={3}>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Sunday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Monday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Tuesday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Wednesday
                   </Center>
                 </GridItem>                
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Thursday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Friday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Saturday
                   </Center>
@@ -533,6 +559,7 @@ export default function PnlCalendar({ user }) {
                 {getPnlDays()}
                 {getBlanksForEndOfMonth()}
               </Grid>
+              </VStack>
               {tradesOfDayPopUp} ? (
               <AlertDialog
                 motionPreset='slideInBottom'
@@ -569,7 +596,7 @@ export default function PnlCalendar({ user }) {
                   <AlertDialogBody>
                   {hasTradesofDay ? (
                   <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
-                    <Table size='sm' variant='striped' colorScheme='teal'>
+                    <Table size='sm' border='4px' borderColor='darkgray' variant='striped' colorScheme='whiteAlpha'>
                       <Thead position="sticky" top={0} bgColor="lightgrey">
                         <Tr>
                           <Th>Trade<br></br>Type</Th>
@@ -602,13 +629,18 @@ export default function PnlCalendar({ user }) {
                   </AlertDialogBody>
 
                   <AlertDialogFooter>
+                  <Center>
+                    <Stat>
+                      <StatLabel>Total PnL</StatLabel>
+                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1])}>{pnlValue(formatter.format(pnlYTD.months[calMonth][calMonth][calDay-1]))}</StatNumber>
+                    </Stat>
+                  </Center>
                   </AlertDialogFooter>
                 </AlertDialogContent>
                 </AlertDialogOverlay>
               }
               </AlertDialog>
               )
-              </VStack>
               <VStack
                 divider={<StackDivider borderColor='gray.200' />}
                 spacing={4}
@@ -616,7 +648,7 @@ export default function PnlCalendar({ user }) {
                 display='flex'
               >
               <Grid templateColumns='repeat(1, 1fr)' templateRows='repeat(1, 1fr)' gap={3}>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Weekly Totals
                   </Center>
@@ -627,25 +659,38 @@ export default function PnlCalendar({ user }) {
               </Grid>
               </VStack>
               </HStack>
-              <Grid templateColumns='repeat(4, 1fr)' gap={10}>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
+
+              <Grid templateColumns='repeat(4, 1fr)' gap={3}>
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
                   <Center fontWeight='bold'>
-                    Monthly PnL: {formatter.format(getMonthlyTotal())}
+                  <Stat>
+                    <StatLabel>Monthly PnL</StatLabel>
+                    <StatNumber>{pnlValue(formatter.format(getMonthlyTotal()))}</StatNumber>
+                  </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
-                    Green Days: {getGreenDayTotal()}
+                  <Stat>
+                    <StatLabel># Green Days</StatLabel>
+                    <StatNumber>{getGreenDayTotal()}</StatNumber>
+                  </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
-                    Red Days: {getRedDayTotal()}
+                  <Stat>
+                    <StatLabel># Red Days</StatLabel>
+                    <StatNumber>{getRedDayTotal()}</StatNumber>
+                  </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' rounded='md' p='1' w='100%' h='100%' bg='gray.200' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
-                    % Green Days: {percent.format(getGreenDayPercent())}
+                  <Stat>
+                    <StatLabel>% Green Days</StatLabel>
+                    <StatNumber>{percent.format(getGreenDayPercent())}</StatNumber>
+                  </Stat>
                   </Center>
                 </GridItem>
               </Grid>
