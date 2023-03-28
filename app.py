@@ -23,10 +23,14 @@ def index():
 
 @app.route('/<path:path>')
 def static_proxy(path):
-    file_dir = os.path.abspath(os.path.join(app.static_folder, '..', 'client', 'build'))
-    if os.path.isfile(os.path.join(file_dir, path)):
-        return send_from_directory(file_dir, path)
-    return app.send_static_file('index.html')
+    try:
+        return send_from_directory(app.static_folder, path)
+    except:
+        subfolder_path = os.path.join(app.static_folder, 'static/js')
+        if os.path.isdir(subfolder_path):
+            return send_from_directory(subfolder_path, path)
+        else:
+            return send_from_directory('../static', path)
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
