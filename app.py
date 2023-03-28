@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask import request
 from flask_cors import CORS
 import src.handlers.userHandler as userHandler
@@ -18,8 +18,8 @@ jwt = JWTManager(app)
 
 
 @app.route('/')
-def hello_geek():
-    return 'Health Check'
+def index():
+    return render_template('index.html')
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
