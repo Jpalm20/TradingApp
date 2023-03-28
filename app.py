@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, send_from_directory
 from flask import request
 from flask_cors import CORS
 import src.handlers.userHandler as userHandler
@@ -9,7 +9,7 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='client/static')
 CORS(app)
 
 app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
@@ -19,7 +19,7 @@ jwt = JWTManager(app)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
