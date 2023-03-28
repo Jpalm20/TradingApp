@@ -26,7 +26,7 @@ def static_proxy(path):
     try:
         return send_from_directory(app.static_folder, path)
     except:
-        subfolder_path = os.path.join(app.static_folder, 'static/js')
+        subfolder_path = os.path.join(app.static_folder, '/static/js')
         if os.path.isdir(subfolder_path):
             return send_from_directory(subfolder_path, path)
         else:
