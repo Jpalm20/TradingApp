@@ -16,6 +16,9 @@ app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
 app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 jwt = JWTManager(app)
 
+@app.errorhandler(404)
+def not_found(e):
+    return app.send_static_file('index.html')
 
 @app.route('/')
 def index():
