@@ -9,7 +9,7 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
-app = Flask(__name__, static_folder='client/static')
+app = Flask(__name__)
 CORS(app)
 
 app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
@@ -17,20 +17,20 @@ app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 jwt = JWTManager(app)
 
 
-@app.route('/')
-def index():
-    return send_from_directory(app.static_folder, 'index.html')
+@app.route('/static/<path:path>')
+def serve_static(path):
+    root_dir = os.path.dirname(os.getcwd())
+    return send_from_directory(os.path.join(root_dir, 'client', 'build', 'static'), path)
 
+# Serve the index.html file
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def static_proxy(path):
-    try:
+def serve(path):
+    root_dir = os.path.dirname(os.getcwd())
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    except:
-        subfolder_path = os.path.join(app.static_folder, 'static/js')
-        if os.path.isdir(subfolder_path):
-            return send_from_directory(subfolder_path, path)
-        else:
-            return send_from_directory('../static', path)
+    else:
+        return send_from_directory(os.path.join(root_dir, 'client', 'build'), 'index.html')
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
