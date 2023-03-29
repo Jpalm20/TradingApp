@@ -9,7 +9,7 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
-app = Flask(__name__, static_folder='client/static')
+app = Flask(__name__,static_folder='client/build',static_url_path='')
 CORS(app)
 
 app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
@@ -21,19 +21,9 @@ def not_found(e):
     return app.send_static_file('index.html')
 
 @app.route('/')
-def index():
+def serve():
     return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/<path:path>')
-def static_proxy(path):
-    try:
-        return send_from_directory(app.static_folder, path)
-    except:
-        subfolder_path = os.path.join(app.static_folder, '/static/js')
-        if os.path.isdir(subfolder_path):
-            return send_from_directory(subfolder_path, path)
-        else:
-            return send_from_directory('../static', path)
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
