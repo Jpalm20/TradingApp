@@ -26,14 +26,7 @@ def index():
 
 @app.route('/<path:path>')
 def static_proxy(path):
-    try:
-        return send_from_directory(app.static_folder, path)
-    except:
-        subfolder_path = os.path.join(app.static_folder, '/static/js')
-        if os.path.isdir(subfolder_path):
-            return send_from_directory(subfolder_path)
-        else:
-            return send_from_directory('../static', path)
+    return send_from_directory(app.static_folder, path)
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
