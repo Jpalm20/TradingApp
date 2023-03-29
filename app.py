@@ -9,7 +9,7 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
-app = Flask(__name__, static_folder='client/static')
+app = Flask(__name__, static_folder='client/build')
 CORS(app)
 
 app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
