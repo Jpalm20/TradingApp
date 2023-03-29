@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, jsonify, render_template
 from flask import request
 from flask_cors import CORS
 import src.handlers.userHandler as userHandler
@@ -9,24 +9,17 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
-app = Flask(__name__, static_folder='client/static')
+app = Flask(__name__)
 CORS(app)
 
 app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET')
 app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 jwt = JWTManager(app)
 
-@app.errorhandler(404)
-def not_found(e):
-    return app.send_static_file('index.html')
 
 @app.route('/')
 def index():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/<path:path>')
-def static_proxy(path):
-    return send_from_directory(app.static_folder, path)
+    return 'Health Check'
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
