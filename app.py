@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask import request
 from flask_cors import CORS
 import src.handlers.userHandler as userHandler
@@ -18,7 +18,7 @@ jwt = JWTManager(app)
 
 
 @app.route('/')
-def hello_geek():
+def index():
     return 'Health Check'
 
 @app.route('/user/register',methods = ['POST'])
@@ -160,4 +160,5 @@ def existing_trade(trade_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
