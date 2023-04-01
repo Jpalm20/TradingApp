@@ -8,6 +8,9 @@ import user
 
 import hashlib
 
+JIRA_PROJECT_ID = os.environ.get('JIRA_PROJECT_ID')
+
+
 def transformNewUser(request):
     hashPass = hashPassword(request['password'])
     request['password'] = hashPass
@@ -23,6 +26,21 @@ def transformEditUser(request):
         if request[key] != "":
             transformedRequest[key] = request[key]
     return transformedRequest
+
+def transformReportBug(request):
+    return {
+        "fields": {
+            "project":
+            { 
+                "id": str(JIRA_PROJECT_ID)
+            },
+            "summary": request['page'] + " - " + request['summary'],
+            "description": request['summary'],
+            "issuetype": {
+                "name": "Bug"
+            }
+        }
+    }
 
 def transformDateRange(date_range):
     query = "trade_date >= "

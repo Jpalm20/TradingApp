@@ -6,6 +6,7 @@ mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import user
 
+
 def validateNewUser(request):
     if 'password' not in request or request['password'] == '' or len(request['password']) < 8:
         return {
@@ -49,5 +50,12 @@ def validateChangePassword(request):
     if ('new_pass_1' == 'new_pass_2'):
         return {
             "result": "Both New Password Entries Must Match, Please Try Again"
+        }, 403 
+    return True
+
+def validateReportBug(request):
+    if ('summary' not in request or request['summary'] == '') or ('page' not in request or request['page'] == '') or ('description' not in request or request['description'] == ''):
+        return {
+            "result": "Please Include All Fields"
         }, 403 
     return True

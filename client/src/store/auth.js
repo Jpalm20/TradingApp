@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import Summary from '../components/Summary'
 
 const TOKEN = "";
 
@@ -271,6 +272,34 @@ export const changePassword = createAsyncThunk(
 );
 
 
+export const reportBug = createAsyncThunk(
+  "auth/reportBug",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { summary, description, page } = formInfo;
+        const res = await axios.post(`http://localhost:8080/user/reportBug`,{
+          summary,
+          description,
+          page
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
 export const logout = createAsyncThunk("auth/logout", async () => {
   await window.localStorage.removeItem(TOKEN);
 });
@@ -452,6 +481,22 @@ const authSlice = createSlice({
       state.success = false;
     },
     [deleteUser.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [reportBug.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [reportBug.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [reportBug.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;

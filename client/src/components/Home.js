@@ -351,10 +351,10 @@ export default function Home({ user }) {
                 </FormControl>
 
               </Box>
-                  <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-                  <Button colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
               </Stack>
@@ -439,7 +439,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># of Wins</StatLabel>
-                    <StatNumber color="green.400">{trades.stats.num_wins + " Trades"}</StatNumber>
+                    <StatNumber>{trades.stats.num_wins + " Trades"}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -447,7 +447,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># of Losses</StatLabel>
-                    <StatNumber color="red.400">{trades.stats.num_losses + " Trades"}</StatNumber>
+                    <StatNumber>{trades.stats.num_losses + " Trades"}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -487,7 +487,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Largest Win</StatLabel>
-                    <StatNumber color="green.400">{formatter.format(trades.stats.largest_win)}</StatNumber>
+                    <StatNumber>{pnlValue(formatter.format(trades.stats.largest_win))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -495,7 +495,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Largest Loss</StatLabel>
-                    <StatNumber color="red.400">{formatter.format(trades.stats.largest_loss)}</StatNumber>
+                    <StatNumber>{pnlValue(formatter.format(trades.stats.largest_loss))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -503,7 +503,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Average Win</StatLabel>
-                    <StatNumber color="green.400">{formatter.format(trades.stats.avg_win)}</StatNumber>
+                    <StatNumber>{pnlValue(formatter.format(trades.stats.avg_win))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -511,7 +511,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Average Loss</StatLabel>
-                    <StatNumber color="red.400">{formatter.format(trades.stats.avg_loss)}</StatNumber>
+                    <StatNumber>{pnlValue(formatter.format(trades.stats.avg_loss))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>

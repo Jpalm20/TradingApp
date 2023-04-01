@@ -178,7 +178,7 @@ export default function LogTrade({ user }) {
   const handleCancel = (e) => {
     e.preventDefault();
     clearFormStates();
-    navigate("/");
+    navigate("/summary");
   }
 
   const handleAnswerYes = (e) => {
@@ -196,7 +196,7 @@ export default function LogTrade({ user }) {
       reset()
     );
     clearFormStates();
-    navigate("/");
+    navigate("/summary");
   }
 
   // grabbing current date to set a max to the birthday input
