@@ -20,7 +20,7 @@ const initialState = {
 export const me = createAsyncThunk("auth/me", async () => {
   const token = await window.localStorage.getItem(TOKEN);
   if (token) {
-    const res = await axios.get("https://API_URL.herokuapp.com/", {
+    const res = await axios.get(API_URL, {
       headers: {
         Authorization: "Bearer " + token,
       },
@@ -34,7 +34,7 @@ export const register = createAsyncThunk(
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
       const { first_name, last_name, birthday, email, password, street_address, city, state, country } = formInfo;
-      const res = await axios.post(`https://API_URL.herokuapp.com/user/register`, {
+      const res = await axios.post(API_URL+'user/register', {
         first_name,
         last_name,
         birthday,
@@ -59,7 +59,7 @@ export const authenticate = createAsyncThunk(
   async (formInfo, { dispatch, rejectWithValue }) => {
     try {
       const { email, password } = formInfo;
-      const res = await axios.post(`https://API_URL.herokuapp.com/user/login`, {
+      const res = await axios.post(API_URL+'user/login', {
         email,
         password,
       });
@@ -80,7 +80,7 @@ export const update = createAsyncThunk(
     try {
       if (token) {
         const { user_id, first_name, last_name, email, street_address, city, state, country } = formInfo;
-        const res = await axios.post(`https://API_URL.herokuapp.com/user/${user_id}`, {
+        const res = await axios.post(API_URL+'user/${user_id}', {
           first_name,
           last_name,
           email,
@@ -111,7 +111,7 @@ export const getTrades = createAsyncThunk(
     try {
       if (token) {
         const { user_id } = formInfo;
-        const res = await axios.get(`https://API_URL.herokuapp.com/user/trades/${user_id}`,{
+        const res = await axios.get(API_URL+'user/trades/${user_id}',{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -134,7 +134,7 @@ export const getTradesFiltered = createAsyncThunk(
     try {
       if (token) {
         const { user_id, filters } = formInfo;
-        const res = await axios.get(`https://API_URL.herokuapp.com/user/trades/${user_id}`,{
+        const res = await axios.get(API_URL+'user/trades/${user_id}',{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -158,7 +158,7 @@ export const getTradesOfDateFiltered = createAsyncThunk(
     try {
       if (token) {
         const { user_id, filters } = formInfo;
-        const res = await axios.get(`https://API_URL.herokuapp.com/user/trades/${user_id}`,{
+        const res = await axios.get(API_URL+'user/trades/${user_id}',{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -182,7 +182,7 @@ export const getPnlByYear = createAsyncThunk(
     try {
       if (token) {
         const { user_id, year } = formInfo;
-        const res = await axios.get(`https://API_URL.herokuapp.com/user/pnlbyYear/${user_id}/${year}`,{
+        const res = await axios.get(API_URL+'user/pnlbyYear/${user_id}/${year}',{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -205,7 +205,7 @@ export const getPnlByYearFiltered = createAsyncThunk(
     try {
       if (token) {
         const { user_id, year, filters } = formInfo;
-        const res = await axios.get(`https://API_URL.herokuapp.com/user/pnlbyYear/${user_id}/${year}`,{
+        const res = await axios.get(API_URL+'user/pnlbyYear/${user_id}/${year}',{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -229,7 +229,7 @@ export const deleteUser = createAsyncThunk(
     try {
       if (token) {
         const { user_id } = formInfo;
-        const res = await axios.delete(`https://API_URL.herokuapp.com/user/${user_id}`,{
+        const res = await axios.delete(API_URL+'user/${user_id}',{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -253,7 +253,7 @@ export const changePassword = createAsyncThunk(
     try {
       if (token) {
         const { user_id, curr_pass, new_pass_1, new_pass_2 } = formInfo;
-        const res = await axios.post(`https://API_URL.herokuapp.com/user/changePassword/${user_id}`,{
+        const res = await axios.post(API_URL+'user/changePassword/${user_id}',{
           curr_pass,
           new_pass_1,
           new_pass_2
@@ -281,7 +281,7 @@ export const reportBug = createAsyncThunk(
     try {
       if (token) {
         const { summary, description, page } = formInfo;
-        const res = await axios.post(`https://API_URL.herokuapp.com/user/reportBug`,{
+        const res = await axios.post(API_URL+'user/reportBug',{
           summary,
           description,
           page
