@@ -4,6 +4,8 @@ import App from "./App";
 import { Provider } from "react-redux";
 import { ChakraProvider } from "@chakra-ui/react";
 import store from "./store";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
