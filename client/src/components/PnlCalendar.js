@@ -418,10 +418,10 @@ export default function PnlCalendar({ user }) {
                 
 
               </Box>
-                  <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-                  <Button colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
               </Stack>

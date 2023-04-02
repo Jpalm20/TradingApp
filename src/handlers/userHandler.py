@@ -3,6 +3,7 @@ import sys
 import numpy
 from datetime import date, datetime, timedelta
 import json
+import requests
 from flask_jwt_extended import create_access_token
 
 script_dir = os.path.dirname( __file__ )
@@ -31,6 +32,10 @@ sys.path.append( mymodule_dir )
 import userTransformer
 
 import hashlib
+
+JIRA_URL = os.environ.get('JIRA_URL')
+JIRA_EMAIL = os.environ.get('JIRA_EMAIL')
+JIRA_API_KEY = os.environ.get('JIRA_API_KEY')
 
 def registerUser(requestBody):
     response = userValidator.validateNewUser(requestBody)
@@ -164,6 +169,20 @@ def deleteExistingUser(user_id):
         return {
             "result": "User Successfully Deleted"
         }
+        
+def reportBug(requestBody):
+    response = userValidator.validateReportBug(requestBody)
+    if response != True:
+        return response
+    response = userTransformer.transformReportBug(requestBody)
+    response = requests.post(("https://"+JIRA_URL+"/rest/api/2/issue"), auth=(JIRA_EMAIL, JIRA_API_KEY), json=response)
+    if response.status_code == 201:
+        return {
+            "result": "Bug Ticket Created Successfully"
+        }
+    else:
+        return 'Error calling API: {}'.format(response), response.status_code
+   
 
 def getUserTrades(user_id,filters=None):
     if filters is None:

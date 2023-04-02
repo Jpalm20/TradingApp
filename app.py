@@ -111,6 +111,25 @@ def change_Password(user_id):
         return {
             "result": "Authorization Header is Missing"
         }, 401
+        
+
+@app.route('/user/reportBug',methods= ['POST'])
+def report_bug():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'POST':
+                return userHandler.reportBug(request.json) 
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
 
 
 @app.route('/user/<int:user_id>',methods = ['GET','POST','DELETE'])

@@ -71,7 +71,7 @@ export default function App() {
         title: toastMessage,
         variant: 'top-accent',
         status: 'success',
-        duration: 9000,
+        duration: 3000,
         isClosable: true
       });
     }

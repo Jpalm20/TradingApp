@@ -312,6 +312,10 @@ export default function Summary({ user }) {
     //setToggleFilter(!toggleFilter);
   }
 
+  const handleLogTrade = (e) => {
+    navigate("/logTrade");
+  }
+
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
   let [month, day, year] = currentDate.toLocaleDateString().split("/");
@@ -362,7 +366,7 @@ export default function Summary({ user }) {
                 backgroundColor="whiteAlpha.900"
                 boxShadow="md"
                 align='center'
-                minWidth="30vh"
+                minWidth="28vh"
               >
                 <Heading color="teal.400" size="md">Filters</Heading>
                 <Box width="full">
@@ -391,10 +395,10 @@ export default function Summary({ user }) {
                   <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
               </Box>
-                  <Button colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-                  <Button colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
               </Stack>
@@ -440,10 +444,9 @@ export default function Summary({ user }) {
             >
             {{hasTrades} ? (
             <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
-              <Table size='sm' variant='striped' colorScheme='teal'>
+              <Table size='sm' variant='striped' colorScheme='white'>
                 <Thead position="sticky" top={0} bgColor="lightgrey">
                   <Tr>
-                    <Th>ID</Th>
                     <Th>Trade<br></br>Type</Th>
                     <Th>Security<br></br>Type</Th>
                     <Th>Ticker</Th>
@@ -456,13 +459,16 @@ export default function Summary({ user }) {
                     <Th>PNL</Th>
                     <Th>% W/L</Th>
                     <Th>Comments</Th>
-                    <Th></Th>
+                    <Th>
+                      <Button size="sm" colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
+                        + Add Trade
+                      </Button>
+                    </Th>
                   </Tr>
                 </Thead>
                     <Tbody>
                       {trades.trades.map((trades, index) => (
                         <Tr>
-                          <Td>{trades.trade_id}</Td>
                           <Td>{trades.trade_type}</Td>
                           <Td>{trades.security_type}</Td>
                           <Td>{trades.ticker_name}</Td>
@@ -476,11 +482,11 @@ export default function Summary({ user }) {
                           <Td isNumeric>{trades.percent_wl}</Td>
                           <Td whiteSpace="normal">{trades.comments}</Td>
                           <Td>
-                            <Button width='100%' height='60%' colorScheme='teal' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
+                            <Button size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
                               Edit
                             </Button>
                             <div>
-                            <Button width='100%' height='60%' colorScheme='red' border='1px' borderColor='black' onClick={e => handleDeleteButton(e, trades.trade_id)}>
+                            <Button size="sm" width='100%' height='60%' colorScheme='red' border='1px' borderColor='black' onClick={e => handleDeleteButton(e, trades.trade_id)}>
                               Delete
                             </Button>
                             </div>
@@ -495,7 +501,6 @@ export default function Summary({ user }) {
               <Table size='sm'>
                 <Thead>
                   <Tr>
-                    <Th>Trade ID</Th>
                     <Th>Trade Type</Th>
                     <Th>Security Type</Th>
                     <Th>Ticker</Th>
@@ -508,7 +513,11 @@ export default function Summary({ user }) {
                     <Th>PNL</Th>
                     <Th>% W/L</Th>
                     <Th>Comments</Th>
-                    <Th></Th>
+                    <Th>
+                      <Button size="sm" colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
+                        + Add Trade
+                      </Button>
+                    </Th>
                   </Tr>
                 </Thead>
               </Table>
