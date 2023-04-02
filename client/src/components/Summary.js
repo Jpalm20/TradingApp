@@ -460,7 +460,7 @@ export default function Summary({ user }) {
                     <Th>% W/L</Th>
                     <Th>Comments</Th>
                     <Th>
-                      <Button size="sm" colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
+                      <Button size="sm" width='100%' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
                         + Add Trade
                       </Button>
                     </Th>
