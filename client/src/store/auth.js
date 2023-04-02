@@ -134,7 +134,7 @@ export const getTradesFiltered = createAsyncThunk(
     try {
       if (token) {
         const { user_id, filters } = formInfo;
-        const res = await axios.get(API_URL+'user/trades/${user_id}',{
+        const res = await axios.get(API_URL+`user/trades/${user_id}`,{
           headers: {
             Authorization: "Bearer " + token,
           },
