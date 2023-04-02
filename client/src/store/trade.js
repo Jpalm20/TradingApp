@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const TOKEN = "";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
   trade: {},
@@ -23,7 +24,7 @@ export const create = createAsyncThunk(
     try {
       if (token) {
         const { user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
-        const res = await axios.post(`http://localhost:8080/trade/create`, {
+        const res = await axios.post(API_URL + `trade/create`, {
           user_id,
           trade_type,
           security_type,
@@ -60,7 +61,7 @@ export const getTrade = createAsyncThunk(
     try {
       if (token) {
         const { trade_id } = formInfo;
-        const res = await axios.get(`http://localhost:8080/trade/${trade_id}`,{
+        const res = await axios.get(API_URL + `trade/${trade_id}`,{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -83,7 +84,7 @@ export const deleteTrade = createAsyncThunk(
     try {
       if (token) {
         const { trade_id } = formInfo;
-        const res = await axios.delete(`http://localhost:8080/trade/${trade_id}`,{
+        const res = await axios.delete(API_URL + `trade/${trade_id}`,{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -106,7 +107,7 @@ export const update = createAsyncThunk(
     try {
       if (token) {
         const { trade_id, user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
-        const res = await axios.post(`http://localhost:8080/trade/${trade_id}`, {
+        const res = await axios.post(API_URL + `trade/${trade_id}`, {
           user_id,
           trade_type,
           security_type,
