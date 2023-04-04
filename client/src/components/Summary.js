@@ -104,6 +104,9 @@ export default function Summary({ user }) {
   const authLoading = useSelector((state) => state.auth.loading);
   const tradeLoading = useSelector((state) => state.trade.loading);
 
+  const [editButtonInstance, setEditButtonInstance] = useState(null);
+
+
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
@@ -193,8 +196,9 @@ export default function Summary({ user }) {
     }
   }
 
-  const handleGotoEdit = async (e, trade_id) => {
+  const handleGotoEdit = async (e, trade_id, index) => {
     e.preventDefault();
+    setEditButtonInstance(index);
     const res = await dispatch(
       getTrade({
         trade_id
@@ -482,9 +486,23 @@ export default function Summary({ user }) {
                           <Td isNumeric>{trades.percent_wl}</Td>
                           <Td whiteSpace="normal">{trades.comments}</Td>
                           <Td>
-                            <Button size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
+                            {tradeLoading && (editButtonInstance == index) ?
+                            <Button key={index} size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
+                              <Center>
+                                <Spinner
+                                  thickness='2px'
+                                  speed='0.65s'
+                                  emptyColor='gray.200'
+                                  color='grey.500'
+                                  size='sm'
+                                />
+                              </Center>
+                            </Button>
+                            :
+                            <Button key={index} size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id, index)}>
                               Edit
                             </Button>
+                            }   
                             <div>
                             <Button size="sm" width='100%' height='60%' colorScheme='red' border='1px' borderColor='black' onClick={e => handleDeleteButton(e, trades.trade_id)}>
                               Delete
