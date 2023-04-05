@@ -446,7 +446,7 @@ export default function Summary({ user }) {
               w="full"
               justifyContent="left"
             >
-            {{hasTrades} ? (
+            {hasTrades ? (
             <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
               <Table size='sm' variant='striped' colorScheme='white'>
                 <Thead position="sticky" top={0} bgColor="lightgrey">

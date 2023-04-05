@@ -465,7 +465,7 @@ export default function PnlCalendar({ user }) {
               w="full"
               justifyContent="left"
             >
-            {{hasPnLInfo} ? (
+            {hasPnLInfo ? (
               /*
             <div>
               <Text>
