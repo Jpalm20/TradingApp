@@ -21,3 +21,16 @@ def validateToken(auth_token):
             return True, "True"   
     else:
         return False, "An Issue Occurred Validating Auth Token, Please Try Again"
+    
+def logoutSession(auth_token):
+    response = session.Session.expireSession(auth_token)
+    responseSession = session.Session.getSession(auth_token)
+    if 'expiration' in responseSession[0][0] and responseSession[0][0]['expiration'] <= datetime.now()+timedelta(seconds=1):
+        return {
+            "result": "User Logged Out"
+        }
+    else:
+        return {
+            "expiration": str(responseSession[0][0]['expiration']),
+            "now" : str(datetime.now())
+        }, 400
