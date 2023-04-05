@@ -285,8 +285,10 @@ export default function PnlCalendar({ user }) {
 
   useEffect(() => {
     let year = calYear;
-    dispatch(getPnlByYear({ user_id, year }));
-  }, [calYear]); 
+    if(user.user_id != undefined){
+      dispatch(getPnlByYear({ user_id, year }));
+    }
+  }, [calYear, user]); 
 
   const handleSubmitFilter = async (e) => {
     e.preventDefault();
