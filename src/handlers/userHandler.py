@@ -135,6 +135,23 @@ def getExistingUser(user_id):
         }
     else:
         return response, 400
+    
+def getUserFromSession(auth_token):
+    response = user.User.getUserBySessionToken(auth_token)
+    if 'user_id' in response[0][0]:
+        return {
+            "user_id": response[0][0]['user_id'],
+            "first_name": response[0][0]['first_name'],
+            "last_name": response[0][0]['last_name'],
+            "birthday": response[0][0]['birthday'],
+            "email": response[0][0]['email'],
+            "street_address": response[0][0]['street_address'],
+            "city": response[0][0]['city'],
+            "state": response[0][0]['state'],
+            "country": response[0][0]['country']
+        }
+    else:
+        return response, 400
 
 def editExistingUser(user_id,requestBody):
     response = userValidator.validateEditUser(requestBody)

@@ -28,6 +28,13 @@ class User:
         response = utils.execute_db(Query,Args)
         return response  
     
+    def getUserBySessionToken(token):
+        
+        Query = """SELECT * from User u JOIN Session s ON s.user_id = u.user_id WHERE s.token = %s"""
+        Args = (token,)
+        response = utils.execute_db(Query,Args)
+        return response  
+    
     def getUserTrades(userID):
         
         Query = """SELECT * FROM Trade WHERE user_id = %s"""

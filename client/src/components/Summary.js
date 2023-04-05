@@ -735,7 +735,7 @@ export default function Summary({ user }) {
               <Box display="flex">
               <FormControl>
                   <FormHelperText mb={2} ml={1}>
-                    Risk/Reward Ratio *
+                    Risk/Reward Ratio (R:R) *
                   </FormHelperText>
                   <Input
                     type="name"

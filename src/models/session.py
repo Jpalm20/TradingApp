@@ -38,6 +38,13 @@ class Session:
         response = utils.execute_db(Query,Args)
         return response
     
+    def expireSession(token):
+        
+        Query = """UPDATE Session SET expiration = %s WHERE token = %s"""
+        Args = (datetime.now(),token)
+        response = utils.execute_db(Query,Args)
+        return response
+    
 #--------Tests--------# 
 
 #Testing addSession      

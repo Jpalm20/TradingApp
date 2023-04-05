@@ -29,7 +29,25 @@ def register_user():
 @app.route('/user/login',methods = ['POST'])
 def validate_user():
     if request.method == 'POST':
-        return userHandler.validateUser(request.json)     
+        return userHandler.validateUser(request.json)
+
+@app.route('/user/getUserFromSession',methods= ['GET'])
+def user_from_session():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'GET':
+                return userHandler.getUserFromSession(auth_token)
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401    
 
 @app.route('/user/trades/<int:user_id>',methods = ['GET'])
 def user_trades(user_id):
@@ -122,6 +140,24 @@ def report_bug():
         if eval:
             if request.method == 'POST':
                 return userHandler.reportBug(request.json) 
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+        
+@app.route('/user/logout',methods= ['POST'])
+def logout_session():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'POST':
+                return sessionHandler.logoutSession(auth_token) 
         else:
             return {
                 "result": message
