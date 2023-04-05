@@ -398,7 +398,7 @@ export default function Home({ user }) {
               w="full"
               justifyContent="left"
             >
-            {{hasTrades} ? (
+            {hasTrades ? (
             <HStack h="full" w="full" align='top'>
             <VStack w='100%' h='100%'>
             <Heading color="teal.400" w='full' paddingTop={1} paddingBottom={3} size="md">

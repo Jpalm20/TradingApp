@@ -2,7 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import Summary from '../components/Summary'
 
-const TOKEN = "";
+const TOKEN = "token";
+export { TOKEN };
 const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
@@ -301,9 +302,52 @@ export const reportBug = createAsyncThunk(
 );
 
 
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await window.localStorage.removeItem(TOKEN);
-});
+export const logout = createAsyncThunk(
+  "auth/logout", 
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.post(API_URL + `user/logout`,{
+          
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        await window.localStorage.removeItem(TOKEN);
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getUserFromSession = createAsyncThunk(
+  "auth/getUserFromSession", 
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.get(API_URL + `user/getUserFromSession`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: "auth",
@@ -433,6 +477,23 @@ const authSlice = createSlice({
       state.info = action.payload;
       state.loading = false;
     },
+    [getUserFromSession.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.user = action.payload;
+      state.info = null;
+      state.error = false;
+    },
+    [getUserFromSession.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getUserFromSession.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [update.fulfilled]: (state, action) => {
       state.loading = false;
       state.success = true;
@@ -503,13 +564,24 @@ const authSlice = createSlice({
       state.loading = false;
     },
     [logout.fulfilled]: (state) => {
-      state.success = false;
+      state.success = true;
       state.user = null;
       state.trades = null;
       state.tradesOfDay = null;
       state.pnlYTD = null;
       state.info = null;
       state.error = false;
+      state.loading = false;
+    },
+    [logout.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [logout.pending]: (state) => {
+      state.success = false;
+      state.error = false;
+      state.loading = true;
     },
   },
 });

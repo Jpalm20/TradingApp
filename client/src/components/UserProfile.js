@@ -170,11 +170,11 @@ export default function UserProfile({ user }) {
     onClose();
   };
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
     setSelectPage(true);
     selectUpdateInfo(false);
-    dispatch(logout());
+    await dispatch(logout());
     navigate("/");
   };
 

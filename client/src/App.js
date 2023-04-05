@@ -12,7 +12,7 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades } from "./store/auth";
+import { me, getTrades, getUserFromSession } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
@@ -21,6 +21,7 @@ import LogTrade from "./components/LogTrade";
 import Navbar from "./components/Navbar";
 import UserProfile from "./components/UserProfile";
 import Summary from "./components/Summary";
+import { TOKEN } from './store/auth';
 
 export default function App() {
   const [toastMessage, setToastMessage] = useState(undefined);
@@ -29,7 +30,7 @@ export default function App() {
   const { user } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
   const { trades } = useSelector((state) => state.auth);
-  const isLoggedIn = ((user && Object.keys(user).length > 2) ? (true):(false));
+  const isLoggedIn = (((user && Object.keys(user).length > 2) || window.localStorage.getItem(TOKEN)) ? (true):(false));
   const [registered, setRegistered] = useState(true);
   const isRegistered = ((info && Object.keys(info).length > 2 && info.result && info.result === "User Created Successfully") ? (true):(false));
   const [deleted, setDeleted] = useState(true);
@@ -54,16 +55,19 @@ export default function App() {
     setToastMessage(info.result);
     setChanged(false);
   }
+
   
   useEffect(() => {
     async function getUserTrades(){
-      if(isLoggedIn && !hasTrades && !noTrades){
+      if(isLoggedIn && !hasTrades && !noTrades && user.user_id){
         const user_id = user.user_id;
         await dispatch(getTrades({ user_id }));
+      }else if (isLoggedIn && user.user_id === undefined){
+        await dispatch(getUserFromSession());
       }
     }
     getUserTrades();
-  })
+  }, [isLoggedIn,hasTrades,user]);
 
   useEffect(() => {
     if (toastMessage) {
@@ -86,7 +90,8 @@ export default function App() {
         <Routes>
           {isLoggedIn ? (
             <>
-              <Route path="/" element={<Home user={user}/>} />
+              <Route path="/" element={<Navigate to="/home"/>} />
+              <Route path="/home" element={<Home user={user}/>} />
               <Route path="/PnlCalendar" element={<PnlCalendar user={user}/>} />
               <Route path="/login" element={<Navigate to="/profile"/>} />
               <Route path="/signup" element={<Navigate to="/"/>} />
