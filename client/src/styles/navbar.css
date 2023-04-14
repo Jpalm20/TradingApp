@@ -1,0 +1,41 @@
+.pagename {
+    display: block;
+    font-size: medium;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+}
+  
+  @media (max-width: 450px) {
+    .pagename {
+      display: none;
+    }
+  }
+
+.username {
+    display: block;
+    padding-left: 4;
+    font-size: medium;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+}
+  
+  @media (max-width: 300px) {
+    .username {
+      display: none;
+    }
+  }
+
+  .my-trading-tracker {
+    display: block;
+    font-size: large;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+}
+  
+  @media (max-width: 375px) {
+    .my-trading-tracker {
+      display: none;
+    }
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

@@ -3,11 +3,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../store/auth';
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import monthsString from "../data/months";
+import { BsFilter } from "react-icons/bs";
+
 
 import {
   Flex,
   Center,
   Text,
+  Icon,
   HStack,
   VStack,
   Heading,
@@ -33,6 +36,13 @@ import {
   Stack,
   StackDivider,
   useDisclosure,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
   Select,
   chakra,
   Toast,
@@ -54,10 +64,12 @@ import { RiCheckboxBlankFill } from "react-icons/ri";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 
 
+
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function PnlCalendar({ user }) {
+  const btnRef = React.useRef()
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { pnlYTD } = useSelector((state) => state.auth);
@@ -83,6 +95,8 @@ export default function PnlCalendar({ user }) {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
+
+  const [filterDrawer, setFilterDrawer] = useState(false);
 
   const [tradesOfDayPopUp, setTradesOfDayPopUp] = useState(false);
 
@@ -175,7 +189,7 @@ export default function PnlCalendar({ user }) {
     let content = [];
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     for (let i = 0; i < firstDay; i++) {
-      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -191,7 +205,7 @@ export default function PnlCalendar({ user }) {
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     let spotsLeft = 42-totalDays-1-firstDay-(30-totalDays);
     for (let i = 0; i < spotsLeft; i++) {
-      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -273,7 +287,7 @@ export default function PnlCalendar({ user }) {
 
   const getPnlDays = () => {
     let content = pnlYTD.months[calMonth][calMonth].map((pnl, index) => ( 
-      <GridItem key={index} boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl)} onClick={e => handleTradesOfDay(e, index+1)}>
+      <GridItem key={index} boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl)} onClick={e => handleTradesOfDay(e, index+1)}>
           {index+1}
           <Center fontWeight='bold' isNumeric>
             {pnlValue(formatter.format(pnl))}
@@ -290,8 +304,120 @@ export default function PnlCalendar({ user }) {
     }
   }, [calYear, user]); 
 
+  const getFilterComponent = () => {
+    let content = [];
+    content.push(
+      <div className="large-component">
+            <Box flexGrow="1" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+              <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor="whiteAlpha.900"
+                boxShadow="md"
+                align='center'
+                minWidth="30vh"
+              >
+                <Heading color="teal.400" size="md">Filters</Heading>
+                <Box width="full">
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                </FormControl>
+              </Box>
+                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                    Submit Filter
+                  </Button>
+                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                    Clear Filter
+                  </Button>
+              </Stack>
+            </Box>
+          </div>
+    );
+    content.push(
+      <div padd className="small-component">
+      <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+      <Button ref={btnRef} colorScheme='white' onClick={e => setFilterDrawer(true)}>
+       <Icon as={BsFilter} color='grey' size='lg'></Icon>
+      </Button>
+      </Box>
+      {filterDrawer}
+      <Drawer
+        isOpen={filterDrawer}
+        placement='left'
+        onClose={e => setFilterDrawer(false)}
+        finalFocusRef={btnRef}
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Filters</DrawerHeader>
+
+          <DrawerBody>
+          <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                </FormControl>
+          </DrawerBody>
+
+          <DrawerFooter>
+            <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter}>
+              Submit Filter
+            </Button>
+            <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+              Clear Filter
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </div>
+    );
+    return content
+  };
+
   const handleSubmitFilter = async (e) => {
     e.preventDefault();
+    setFilterDrawer(false);
     const filters = {};
     if(filter_trade_type !== ''){
       filters.trade_type = filter_trade_type;
@@ -315,6 +441,7 @@ export default function PnlCalendar({ user }) {
 
   const handleClearFilter = async (e) => {
     e.preventDefault();
+    setFilterDrawer(false);
     setFilterTradeType('');
     setFilterSecurityType('');
     setFilterTickerName('');
@@ -354,19 +481,6 @@ export default function PnlCalendar({ user }) {
         height="100vh"
         backgroundColor="gray.200"
       >
-        <Stack
-                p="1rem"
-                backgroundColor="whiteAlpha.900"
-                align='center'
-                rounded="lg"
-                borderWidth="1px"
-              >
-        <Heading color="teal.400" w='full'>
-          <Center>
-            Profit/Loss Calendar
-          </Center>
-        </Heading>
-        </Stack>
 
        
         
@@ -376,68 +490,18 @@ export default function PnlCalendar({ user }) {
           flex="auto"
           backgroundColor="gray.200"
         >
-          <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="left"
-            alignItems="center"
-          >
-            <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
-              <Stack
-                spacing={4}
-                p="1rem"
-                backgroundColor="whiteAlpha.900"
-                boxShadow="md"
-                align='center'
-                minWidth="30vh"
-              >
-                <Heading color="teal.400" size="md">Filters</Heading>
-                <Box width="full">
-                <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Trade Type *
-                  </FormHelperText>
-                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
-                    <option>Swing Trade</option>
-                    <option>Day Trade</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Security Type *
-                  </FormHelperText>
-                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
-                    <option>Options</option>
-                    <option>Shares</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Ticker *
-                  </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
-                </FormControl>
-                
-
-              </Box>
-                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
-                    Submit Filter
-                  </Button>
-                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
-                    Clear Filter
-                  </Button>
-              </Stack>
-            </Box>
-          </Stack>
+          
+          {getFilterComponent()}
          
           
           <Stack
             flexDir="column"
             flex="auto"
             mb="2"
+            overflowX="auto"
           >
           
-          <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+          <Box overflowX="auto" flexGrow="1" display="flex" borderWidth="1px" rounded="lg" alignItems="stretch">
           {authLoading && !tradesOfDayPopUp ?
             <Stack
             flex="auto"
@@ -464,8 +528,8 @@ export default function PnlCalendar({ user }) {
               backgroundColor="whiteAlpha.900"
               boxShadow="md"
               h="full"
-              w="full"
-              justifyContent="left"
+              w='full'
+              overflowX="auto"
             >
             {hasPnLInfo ? (
               /*
@@ -478,15 +542,15 @@ export default function PnlCalendar({ user }) {
             <VStack
               divider={<StackDivider borderColor='gray.200' />}
               spacing={4}
-              align='center'
+              overflowX="auto"
             >
-              <HStack align='center'>
-                <Select w='75%' border='1px' borderColor='darkgray' size="lg" variant='filled' placeholder={monthsString[calMonth]} onChange={(e) => setCalMonth(monthsString.indexOf(e.target.value))}>
+              <HStack overflowX="auto" w='100%'>
+                <Select w='150px' border='1px' borderColor='darkgray' size="md" variant='filled' placeholder={monthsString[calMonth]} onChange={(e) => setCalMonth(monthsString.indexOf(e.target.value))}>
                   {monthsString.map((mmonth) => (<option key={mmonth}>{mmonth}</option>))}
                 </Select>
                 <Select 
-                w='50%' 
-                size="lg" 
+                w='100px' 
+                size="md" 
                 variant='filled' 
                 border='1px' 
                 borderColor='darkgray'
@@ -512,44 +576,43 @@ export default function PnlCalendar({ user }) {
                   <option>{year-15}</option>
                 </Select>
               </HStack>
-              <HStack spacing={8}>
+              <HStack spacing={8} overflowX="auto" w='100%'>
               <VStack
-                divider={<StackDivider borderColor='gray.200' />}
                 spacing={4}
                 align='stretch'
               >
               <Grid templateColumns='repeat(7, 1fr)' gap={3}>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Sunday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Monday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Tuesday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Wednesday
                   </Center>
                 </GridItem>                
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Thursday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Friday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Saturday
                   </Center>
@@ -644,13 +707,12 @@ export default function PnlCalendar({ user }) {
               </AlertDialog>
               )
               <VStack
-                divider={<StackDivider borderColor='gray.200' />}
                 spacing={4}
                 align='stretch'
                 display='flex'
               >
               <Grid templateColumns='repeat(1, 1fr)' templateRows='repeat(1, 1fr)' gap={3}>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem whiteSpace='nowrap' boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Weekly Totals
                   </Center>
@@ -661,9 +723,10 @@ export default function PnlCalendar({ user }) {
               </Grid>
               </VStack>
               </HStack>
-
-              <Grid templateColumns='repeat(4, 1fr)' gap={3}>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
+              
+              <HStack spacing={8} overflowX="auto" w='100%'>
+              <Grid overflowX='scroll' templateColumns='repeat(4, 1fr)' gap={6}>
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Monthly PnL</StatLabel>
@@ -671,7 +734,7 @@ export default function PnlCalendar({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># Green Days</StatLabel>
@@ -679,7 +742,7 @@ export default function PnlCalendar({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># Red Days</StatLabel>
@@ -687,7 +750,7 @@ export default function PnlCalendar({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>% Green Days</StatLabel>
@@ -696,6 +759,7 @@ export default function PnlCalendar({ user }) {
                   </Center>
                 </GridItem>
               </Grid>
+              </HStack>
             </VStack>
             ) : (
               <Text>
