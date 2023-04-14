@@ -40,6 +40,7 @@ import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
 
+
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
@@ -85,6 +86,7 @@ export default function UserProfile({ user }) {
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
+
 
   const evaluateSuccess = () => {
     if(success === true && user.result === "User Edited Successfully"){
@@ -252,7 +254,7 @@ export default function UserProfile({ user }) {
             alignItems="center"
           >
           <Avatar bg="teal.500" />
-          <Heading color="teal.400">Profile Page</Heading>
+          <Heading color="teal.400">Profile Information</Heading>
           <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden">
           {authLoading && !changepwdialog && !deletealertdialog? 
             <Stack

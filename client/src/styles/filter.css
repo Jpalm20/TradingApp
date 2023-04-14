@@ -1,0 +1,26 @@
+/* Styles for larger screens */
+.large-component {
+    display: block;
+    flex-direction: column;
+    justify-content : left;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  /* Styles for smaller screens */
+  .small-component {
+    display: none;
+    margin-bottom: 8px;
+  }
+  
+  @media (max-width: 700px) {
+    /* Hide the large component */
+    .large-component {
+      display: none;
+    }
+    
+    /* Show the small component */
+    .small-component {
+      display: block;
+    }
+  }

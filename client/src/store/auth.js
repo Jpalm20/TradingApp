@@ -327,6 +327,10 @@ export const logout = createAsyncThunk(
   }
 );
 
+export const expiredLogout = createAsyncThunk("auth/expiredLogout", async () => {
+  await window.localStorage.removeItem(TOKEN);
+});
+
 export const getUserFromSession = createAsyncThunk(
   "auth/getUserFromSession", 
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -582,6 +586,16 @@ const authSlice = createSlice({
       state.success = false;
       state.error = false;
       state.loading = true;
+    },
+    [expiredLogout.fulfilled]: (state) => {
+      state.success = true;
+      state.user = null;
+      state.trades = null;
+      state.tradesOfDay = null;
+      state.pnlYTD = null;
+      state.info = null;
+      state.error = false;
+      state.loading = false;
     },
   },
 });

@@ -5,6 +5,8 @@ import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { Chart } from "react-google-charts";
+import { BsFilter } from "react-icons/bs";
+import '../styles/filter.css';
 import {
   Flex,
   Text,
@@ -38,6 +40,7 @@ import {
   Stack,
   InputLeftElement,
   Textarea,
+  Icon,
   Select,
   chakra,
   Box,
@@ -51,6 +54,14 @@ import {
   InputRightElement,
   ButtonGroup,
   Badge,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
   HStack,
   SimpleGrid,
   FormLabel,
@@ -67,6 +78,8 @@ const CFaLock = chakra(FaLock);
 
 export default function Home({ user }) {
   ChartJS.register(ArcElement, Tooltip, Legend);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const btnRef = React.useRef()
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const toast = useToast();
   const navigate = useNavigate();
@@ -117,7 +130,7 @@ export default function Home({ user }) {
       fontSize: 16,
       position: 'centered'
     },
-    is3D: true,
+    is3D: false,
     pieSliceTextStyle: {
       color: 'black',
     },
@@ -155,7 +168,7 @@ export default function Home({ user }) {
       fontSize: 16,
       position: 'centered'
     },
-    is3D: true,
+    is3D: false,
     pieSliceTextStyle: {
       color: 'black',
     },
@@ -198,112 +211,11 @@ export default function Home({ user }) {
     }
   };
 
-
-  const handleSubmitFilter = async (e) => {
-    e.preventDefault();
-    const filters = {};
-    if(filter_trade_type !== ''){
-      filters.trade_type = filter_trade_type;
-    }
-    if(filter_security_type !== ''){
-      filters.security_type = filter_security_type;
-    }
-    if(filter_ticker_name !== ''){
-      filters.ticker_name = filter_ticker_name;
-    }
-    if(filter_switch_time !== ''){
-      filters.date_range = filter_switch_time;
-    }
-    await dispatch(
-      getTradesFiltered({
-        filters,
-        user_id
-      })
-    );
-    //setToggleFilter(!toggleFilter);
-  }
-
-  const handleClearFilter = async (e) => {
-    e.preventDefault();
-    setFilterTradeType('');
-    setFilterSecurityType('');
-    setFilterTickerName('');
-    setFilterSwitchDate('');
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
-    //setToggleFilter(!toggleFilter);
-  }
-
-  useEffect(() => {
-    evaluateError();
-  }, [error]); 
-
-  const evaluateError = () => {
-    if(error === true){
-      setToastErrorMessage(info.response.data.result);
-    }
-  }
-
-  useEffect(() => {
-    if (toastErrorMessage) {
-      toast({
-        title: toastErrorMessage,
-        variant: 'top-accent',
-        status: 'error',
-        duration: 3000,
-        isClosable: true
-      });
-    }
-    setToastErrorMessage(undefined);
-  }, [toastErrorMessage, toast]);
-
-  // grabbing current date to set a max to the birthday input
-  const currentDate = new Date();
-  let [month, day, year] = currentDate.toLocaleDateString().split("/");
-  // input max field must have 08 instead of 8
-  month = month.length === 2 ? month : "0" + month;
-  day = day.length === 2 ? day : "0" + day;
-  const maxDate = year + "-" + month + "-" + day;        
-
-  return (
-      
-      <Flex           
-        flexDirection="column"
-        height="100vh"
-        backgroundColor="gray.200"
-      >
-        <Stack
-                p="1rem"
-                backgroundColor="whiteAlpha.900"
-                align='center'
-                rounded="lg"
-                borderWidth="1px"
-              >
-        <Heading color="teal.400" w='full'>
-          <Center>
-            Home Page
-          </Center>
-        </Heading>
-        </Stack>
-
-       
-        
-        <Flex
-          w='full'
-          flexDirection="row"
-          flex="auto"
-          backgroundColor="gray.200"
-        >
-          <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="left"
-            alignItems="center"
-          >
-            <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+  const getFilterComponent = () => {
+    let content = [];
+    content.push(
+      <div className="large-component">
+            <Box flexGrow="1" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
               <Stack
                 spacing={4}
                 p="1rem"
@@ -359,16 +271,177 @@ export default function Home({ user }) {
                   </Button>
               </Stack>
             </Box>
-          </Stack>
-         
+          </div>
+    );
+    content.push(
+      <div padd className="small-component">
+      <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+      <Button ref={btnRef} colorScheme='white' onClick={onOpen}>
+       <Icon as={BsFilter} color='grey' size='lg'></Icon>
+      </Button>
+      </Box>
+      <Drawer
+        isOpen={isOpen}
+        placement='left'
+        onClose={onClose}
+        finalFocusRef={btnRef}
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Filters</DrawerHeader>
+
+          <DrawerBody>
+          <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Time Frame
+                  </FormHelperText>
+                  <Select placeholder='Select Time Frame' value={filter_switch_time} onChange={(e) => setFilterSwitchDate(e.target.value)}>
+                    <option>Year</option>
+                    <option>Month</option>
+                    <option>Week</option>
+                    <option>Day</option>
+                  </Select>
+                </FormControl>
+          </DrawerBody>
+
+          <DrawerFooter>
+            <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter}>
+              Submit Filter
+            </Button>
+            <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+              Clear Filter
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </div>
+    );
+    return content
+  };
+
+
+  const handleSubmitFilter = async (e) => {
+    e.preventDefault();
+    onClose();
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_switch_time !== ''){
+      filters.date_range = filter_switch_time;
+    }
+    await dispatch(
+      getTradesFiltered({
+        filters,
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  const handleClearFilter = async (e) => {
+    e.preventDefault();
+    onClose();
+    setFilterTradeType('');
+    setFilterSecurityType('');
+    setFilterTickerName('');
+    setFilterSwitchDate('');
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  useEffect(() => {
+    evaluateError();
+  }, [error]); 
+
+  const evaluateError = () => {
+    if(error === true){
+      setToastErrorMessage(info.response.data.result);
+    }
+  }
+
+  useEffect(() => {
+    if (toastErrorMessage) {
+      toast({
+        title: toastErrorMessage,
+        variant: 'top-accent',
+        status: 'error',
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    setToastErrorMessage(undefined);
+  }, [toastErrorMessage, toast]);
+
+  // grabbing current date to set a max to the birthday input
+  const currentDate = new Date();
+  let [month, day, year] = currentDate.toLocaleDateString().split("/");
+  // input max field must have 08 instead of 8
+  month = month.length === 2 ? month : "0" + month;
+  day = day.length === 2 ? day : "0" + day;
+  const maxDate = year + "-" + month + "-" + day;        
+
+  return (
+      
+      <Flex           
+        flexDirection="column"
+        height="100vh"
+        backgroundColor="gray.200"
+      >
+       
+        
+        <Flex
+          w='full'
+          flexDirection="row"
+          flex="auto"
+          backgroundColor="gray.200"
+        >
+          
+         {getFilterComponent()}
           
           <Stack
             flexDir="column"
             flex="auto"
             mb="2"
+            overflowX="auto"
           >
           
-          <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+          <Box overflowX="auto" flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
           {authLoading ?
             <Stack
             flex="auto"
@@ -397,6 +470,7 @@ export default function Home({ user }) {
               h="full"
               w="full"
               justifyContent="left"
+              overflowX="auto"
             >
             {hasTrades ? (
             <HStack h="full" w="full" align='top'>
@@ -407,7 +481,7 @@ export default function Home({ user }) {
               </Center>
             </Heading>
             
-            <Box w="100%" h='100%' borderWidth="1px" rounded="lg" overflow="hidden" >
+            <Box overflowX="auto" w="100%" h='100%' borderWidth="1px" rounded="lg" >
               <Grid templateColumns='repeat(1, 1fr)' w='100%' h='12%' >
                 <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
                   <Center fontWeight='bold'>
@@ -519,15 +593,15 @@ export default function Home({ user }) {
             </Box>
             </VStack>
             <VStack h="full" w="full" rounded="lg">
-              <Box h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
-                <HStack h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
-                  <Box h="full" w="35vh" overflow="hidden" align="center" >
+              <Box overflowX="auto" h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
+                <HStack overflowX="auto" h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
+                  <Box h="full" w="35vh" align="center" >
                     <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
                       <Center>
                         Day Trade vs Swing Trade
                       </Center>
                     </Heading>
-                    <TableContainer align="center" padding={10} paddingTop={10}voverflowY="auto">
+                    <TableContainer align="center" padding={10} paddingTop={10} overflowY="auto">
                     <Table size='sm' borderWidth='2px' variant='striped' colorScheme='whiteAlpha' rounded="lg">
                       <Thead position="sticky" top={0} bgColor="lightgrey">
                         <Tr>
@@ -570,15 +644,15 @@ export default function Home({ user }) {
                   </Box>
                 </HStack>
               </Box>
-              <Box h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
-                <HStack h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
-                  <Box h="full" w="35vh" overflow="hidden" align="center">
+              <Box overflowX="auto" h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
+                <HStack overflowX="auto" h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
+                  <Box h="full" w="35vh" align="center">
                     <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
                       <Center>
                         Options vs Shares
                       </Center>
                     </Heading>
-                    <TableContainer align="center" padding={10} paddingTop={10}voverflowY="auto">
+                    <TableContainer align="center" padding={10} paddingTop={10} overflowY="auto">
                       <Table size='sm' borderWidth='2px' variant='striped' colorScheme='whiteAlpha' rounded="lg">
                         <Thead position="sticky" top={0} bgColor="lightgrey">
                           <Tr>

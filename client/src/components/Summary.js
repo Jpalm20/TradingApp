@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered } from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { BsFilter } from "react-icons/bs";
 import {
   Flex,
   Text,
@@ -16,6 +17,7 @@ import {
   TableContainer,
   Center,
   Spinner,
+  Icon,
   Heading,
   AlertDialog,
   AlertDialogBody,
@@ -24,6 +26,13 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   useDisclosure,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
   Input,
   Button,
   InputGroup,
@@ -48,10 +57,12 @@ import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { update, getTrade, reset, deleteTrade } from '../store/trade';
 
+
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 export default function Summary({ user }) {
+  const btnRef = React.useRef()
   const [toastMessage, setToastMessage] = useState(undefined);
   const toast = useToast();
   const navigate = useNavigate();
@@ -70,6 +81,8 @@ export default function Summary({ user }) {
 
   const [editTrade, setEditTrade] = useState(false);
   const [toggleFilter, setToggleFilter] = useState(false);
+
+  const [filterDrawer, setFilterDrawer] = useState(false);
 
   const [visib, setVisib] = useState(false);
   function checkVisbility(tradePayload){
@@ -282,95 +295,18 @@ export default function Summary({ user }) {
     setEditTrade(false);
   }
 
-  const handleSubmitFilter = async (e) => {
-    e.preventDefault();
-    const filters = {};
-    if(filter_trade_type !== ''){
-      filters.trade_type = filter_trade_type;
-    }
-    if(filter_security_type !== ''){
-      filters.security_type = filter_security_type;
-    }
-    if(filter_ticker_name !== ''){
-      filters.ticker_name = filter_ticker_name;
-    }
-    await dispatch(
-      getTradesFiltered({
-        filters,
-        user_id
-      })
-    );
-    //setToggleFilter(!toggleFilter);
-  }
-
-  const handleClearFilter = async (e) => {
-    e.preventDefault();
-    setFilterTradeType('');
-    setFilterSecurityType('');
-    setFilterTickerName('');
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
-    //setToggleFilter(!toggleFilter);
-  }
-
-  const handleLogTrade = (e) => {
-    navigate("/logTrade");
-  }
-
-  // grabbing current date to set a max to the birthday input
-  const currentDate = new Date();
-  let [month, day, year] = currentDate.toLocaleDateString().split("/");
-  // input max field must have 08 instead of 8
-  month = month.length === 2 ? month : "0" + month;
-  day = day.length === 2 ? day : "0" + day;
-  const maxDate = year + "-" + month + "-" + day;        
-
-  return (
-    !editTrade ? (
-      <Flex           
-        flexDirection="column"
-        height="100vh"
-        backgroundColor="gray.200"
-      >
-        <Stack
-                p="1rem"
-                backgroundColor="whiteAlpha.900"
-                align='center'
-                rounded="lg"
-                borderWidth="1px"
-              >
-        <Heading color="teal.400" w='full'>
-          <Center>
-            Trade Summary
-          </Center>
-        </Heading>
-        </Stack>
-
-       
-        
-        <Flex
-          w='full'
-          flexDirection="row"
-          flex="auto"
-          backgroundColor="gray.200"
-        >
-          <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="left"
-            alignItems="center"
-          >
-            <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+  const getFilterComponent = () => {
+    let content = [];
+    content.push(
+      <div className="large-component">
+            <Box flexGrow="1" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
               <Stack
                 spacing={4}
                 p="1rem"
                 backgroundColor="whiteAlpha.900"
                 boxShadow="md"
                 align='center'
-                minWidth="28vh"
+                minWidth="30vh"
               >
                 <Heading color="teal.400" size="md">Filters</Heading>
                 <Box width="full">
@@ -407,16 +343,148 @@ export default function Summary({ user }) {
                   </Button>
               </Stack>
             </Box>
-          </Stack>
+          </div>
+    );
+    content.push(
+      <div padd className="small-component">
+      <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+      <Button ref={btnRef} colorScheme='white' onClick={e => setFilterDrawer(true)}>
+       <Icon as={BsFilter} color='grey' size='lg'></Icon>
+      </Button>
+      </Box>
+      {filterDrawer}
+      <Drawer
+        isOpen={filterDrawer}
+        placement='left'
+        onClose={e => setFilterDrawer(false)}
+        finalFocusRef={btnRef}
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Filters</DrawerHeader>
+
+          <DrawerBody>
+          <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Trade Type' value={filter_trade_type} onChange={(e) => setFilterTradeType(e.target.value)}>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select placeholder='Select Security Type' value={filter_security_type} onChange={(e) => setFilterSecurityType(e.target.value)}>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                </FormControl>
+          </DrawerBody>
+
+          <DrawerFooter>
+            <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter}>
+              Submit Filter
+            </Button>
+            <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+              Clear Filter
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </div>
+    );
+    return content
+  };
+
+  const handleSubmitFilter = async (e) => {
+    e.preventDefault();
+    setFilterDrawer(false);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    await dispatch(
+      getTradesFiltered({
+        filters,
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  const handleClearFilter = async (e) => {
+    e.preventDefault();
+    setFilterDrawer(false);
+    setFilterTradeType('');
+    setFilterSecurityType('');
+    setFilterTickerName('');
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    );
+    //setToggleFilter(!toggleFilter);
+  }
+
+  const handleLogTrade = (e) => {
+    navigate("/logTrade");
+  }
+
+  // grabbing current date to set a max to the birthday input
+  const currentDate = new Date();
+  let [month, day, year] = currentDate.toLocaleDateString().split("/");
+  // input max field must have 08 instead of 8
+  month = month.length === 2 ? month : "0" + month;
+  day = day.length === 2 ? day : "0" + day;
+  const maxDate = year + "-" + month + "-" + day;        
+
+  return (
+    !editTrade ? (
+      <Flex           
+        flexDirection="column"
+        height="100vh"
+        backgroundColor="gray.200"
+      >
+
+       
+        
+        <Flex
+          w='full'
+          flexDirection="row"
+          overflowX="auto"
+          overflowY="auto"
+          flex="auto"
+          backgroundColor="gray.200"
+        >
+          
+          {getFilterComponent()}
          
           
           <Stack
             flexDir="column"
             flex="auto"
             mb="2"
+            overflowX="auto"
+            overflowY="auto"
           >
           
-          <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
+          <Box flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" overflowX="auto" overflowY="auto">
           {authLoading ?
             <Stack
             flex="auto"
@@ -442,27 +510,29 @@ export default function Summary({ user }) {
               p="1rem"
               backgroundColor="whiteAlpha.900"
               boxShadow="md"
+              overflowX="auto"
+              overflowY="auto"
               h="full"
               w="full"
-              justifyContent="left"
+              justifyContent="center"
             >
             {hasTrades ? (
-            <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
+            <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
               <Table size='sm' variant='striped' colorScheme='white'>
-                <Thead position="sticky" top={0} bgColor="lightgrey">
+                <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
                   <Tr>
-                    <Th>Trade<br></br>Type</Th>
-                    <Th>Security<br></br>Type</Th>
-                    <Th>Ticker</Th>
-                    <Th>Close<br></br>Date</Th>
-                    <Th>Expiry</Th>
-                    <Th>Strike</Th>
-                    <Th>Avg<br></br>Price</Th>
-                    <Th># of<br></br>Units</Th>
-                    <Th>R/R</Th>
-                    <Th>PNL</Th>
-                    <Th>% W/L</Th>
-                    <Th>Comments</Th>
+                    <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
+                    <Th resize='horizontal' overflow='auto'>Security<br></br>Type</Th>
+                    <Th resize='horizontal' overflow='auto'>Ticker</Th>
+                    <Th resize='horizontal' overflow='auto'>Close<br></br>Date</Th>
+                    <Th resize='horizontal' overflow='auto'>Expiry</Th>
+                    <Th resize='horizontal' overflow='auto'>Strike</Th>
+                    <Th resize='horizontal' overflow='auto'>Avg<br></br>Price</Th>
+                    <Th resize='horizontal' overflow='auto'># of<br></br>Units</Th>
+                    <Th resize='horizontal' overflow='auto'>R/R</Th>
+                    <Th resize='horizontal' overflow='auto'>PNL</Th>
+                    <Th resize='horizontal' overflow='auto'>% W/L</Th>
+                    <Th resize='horizontal' overflow='hidden' textOverflow='ellipsis'>Comments</Th>
                     <Th>
                       <Button size="sm" width='100%' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
                         + Add Trade
@@ -470,7 +540,7 @@ export default function Summary({ user }) {
                     </Th>
                   </Tr>
                 </Thead>
-                    <Tbody>
+                    <Tbody zIndex={1}>
                       {trades.trades.map((trades, index) => (
                         <Tr>
                           <Td>{trades.trade_type}</Td>
@@ -484,9 +554,9 @@ export default function Summary({ user }) {
                           <Td>{trades.rr}</Td>
                           <Td isNumeric>{trades.pnl}</Td>
                           <Td isNumeric>{trades.percent_wl}</Td>
-                          <Td whiteSpace="normal">{trades.comments}</Td>
+                          <Td whiteSpace="normal" overflow='hidden'>{trades.comments}</Td>
                           <Td>
-                            {tradeLoading && (editButtonInstance == index) ?
+                            {tradeLoading && (editButtonInstance === index) ?
                             <Button key={index} size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
                               <Center>
                                 <Spinner
@@ -515,22 +585,22 @@ export default function Summary({ user }) {
               </Table>
             </TableContainer>
             ) : (
-            <TableContainer>
-              <Table size='sm'>
-                <Thead>
+            <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
+              <Table size='sm' variant='striped' colorScheme='white'>
+                <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
                   <Tr>
-                    <Th>Trade Type</Th>
-                    <Th>Security Type</Th>
-                    <Th>Ticker</Th>
-                    <Th>Close Date</Th>
-                    <Th>Expiry</Th>
-                    <Th>Strike</Th>
-                    <Th>Avg Price</Th>
-                    <Th># of Units</Th>
-                    <Th>R/R</Th>
-                    <Th>PNL</Th>
-                    <Th>% W/L</Th>
-                    <Th>Comments</Th>
+                    <Th resize='horizontal' overflow='auto'>Trade Type</Th>
+                    <Th resize='horizontal' overflow='auto'>Security Type</Th>
+                    <Th resize='horizontal' overflow='auto'>Ticker</Th>
+                    <Th resize='horizontal' overflow='auto'>Close Date</Th>
+                    <Th resize='horizontal' overflow='auto'>Expiry</Th>
+                    <Th resize='horizontal' overflow='auto'>Strike</Th>
+                    <Th resize='horizontal' overflow='auto'>Avg Price</Th>
+                    <Th resize='horizontal' overflow='auto'># of Units</Th>
+                    <Th resize='horizontal' overflow='auto'>R/R</Th>
+                    <Th resize='horizontal' overflow='auto'>PNL</Th>
+                    <Th resize='horizontal' overflow='auto'>% W/L</Th>
+                    <Th resize='horizontal' overflow='auto'>Comments</Th>
                     <Th>
                       <Button size="sm" colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
                         + Add Trade

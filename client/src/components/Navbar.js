@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getPnlByYear, getTrades, reportBug } from '../store/auth'
+import '../styles/navbar.css';
 import { 
   Flex, 
   Heading, 
@@ -29,11 +30,24 @@ import {
   Spacer, 
   Icon,
   HStack} from "@chakra-ui/react";
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
 import { useSelector, useDispatch } from "react-redux";
 
+
+const PAGE_NAME = [
+  {page:"/home", text: "Home"}, 
+  {page:"/PnlCalendar", text: "PnL Calendar"},
+  {page:"/login", text: "None"},
+  {page:"/signup", text: "None"},
+  {page:"/logTrade", text: "None"},
+  {page:"/profile", text: "User Profile"},
+  {page:"/summary", text: "Trade Summary"},
+]
+
+
 export default function Navbar({ user }) {
+  const location = useLocation();
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const [toastMessage, setToastMessage] = useState(undefined);
   const toast = useToast();
@@ -45,14 +59,11 @@ export default function Navbar({ user }) {
   const { success } = useSelector((state) => state.auth);
   const today = new Date();
   const year = today.getFullYear();
-
   const authLoading = useSelector((state) => state.auth.loading);
-
   const [reportBugFlag, setReportBugFlag] = useState(false);
   const [page, setPage] = useState("");
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
-
   const isBugReported = ((info && Object.keys(info).length === 1 && info.result && info.result === "Bug Ticket Created Successfully") ? (true):(false));
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -61,6 +72,10 @@ export default function Navbar({ user }) {
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
+
+  useEffect(() => {
+    displayPageName();
+  }, [PAGE_NAME]); 
 
   const evaluateSuccess = () => {
     if(success === true && isBugReported){
@@ -101,6 +116,27 @@ export default function Navbar({ user }) {
     onOpen();
   }
 
+  
+  const displayPageName = () =>{
+    let content = [];
+    const pageText = PAGE_NAME.find(el => el.page === location.pathname)?.text
+    if (pageText !== "None"){
+      content.push(
+        <Divider orientation="vertical" borderColor="grey.400"/>
+      );
+      content.push(
+        <Heading paddingLeft={3} size='md' color="white" class='pagename'>
+          {pageText}
+        </Heading>
+      );
+    }else{
+      content.push(
+        <Divider orientation="vertical" borderColor="grey.400"/>
+      );
+    }
+    return content;
+  }
+
   const handleConfirmReportBug = async (e) => {
     e.preventDefault();
     await dispatch(
@@ -129,14 +165,24 @@ export default function Navbar({ user }) {
   
   return (
     <Flex justify="space-between" backgroundColor="teal.600">
-      <Heading m={2} color="white">
-        MyTradingTracker
-        <Icon as={RiStockFill}></Icon>
-      </Heading>
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
-        <><Spacer /><Center h="65px">
+        <HStack >
+        <Heading className='my-trading-tracker' m={2} size='lg' color="white" _hover={{ color: "gray.300" }} onClick={(e) => handleHome(e.target.value, user.user_id)}>
+          My&#8203;Trading&#8203;Tracker
+          <Icon as={RiStockFill}></Icon>
+        </Heading>
+        {displayPageName()}
+        </HStack>
+      ) : (
+        <Heading m={2} size='lg' color="white">
+          My&#8203;Trading&#8203;Tracker
+          <Icon as={RiStockFill}></Icon>
+        </Heading>
+      )}
+      {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
+        <><Spacer /><Center >
           <span>
-          <ButtonGroup gap='2' paddingEnd={4}>
+          <ButtonGroup gap='2' padding={4} flexWrap='wrap'>
             <Button size="sm" backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleHome(e.target.value, user.user_id)}>
               Home
             </Button>
@@ -230,7 +276,7 @@ export default function Navbar({ user }) {
         <Divider orientation="vertical" borderColor="grey.400"/>
         <span>
         <HStack>
-        <Text paddingStart={4} as='kbd'>
+        <Text paddingStart={4} as='kbd' className="username">
           {user.first_name}
         </Text>
         <Link as={RouterLink} to="/profile">

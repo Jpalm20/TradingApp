@@ -12,7 +12,7 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades, getUserFromSession } from "./store/auth";
+import { me, getTrades, getUserFromSession, expiredLogout } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
@@ -30,6 +30,9 @@ export default function App() {
   const { user } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
   const { trades } = useSelector((state) => state.auth);
+  const authError = useSelector((state) => state.auth.error);
+  const tradeError = useSelector((state) => state.trade.error);
+  const tradeInfo = useSelector((state) => state.trade.info);
   const isLoggedIn = (((user && Object.keys(user).length > 2) || window.localStorage.getItem(TOKEN)) ? (true):(false));
   const [registered, setRegistered] = useState(true);
   const isRegistered = ((info && Object.keys(info).length > 2 && info.result && info.result === "User Created Successfully") ? (true):(false));
@@ -54,6 +57,19 @@ export default function App() {
   if(isChanged === true && changed === true){
     setToastMessage(info.result);
     setChanged(false);
+  }
+
+  useEffect(() => {
+    evaluateError();
+  }, [authError, tradeError]); 
+
+  const evaluateError = async () => {
+    if(authError === true && info.response.data.result === "Auth Token Has Expired"){
+      await dispatch(expiredLogout());
+    }
+    if(tradeError === true && tradeInfo.response.data.result === "Auth Token Has Expired"){
+      await dispatch(expiredLogout());
+    }
   }
 
   
@@ -102,6 +118,7 @@ export default function App() {
           ) : (
             <>
               <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/home" element={<Navigate to="/login" />} />
               <Route path="/PnlCalendar" element={<Navigate to="/login" />} />
               <Route path="/profile" element={<Navigate to="/login"/>} />
               <Route path="/logTrade" element={<Navigate to="/login"/>} />
