@@ -514,7 +514,6 @@ export default function Summary({ user }) {
               overflowY="auto"
               h="full"
               w="full"
-              justifyContent="center"
             >
             {hasTrades ? (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
