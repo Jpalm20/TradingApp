@@ -446,6 +446,24 @@ export default function Summary({ user }) {
     navigate("/logTrade");
   }
 
+  useEffect(() => {
+    calculatePercent();
+  }, [pnl, buy_value]); 
+
+  const calculatePercent = () => {
+    const pnlFloat=parseFloat(pnl);
+    const buyValueFloat=parseFloat(buy_value);
+    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0) {
+      setPercentWL(((pnlFloat/buyValueFloat)*100).toFixed(2));
+    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value))){
+      setPercentWL(((pnlFloat/trade.buy_value)*100).toFixed(2));
+    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(trade.pnl)){
+      setPercentWL(((trade.pnl/buyValueFloat)*100).toFixed(2));
+    }else{
+      setPercentWL("");
+    }
+  }
+
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
   let [month, day, year] = currentDate.toLocaleDateString().split("/");
@@ -712,7 +730,8 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
                   </FormHelperText>
-                  <Select placeholder={trade.trade_type} onChange={(e) => setTradeType(e.target.value)}>
+                  <Select onChange={(e) => setTradeType(e.target.value)}>
+                    <option value="" disabled selected>{trade.trade_type}</option>
                     <option>Swing Trade</option>
                     <option>Day Trade</option>
                   </Select>
@@ -721,7 +740,8 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select id="optionsSelection" placeholder={trade.security_type} onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value);}}>
+                  <Select id="optionsSelection" onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value);}}>
+                    <option value="" disabled selected>{trade.security_type}</option>
                     <option>Options</option>
                     <option>Shares</option>
                   </Select>
@@ -830,8 +850,9 @@ export default function Summary({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    readOnly
                     placeholder={trade.percent_wl}
-                    onChange={(e) => setPercentWL(e.target.value)}
+                    defaultValue={percent_wl}
                   />
               </FormControl>
               </Box>
