@@ -130,9 +130,7 @@ export default function Navbar({ user }) {
         </Heading>
       );
     }else{
-      content.push(
-        <Divider orientation="vertical" borderColor="grey.400"/>
-      );
+
     }
     return content;
   }

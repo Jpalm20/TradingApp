@@ -545,7 +545,8 @@ export default function PnlCalendar({ user }) {
               overflowX="auto"
             >
               <HStack overflowX="auto" w='100%'>
-                <Select w='150px' border='1px' borderColor='darkgray' size="md" variant='filled' placeholder={monthsString[calMonth]} onChange={(e) => setCalMonth(monthsString.indexOf(e.target.value))}>
+                <Select w='150px' border='1px' borderColor='darkgray' size="md" variant='filled' onChange={(e) => setCalMonth(monthsString.indexOf(e.target.value))}>
+                <option value="" disabled selected>{monthsString[calMonth]}</option>
                   {monthsString.map((mmonth) => (<option key={mmonth}>{mmonth}</option>))}
                 </Select>
                 <Select 
@@ -554,10 +555,10 @@ export default function PnlCalendar({ user }) {
                 variant='filled' 
                 border='1px' 
                 borderColor='darkgray'
-                placeholder={calYear} 
                 onChange={(e) => {
                   setCalYear(e.target.value); 
                 }}>
+                  <option value="" disabled selected>{calYear}</option>
                   <option>{year}</option>
                   <option>{year-1}</option>
                   <option>{year-2}</option>
@@ -581,7 +582,7 @@ export default function PnlCalendar({ user }) {
                 spacing={4}
                 align='stretch'
               >
-              <Grid templateColumns='repeat(7, 1fr)' gap={3}>
+              <Grid templateColumns='repeat(7, 1fr)' templateRows='repeat(1, 1fr)' gap={3}>
                 <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
                   <Center fontWeight='bold'>
                     Sunday
@@ -661,7 +662,7 @@ export default function PnlCalendar({ user }) {
                   <AlertDialogBody>
                   {hasTradesofDay ? (
                   <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
-                    <Table size='sm' border='4px' borderColor='darkgray' variant='striped' colorScheme='whiteAlpha'>
+                    <Table size='sm' variant='striped' colorScheme='whiteAlpha'>
                       <Thead position="sticky" top={0} bgColor="lightgrey">
                         <Tr>
                           <Th>Trade<br></br>Type</Th>

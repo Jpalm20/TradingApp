@@ -199,6 +199,20 @@ export default function LogTrade({ user }) {
     navigate("/summary");
   }
 
+  useEffect(() => {
+    calculatePercent();
+  }, [pnl, buy_value]); 
+
+  const calculatePercent = () => {
+    const pnlFloat=parseFloat(pnl);
+    const buyValueFloat=parseFloat(buy_value);
+    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0) {
+      setPercentWL(((pnlFloat/buyValueFloat)*100).toFixed(2));
+    }else{
+      setPercentWL("");
+    }
+  }
+
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
   let [month, day, year] = currentDate.toLocaleDateString().split("/");
@@ -363,7 +377,9 @@ export default function LogTrade({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
-                    onChange={(e) => setPercentWL(e.target.value)}
+                    readOnly
+                    placeholder={"0.00"}
+                    defaultValue={percent_wl}
                   />
               </FormControl>
               </Box>
