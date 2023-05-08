@@ -33,6 +33,18 @@ class Trade:
                             newTrade.pnl,newTrade.percentwl,newTrade.comment)
         response = utils.execute_db(Query,Args)
         return response
+    
+    def addTrades(newTrades):
+        
+        for newTrade in newTrades:
+            Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+            Args = (newTrade['user_id'],newTrade['trade_type'],newTrade['security_type'],newTrade['ticker_name'],newTrade['trade_date'],
+                            newTrade['expiry'],newTrade['strike'],newTrade['buy_value'],newTrade['units'],newTrade['rr'],
+                            newTrade['pnl'],newTrade['percent_wl'],newTrade['comments'])
+            response = utils.execute_db(Query,Args)
+            if response[0]:
+                return False, response
+        return True, "Pass"
         
     def updateTrade(tradeID,changes):
         

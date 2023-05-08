@@ -34,3 +34,10 @@ def logoutSession(auth_token):
             "expiration": str(responseSession[0][0]['expiration']),
             "now" : str(datetime.now())
         }, 400
+        
+def getUserFromToken(auth_token):
+    response = session.Session.getUserFromSession(auth_token)
+    if 'user_id' in response[0][0]:
+        return True, response[0][0]['user_id']
+    else:
+        return False, "No User Associated with this Session"

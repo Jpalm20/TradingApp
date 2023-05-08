@@ -112,6 +112,33 @@ def log_trade():
             "result": "Authorization Header is Missing"
         }, 401
         
+
+@app.route('/trade/importCsv',methods= ['POST'])
+def import_csv():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
+            if request.method == 'POST':
+                file = request.files["csv_file"]
+                user_id = message2
+                return tradeHandler.importCsv(file, user_id) 
+        elif not eval:
+            return {
+                "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+        
+        
 @app.route('/user/changePassword/<int:user_id>',methods= ['POST'])
 def change_Password(user_id):
     auth_header = request.headers.get('Authorization')

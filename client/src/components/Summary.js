@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered } from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
+import '../styles/summary.css';
 import { BsFilter } from "react-icons/bs";
 import {
   Flex,
@@ -16,6 +17,8 @@ import {
   TableCaption,
   TableContainer,
   Center,
+  UnorderedList,
+  ListItem,
   Spinner,
   Icon,
   Heading,
@@ -55,7 +58,7 @@ import {
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { update, getTrade, reset, deleteTrade } from '../store/trade';
+import { update, getTrade, reset, deleteTrade, importCsv } from '../store/trade';
 
 
 const CFaUserAlt = chakra(FaUserAlt);
@@ -119,6 +122,11 @@ export default function Summary({ user }) {
 
   const [editButtonInstance, setEditButtonInstance] = useState(null);
 
+  const [importCsvDialog, setImportDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const [selectedRow, setSelectedRow] = useState(null);
+
 
   useEffect(() => {
     evaluateSuccess();
@@ -130,6 +138,9 @@ export default function Summary({ user }) {
     }
     if(success === true && trade.result === "Trade Successfully Deleted"){
       setToastMessage(trade.result);
+    }
+    if(success === true && trade.result === "Trades Imported Successfully"){
+      setToastMessage(trade.trades.length.toString() + " " + trade.result);
     }
   }
 
@@ -448,21 +459,64 @@ export default function Summary({ user }) {
 
   useEffect(() => {
     calculatePercent();
-  }, [pnl, buy_value]); 
+  }, [pnl, buy_value, units]); 
 
   const calculatePercent = () => {
     const pnlFloat=parseFloat(pnl);
     const buyValueFloat=parseFloat(buy_value);
-    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0) {
-      setPercentWL(((pnlFloat/buyValueFloat)*100).toFixed(2));
-    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value))){
-      setPercentWL(((pnlFloat/trade.buy_value)*100).toFixed(2));
-    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(trade.pnl)){
-      setPercentWL(((trade.pnl/buyValueFloat)*100).toFixed(2));
+    const unitsFloat=parseFloat(units);
+    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0) {
+      setPercentWL(((pnlFloat/(buyValueFloat*unitsFloat))*100).toFixed(2));
+    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value)) && !isNaN(unitsFloat) && unitsFloat !== 0){
+      setPercentWL(((pnlFloat/(trade.buy_value*unitsFloat))*100).toFixed(2));
+    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0 && !isNaN(trade.pnl)){
+      setPercentWL(((trade.pnl/(buyValueFloat*unitsFloat))*100).toFixed(2));
+    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value)) && isNaN(unitsFloat) && !isNaN(trade.units)){
+      setPercentWL(((pnlFloat/(trade.buy_value*trade.units))*100).toFixed(2));
+    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && isNaN(unitsFloat) && !isNaN(trade.units) && !isNaN(trade.pnl)){
+      setPercentWL(((trade.pnl/(buyValueFloat*trade.units))*100).toFixed(2));
+    }else if (isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value)) && !isNaN(unitsFloat) && unitsFloat !== 0 && !isNaN(trade.pnl)){
+      setPercentWL(((trade.pnl/(trade.buy_value*unitsFloat))*100).toFixed(2));
+    }else if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && isNaN(unitsFloat) && !isNaN(trade.units)){
+      setPercentWL(((pnlFloat/(buyValueFloat*trade.units))*100).toFixed(2));
     }else{
       setPercentWL("");
     }
   }
+
+  const handleImportButton = (e) => {
+    setImportDialog(true);
+  };
+
+  const handleCancelImportCsv = (e) => {
+    setImportDialog(false);
+    setSelectedFile(null);
+  };
+
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type === "text/csv") {
+      setSelectedFile(file);
+    } else {
+      setSelectedFile(null);
+      alert("Please select a CSV file.");
+    }
+  };
+
+  const handleConfirmImportCsv = async (e) => {
+    await dispatch(
+      importCsv({
+        selectedFile
+      })
+    );
+    setImportDialog(false);
+    await dispatch(
+      getTrades({
+        user_id
+      })
+    ); 
+    setSelectedFile(null);
+  };
 
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
@@ -533,6 +587,124 @@ export default function Summary({ user }) {
               h="full"
               w="full"
             >
+            <div class='container'>
+            <Button size="sm" marginLeft={3} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleImportButton(e.target.value)}>
+              Import CSV
+            </Button>
+            {importCsvDialog}
+              <AlertDialog
+              motionPreset='slideInBottom'
+              isOpen={importCsvDialog}
+              leastDestructiveRef={cancelRef}
+              onClose={e => handleCancelImportCsv(e)}
+              isCentered={true}
+              size='5xl'
+              closeOnOverlayClick={true}
+            >
+              <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  Import Trades from CSV
+                </AlertDialogHeader>
+
+                <AlertDialogBody>
+                  Please make sure your .csv file:
+                  <UnorderedList spacing={5} paddingTop={3}>
+                    <ListItem>Contains <strong>only</strong> your <strong>Buy</strong> and <strong>Sell</strong> Trade History</ListItem>
+                    <ListItem>All Trades must be <strong>closed out</strong> (all Buys must have a matching Sell)</ListItem>
+                    <ListItem>Have the <strong>minimum required</strong> columns with matching column name (all others shown in examples are prefferred but not required):
+                      <UnorderedList>
+                        <ListItem>security_type</ListItem>
+                        <ListItem>ticker_name</ListItem>
+                        <ListItem>execution_time</ListItem>
+                        <ListItem>side (Buy/Sell)</ListItem>
+                        <ListItem>quantity</ListItem>
+                        <ListItem>cost_basis</ListItem>
+                      </UnorderedList>
+                    </ListItem>
+                    <ListItem>Follow this layout (may require some formatting from you!)
+                    <TableContainer overflowY="auto" overflowX="auto" paddingTop={2}>
+                      <Table size='sm' variant='simple'>
+                        <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
+                          <Tr>
+                            <Th overflow='auto'>security_type</Th>
+                            <Th overflow='auto'>ticker_name</Th>
+                            <Th overflow='auto'>execution_time</Th>
+                            <Th overflow='auto'>side</Th>
+                            <Th overflow='auto'>expiry</Th>
+                            <Th overflow='auto'>strike</Th>
+                            <Th overflow='auto'>cost_basis</Th>
+                            <Th overflow='auto'>quantity</Th>
+                          </Tr>
+                        </Thead>
+                      </Table>
+                    </TableContainer>
+                    </ListItem>
+                    <ListItem paddingBottom={4}>Heres an example to show a file thats ready for import:{' '} 
+                      <Link href="./csv/data.csv" download="example_trade_history.csv" color='blue.500'>Download Example</Link>
+                    </ListItem>
+                  </UnorderedList>
+                </AlertDialogBody>
+                <HStack>
+                <Input
+                    paddingTop={1}
+                    type="file"
+                    id="file"
+                    accept=".csv" 
+                    maxWidth="400px"
+                    ml={3}
+                    onChange={handleFileInputChange}/>
+                {tradeLoading ? <Text paddingLeft={3} color='red.500'>Loading your Trades...</Text> : ( <Text></Text>) }
+                </HStack>
+                <AlertDialogFooter paddingTop={10}>
+                  <Button ref={cancelRef} minWidth='150px' onClick={e => handleCancelImportCsv(e)}>
+                    Cancel
+                  </Button>
+                  {tradeLoading ?
+                    <Button colorScheme='teal' minWidth='150px' ml={3}>
+                      <Center>
+                        <Spinner
+                          thickness='2px'
+                          speed='0.65s'
+                          emptyColor='gray.200'
+                          color='grey.500'
+                          size='sm'
+                        />
+                      </Center>
+                    </Button>
+                  :
+                    <Button colorScheme='teal' minWidth='150px' isDisabled={!selectedFile} onClick={e => handleConfirmImportCsv(e)} ml={3}>
+                      Submit
+                    </Button>
+                  } 
+                </AlertDialogFooter>
+              </AlertDialogContent>
+              </AlertDialogOverlay>
+            </AlertDialog>
+            <Button size="sm" marginLeft={3} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
+              + Add Trade
+            </Button>
+            {tradeLoading && !deletealertdialog && !importCsvDialog?
+              <Button size="sm" marginLeft={3} width='75px' colorScheme='telegram' border='1px' borderColor='black'>
+                <Center>
+                  <Spinner
+                    thickness='2px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='grey.500'
+                    size='sm'
+                  />
+                </Center>
+              </Button>
+            :
+            <Button size="sm" marginLeft={3} width='75px' colorScheme='telegram' border='1px' borderColor='black' isDisabled={selectedRow === null} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
+              Edit
+            </Button>
+            }
+            <Button size="sm" marginLeft={3} width='75px' colorScheme='red' border='1px' borderColor='black' isDisabled={selectedRow === null} onClick={e => handleDeleteButton(e, trade_id)}>
+              Delete
+            </Button>
+            </div>
             {hasTrades ? (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
               <Table size='sm' variant='striped' colorScheme='white'>
@@ -550,16 +722,21 @@ export default function Summary({ user }) {
                     <Th resize='horizontal' overflow='auto'>PNL</Th>
                     <Th resize='horizontal' overflow='auto'>% W/L</Th>
                     <Th resize='horizontal' overflow='hidden' textOverflow='ellipsis'>Comments</Th>
-                    <Th>
-                      <Button size="sm" width='100%' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
-                        + Add Trade
-                      </Button>
-                    </Th>
                   </Tr>
                 </Thead>
                     <Tbody zIndex={1}>
                       {trades.trades.map((trades, index) => (
-                        <Tr>
+                        <Tr
+                        onClick={() => {
+                          if (selectedRow === index) {
+                            setSelectedRow(null); 
+                          } else if (selectedRow === null) {
+                            setSelectedRow(index); 
+                            setTradeID(trades.trade_id);
+                          }
+                        }}
+                        style={{ backgroundColor: selectedRow === index ? 'lightgrey' : 'white' }}
+                        >
                           <Td>{trades.trade_type}</Td>
                           <Td>{trades.security_type}</Td>
                           <Td>{trades.ticker_name}</Td>
@@ -572,30 +749,6 @@ export default function Summary({ user }) {
                           <Td isNumeric>{trades.pnl}</Td>
                           <Td isNumeric>{trades.percent_wl}</Td>
                           <Td whiteSpace="normal" overflow='hidden'>{trades.comments}</Td>
-                          <Td>
-                            {tradeLoading && (editButtonInstance === index) ?
-                            <Button key={index} size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id)}>
-                              <Center>
-                                <Spinner
-                                  thickness='2px'
-                                  speed='0.65s'
-                                  emptyColor='gray.200'
-                                  color='grey.500'
-                                  size='sm'
-                                />
-                              </Center>
-                            </Button>
-                            :
-                            <Button key={index} size="sm" width='100%' height='60%' colorScheme='telegram' border='1px' borderColor='black' onClick={e => handleGotoEdit(e, trades.trade_id, index)}>
-                              Edit
-                            </Button>
-                            }   
-                            <div>
-                            <Button size="sm" width='100%' height='60%' colorScheme='red' border='1px' borderColor='black' onClick={e => handleDeleteButton(e, trades.trade_id)}>
-                              Delete
-                            </Button>
-                            </div>
-                          </Td>
                         </Tr>
                       ))}
                     </Tbody>
@@ -618,11 +771,6 @@ export default function Summary({ user }) {
                     <Th resize='horizontal' overflow='auto'>PNL</Th>
                     <Th resize='horizontal' overflow='auto'>% W/L</Th>
                     <Th resize='horizontal' overflow='auto'>Comments</Th>
-                    <Th>
-                      <Button size="sm" colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
-                        + Add Trade
-                      </Button>
-                    </Th>
                   </Tr>
                 </Thead>
               </Table>
@@ -637,7 +785,7 @@ export default function Summary({ user }) {
               isCentered={true}
               closeOnOverlayClick={false}
             >
-            {tradeLoading ?
+            {tradeLoading && deletealertdialog?
             <AlertDialogOverlay>
               <AlertDialogContent>
               <Center>
