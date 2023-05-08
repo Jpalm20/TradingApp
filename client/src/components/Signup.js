@@ -130,7 +130,6 @@ export default function Signup() {
         justifyContent="center"
         alignItems="center"
       >
-        <Avatar bg="teal.500" />
         <Heading color="teal.400">Create an account</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
         {authLoading ? 

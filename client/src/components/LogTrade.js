@@ -201,13 +201,14 @@ export default function LogTrade({ user }) {
 
   useEffect(() => {
     calculatePercent();
-  }, [pnl, buy_value]); 
+  }, [pnl, buy_value, units]); 
 
   const calculatePercent = () => {
     const pnlFloat=parseFloat(pnl);
     const buyValueFloat=parseFloat(buy_value);
-    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0) {
-      setPercentWL(((pnlFloat/buyValueFloat)*100).toFixed(2));
+    const unitsFloat=parseFloat(units);
+    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0) {
+      setPercentWL(((pnlFloat/(buyValueFloat*unitsFloat)*100).toFixed(2)));
     }else{
       setPercentWL("");
     }

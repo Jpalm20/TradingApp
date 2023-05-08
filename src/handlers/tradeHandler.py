@@ -1,5 +1,8 @@
 import os
 import sys
+from unittest import result
+import csv
+
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -105,6 +108,27 @@ def deleteExistingTrade(trade_id):
         return {
             "result": "Trade Successfully Deleted"
         }
+
+def importCsv(file, user_id):
+    if not tradeValidator.validateCsv(file):
+        return {
+            "result": "Invalid CSV file. Missing required Headers"
+        }, 400
+    eval,result = tradeTransformer.processCsv(user_id, file)
+    if eval:
+        eval, response = trade.Trade.addTrades(result)
+        if not eval:
+            return response, 400
+        else:
+            return {
+                "result": "Trades Imported Successfully", 
+                "trades": result
+            } 
+    else:
+        return {
+            "result": result
+        }, 400    
+        
         
 #--------Tests--------# 
 

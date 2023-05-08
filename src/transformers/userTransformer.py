@@ -35,7 +35,7 @@ def transformReportBug(request):
                 "id": str(JIRA_PROJECT_ID)
             },
             "summary": request['page'] + " - " + request['summary'],
-            "description": request['summary'],
+            "description": request['description'],
             "issuetype": {
                 "name": "Bug"
             }

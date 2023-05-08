@@ -45,6 +45,13 @@ class Session:
         response = utils.execute_db(Query,Args)
         return response
     
+    def getUserFromSession(token):
+            
+        Query = """SELECT user_id FROM Session WHERE token = %s"""
+        Args = (token,)
+        response = utils.execute_db(Query,Args)
+        return response
+    
 #--------Tests--------# 
 
 #Testing addSession      

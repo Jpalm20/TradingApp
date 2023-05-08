@@ -661,7 +661,7 @@ export default function PnlCalendar({ user }) {
 
                   <AlertDialogBody>
                   {hasTradesofDay ? (
-                  <TableContainer overflowY="auto" maxHeight="100vh" rounded="lg">
+                  <TableContainer overflowY="auto" maxHeight="300px" rounded="lg">
                     <Table size='sm' variant='striped' colorScheme='whiteAlpha'>
                       <Thead position="sticky" top={0} bgColor="lightgrey">
                         <Tr>
