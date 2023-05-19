@@ -65,6 +65,13 @@ class Trade:
         response = utils.execute_db(Query,Args)
         return response
     
+    def deleteTradesByID(tradeIDs):
+    
+        Query = f"DELETE FROM Trade WHERE trade_id in ({', '.join(str(tid) for tid in tradeIDs)})"
+        Args = ()
+        response = utils.execute_db(Query,Args)
+        return response
+    
     def deleteUserTrades(userID):
     
         Query = """DELETE FROM Trade WHERE user_id = %s"""

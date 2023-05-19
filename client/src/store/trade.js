@@ -83,11 +83,12 @@ export const deleteTrade = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { trade_id } = formInfo;
-        const res = await axios.delete(API_URL + `trade/${trade_id}`,{
+        const { trade_ids } = formInfo;
+        const res = await axios.delete(API_URL + `trade/deleteTrades`,{
           headers: {
             Authorization: "Bearer " + token,
-          }
+          },
+          data: trade_ids
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());

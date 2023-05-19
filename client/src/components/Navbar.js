@@ -125,7 +125,7 @@ export default function Navbar({ user }) {
         <Divider orientation="vertical" borderColor="grey.400"/>
       );
       content.push(
-        <Heading paddingLeft={3} size='md' color="white" class='pagename'>
+        <Heading class='pagename'>
           {pageText}
         </Heading>
       );

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { create , reset} from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
-import { getTrades } from '../store/auth'
+import { getTrades } from '../store/auth';
 // import { Link } from "react-router-dom";   
+import axios from "axios";
 
 import {
   Flex,
@@ -173,12 +174,18 @@ export default function LogTrade({ user }) {
         user_id
       })
     );
+    setSearchValue('');
+    setSelectedValue('');
+    setIsDropdownOpen(false);
   }
 
   const handleCancel = (e) => {
     e.preventDefault();
     clearFormStates();
     navigate("/summary");
+    setSearchValue('');
+    setSelectedValue('');
+    setIsDropdownOpen(false);
   }
 
   const handleAnswerYes = (e) => {
@@ -213,6 +220,52 @@ export default function LogTrade({ user }) {
       setPercentWL("");
     }
   }
+
+  const [searchValue, setSearchValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      setIsLoading(true);
+      const response = await axios.get(`https://ticker-2e1ica8b9.now.sh/keyword/${searchValue}`);
+      const topResults = response.data.map(f => [f.symbol + ", " + f.name]);
+      setSearchResults(topResults);
+      setIsLoading(false);
+    };
+
+    if (searchValue) {
+      fetchSearchResults();
+      setIsDropdownOpen(true);
+    } else {
+      setSearchResults([]);
+      setIsDropdownOpen(false);
+    }
+  }, [searchValue]);
+
+  const handleInputChange = (event) => {
+    setSelectedValue('');
+    setSearchValue(event.target.value);
+  };
+
+  const handleSelection = (selection) => {
+    const selectionString = selection[0];
+    const index = selectionString.indexOf(",");
+    const newTicker = selectionString.substring(0,index);
+    setSelectedValue(newTicker);
+    setTickerName(newTicker);
+    setIsDropdownOpen(false);
+  };
+
+  /* need to parse out ticker and send it to handleSelection */
+  const searchResultItems = searchResults.map((result) => (
+    <li key={result} onClick={() => handleSelection(result)}> 
+      {result}
+    </li>
+  ));
 
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
@@ -287,7 +340,18 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" onChange={(e) => setTickerName(e.target.value)} />
+                  <div className="ticker-search">
+                    <Input type="text" value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange}/>
+                    {isDropdownOpen && (
+                      <ul className="search-dropdown">
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>
                 </FormControl>
               </Box>
               
