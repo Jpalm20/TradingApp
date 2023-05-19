@@ -3,6 +3,7 @@
     font-size: medium;
     color: white;
     font-family: 'Open Sans', sans-serif;
+    padding-left: 7px;
 }
   
   @media (max-width: 450px) {

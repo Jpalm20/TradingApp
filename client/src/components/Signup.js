@@ -58,14 +58,13 @@ export default function Signup() {
   const [last_name, setLastName] = useState("");
   const [birthday, setBirthday] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState();
+  const [password, setPassword] = useState("");
   const [street_address, setStreetAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
 
   const authLoading = useSelector((state) => state.auth.loading);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,6 +105,48 @@ export default function Signup() {
     }
     setToastErrorMessage(undefined);
   }, [toastErrorMessage, toast]);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  function handlePasswordChange(event) {
+    setPassword(event.target.value);
+  }
+
+  function handleShowPasswordModal() {
+    if(password.length === 0){
+      setShowPasswordModal(true);
+    }
+  }
+
+  function handleHidePasswordModal() {
+    setTimeout(() => {
+      setShowPasswordModal(false);
+    }, 100);
+  }
+
+  useEffect(() => {
+    if(password.length >= 1){
+      handleHidePasswordModal();
+    }
+  }, [password]);
+
+  function handleGeneratePassword() {
+    const passwordLength = 16; // Set password length
+    const passwordChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+"; // Set password character set
+    let newPassword = "";
+    let crypto = window.crypto || window.msCrypto; // Get crypto API
+
+    // Generate random password string
+    while (newPassword.length < passwordLength) {
+      let randomBytes = new Uint8Array(1);
+      crypto.getRandomValues(randomBytes);
+      let charIndex = randomBytes[0] % passwordChars.length;
+      newPassword += passwordChars.charAt(charIndex);
+    }
+
+    setPassword(newPassword);
+    handleHidePasswordModal();
+  }
 
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
@@ -190,7 +231,11 @@ export default function Signup() {
                 <InputGroup>
                   <Input
                     type={showPassword ? "text" : "password"}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={password}
+                    onFocus={handleShowPasswordModal}
+                    onBlur={handleHidePasswordModal}
+                    autoComplete="new-password"
+                    onChange={handlePasswordChange}
                   />
                   <InputRightElement width="4.5rem">
                     <Button
@@ -204,7 +249,19 @@ export default function Signup() {
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
-
+              {showPasswordModal && (
+                <div className="modal">
+                  <div className="modal-content">
+                    <Center>
+                      <Text fontSize="sm" paddingBottom={2}>Would you like to generate a strong password?</Text>
+                      </Center>
+                    <Center>
+                      <Button size="sm" onClick={handleGeneratePassword}>Generate Strong Password</Button>
+                    </Center>
+                  </div>
+                  <div className="modal-overlay" onClick={handleHidePasswordModal} />
+                </div>
+              )}
               <FormControl>
                 <FormHelperText mb={2} ml={1}>
                   Birthday *

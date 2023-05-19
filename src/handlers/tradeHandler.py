@@ -108,6 +108,20 @@ def deleteExistingTrade(trade_id):
         return {
             "result": "Trade Successfully Deleted"
         }
+        
+def deleteTrades(requestBody):
+    response = trade.Trade.deleteTradesByID(requestBody)
+    if response[0]:
+        return response, 400
+    else:
+        if len(requestBody) == 1:
+            return {
+                "result": "Trade Successfully Deleted"
+            }
+        elif len(requestBody) > 1:
+            return {
+                "result": "Trades Successfully Deleted"
+            }
 
 def importCsv(file, user_id):
     if not tradeValidator.validateCsv(file):

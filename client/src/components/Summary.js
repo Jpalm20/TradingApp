@@ -4,6 +4,7 @@ import { getTrades, getTradesFiltered } from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import '../styles/summary.css';
 import { BsFilter } from "react-icons/bs";
+import axios from "axios";
 import {
   Flex,
   Text,
@@ -125,7 +126,8 @@ export default function Summary({ user }) {
   const [importCsvDialog, setImportDialog] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedRow, setSelectedRow] = useState([]);
+  const [trade_ids, setSelectedTradeIds] = useState([]);
 
 
   useEffect(() => {
@@ -137,6 +139,9 @@ export default function Summary({ user }) {
         setToastMessage(trade.result);
     }
     if(success === true && trade.result === "Trade Successfully Deleted"){
+      setToastMessage(trade.result);
+    }
+    if(success === true && trade.result === "Trades Successfully Deleted"){
       setToastMessage(trade.result);
     }
     if(success === true && trade.result === "Trades Imported Successfully"){
@@ -234,8 +239,8 @@ export default function Summary({ user }) {
   };
 
 
-  const handleDeleteButton = (e, trade_id) => {
-    setTradeID(trade_id);
+  const handleDeleteButton = (e) => {
+    setSelectedTradeIds(selectedRow.map(index => trades.trades[index].trade_id));
     setDeleteAlertDialog(true);
     onOpen();
   };
@@ -244,7 +249,7 @@ export default function Summary({ user }) {
     e.preventDefault();
     await dispatch(
       deleteTrade({
-        trade_id
+        trade_ids
       })
     );
     await dispatch(
@@ -255,6 +260,8 @@ export default function Summary({ user }) {
     dispatch(
       reset()      
     );
+    setSelectedTradeIds([]);
+    setSelectedRow([]);
     setDeleteAlertDialog(false);
     onClose();
   };
@@ -285,6 +292,7 @@ export default function Summary({ user }) {
           comments
         })
       );
+    setEditTrade(false);
     await dispatch(
       getTrades({
         user_id
@@ -294,7 +302,10 @@ export default function Summary({ user }) {
       reset()      
     );
     clearFormStates();
-    setEditTrade(false);
+    setSelectedRow([]);
+    setTradeID(null);
+    setSearchValue('');
+    setIsDropdownOpen(false);
   };
 
   const handleCancel = (e) => {
@@ -302,8 +313,13 @@ export default function Summary({ user }) {
     dispatch(
       reset()
     );
-    clearFormStates();
     setEditTrade(false);
+    clearFormStates();
+    setSelectedRow([]);
+    setTradeID(null);
+    setIsLoading(false);
+    setSearchValue('');
+    setIsDropdownOpen(false);
   }
 
   const getFilterComponent = () => {
@@ -518,6 +534,69 @@ export default function Summary({ user }) {
     setSelectedFile(null);
   };
 
+  const handleSelectAll = (e) => {
+    if (hasTrades && trades.trades.length == 1) {
+      setSelectedRow([]);
+      setTradeID(trades.trades[0].trade_id);
+      setSelectedRow([...selectedRow, 0]);
+    }else if (hasTrades && trades.trades.length > 1){
+      setSelectedRow([]);
+      setTradeID(null);
+      setSelectedRow(Array.from({ length: trades.trades.length }, (_, index) => index));
+    }
+  }
+
+  const handleClearSelected = (e) => {
+    setSelectedRow([]);
+    setTradeID(null);
+  }
+
+  const [searchValue, setSearchValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      setIsLoading(true);
+      const response = await axios.get(`https://ticker-2e1ica8b9.now.sh/keyword/${searchValue}`);
+      const topResults = response.data.map(f => [f.symbol + ", " + f.name]);
+      setSearchResults(topResults);
+      setIsLoading(false);
+    };
+
+    if (searchValue) {
+      fetchSearchResults();
+      setIsDropdownOpen(true);
+    } else {
+      setSearchResults([]);
+      setIsDropdownOpen(false);
+    }
+  }, [searchValue]);
+
+  const handleInputChange = (event) => {
+    setSelectedValue('');
+    setSearchValue(event.target.value);
+  };
+
+  const handleSelection = (selection) => {
+    const selectionString = selection[0];
+    const index = selectionString.indexOf(",");
+    const newTicker = selectionString.substring(0,index);
+    setSelectedValue(newTicker);
+    setTickerName(newTicker);
+    setIsDropdownOpen(false);
+  };
+
+  /* need to parse out ticker and send it to handleSelection */
+  const searchResultItems = searchResults.map((result) => (
+    <li key={result} onClick={() => handleSelection(result)}> 
+      {result}
+    </li>
+  ));
+
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
   let [month, day, year] = currentDate.toLocaleDateString().split("/");
@@ -588,7 +667,13 @@ export default function Summary({ user }) {
               w="full"
             >
             <div class='container'>
-            <Button size="sm" marginLeft={3} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleImportButton(e.target.value)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleSelectAll(e.target.value)}>
+              Select All
+            </Button>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleClearSelected(e.target.value)}>
+              Clear
+            </Button>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleImportButton(e.target.value)}>
               Import CSV
             </Button>
             {importCsvDialog}
@@ -681,11 +766,11 @@ export default function Summary({ user }) {
               </AlertDialogContent>
               </AlertDialogOverlay>
             </AlertDialog>
-            <Button size="sm" marginLeft={3} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
               + Add Trade
             </Button>
             {tradeLoading && !deletealertdialog && !importCsvDialog?
-              <Button size="sm" marginLeft={3} width='75px' colorScheme='telegram' border='1px' borderColor='black'>
+              <Button size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='telegram' border='1px' borderColor='black'>
                 <Center>
                   <Spinner
                     thickness='2px'
@@ -697,11 +782,11 @@ export default function Summary({ user }) {
                 </Center>
               </Button>
             :
-            <Button size="sm" marginLeft={3} width='75px' colorScheme='telegram' border='1px' borderColor='black' isDisabled={selectedRow === null} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='telegram' border='1px' borderColor='black' isDisabled={selectedRow.length !== 1} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
               Edit
             </Button>
             }
-            <Button size="sm" marginLeft={3} width='75px' colorScheme='red' border='1px' borderColor='black' isDisabled={selectedRow === null} onClick={e => handleDeleteButton(e, trade_id)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='red' border='1px' borderColor='black' isDisabled={selectedRow.length === 0} onClick={e => handleDeleteButton(e)}>
               Delete
             </Button>
             </div>
@@ -725,30 +810,44 @@ export default function Summary({ user }) {
                   </Tr>
                 </Thead>
                     <Tbody zIndex={1}>
-                      {trades.trades.map((trades, index) => (
+                      {trades.trades.map((trade, index) => (
                         <Tr
-                        onClick={() => {
-                          if (selectedRow === index) {
-                            setSelectedRow(null); 
-                          } else if (selectedRow === null) {
-                            setSelectedRow(index); 
-                            setTradeID(trades.trade_id);
-                          }
+                        onClick={async () => {
+                          if (selectedRow.includes(index)) {
+                            const filteredSelectedRow = selectedRow.filter((row) => row !== index);
+                            await setSelectedRow(filteredSelectedRow);
+                            if (selectedRow.length === 2){
+                              const indexofIndex = selectedRow.indexOf(index);
+                              if(indexofIndex === 0){
+                                setTradeID(trades.trades[selectedRow[1]].trade_id);
+                              } else{
+                                setTradeID(trades.trades[selectedRow[0]].trade_id);
+                              }
+                            } else if (selectedRow.length === 1) {
+                              setTradeID(null);
+                            }
+                          } else if (!selectedRow.includes(index) && selectedRow.length === 0) {
+                            setSelectedRow([...selectedRow, index]); 
+                            setTradeID(trade.trade_id);
+                          } else if (!selectedRow.includes(index) && selectedRow.length >= 1) {
+                            setSelectedRow([...selectedRow, index]); 
+                            setTradeID(null);
+                          } 
                         }}
-                        style={{ backgroundColor: selectedRow === index ? 'lightgrey' : 'white' }}
+                        style={{ backgroundColor: selectedRow.includes(index) ? 'lightgrey' : 'white' }}
                         >
-                          <Td>{trades.trade_type}</Td>
-                          <Td>{trades.security_type}</Td>
-                          <Td>{trades.ticker_name}</Td>
-                          <Td>{trades.trade_date}</Td>
-                          <Td>{trades.expiry}</Td>
-                          <Td isNumeric>{trades.strike}</Td>
-                          <Td isNumeric>{trades.buy_value}</Td>
-                          <Td isNumeric>{trades.units}</Td>
-                          <Td>{trades.rr}</Td>
-                          <Td isNumeric>{trades.pnl}</Td>
-                          <Td isNumeric>{trades.percent_wl}</Td>
-                          <Td whiteSpace="normal" overflow='hidden'>{trades.comments}</Td>
+                          <Td>{trade.trade_type}</Td>
+                          <Td>{trade.security_type}</Td>
+                          <Td>{trade.ticker_name}</Td>
+                          <Td>{trade.trade_date}</Td>
+                          <Td>{trade.expiry}</Td>
+                          <Td isNumeric>{trade.strike}</Td>
+                          <Td isNumeric>{trade.buy_value}</Td>
+                          <Td isNumeric>{trade.units}</Td>
+                          <Td>{trade.rr}</Td>
+                          <Td isNumeric>{trade.pnl}</Td>
+                          <Td isNumeric>{trade.percent_wl}</Td>
+                          <Td whiteSpace="normal" overflow='hidden'>{trade.comments}</Td>
                         </Tr>
                       ))}
                     </Tbody>
@@ -898,7 +997,18 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder={trade.ticker_name} onChange={(e) => setTickerName(e.target.value)} />
+                  <div className="ticker-search">
+                    <Input type="text" placeholder={trade.ticker_name} value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange}/>
+                    {isDropdownOpen && (
+                      <ul className="search-dropdown">
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>
                 </FormControl>
               </Box>
               

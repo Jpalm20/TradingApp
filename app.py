@@ -239,6 +239,24 @@ def existing_trade(trade_id):
         return {
             "result": "Authorization Header is Missing"
         }, 401
+        
+@app.route('/trade/deleteTrades',methods = ['DELETE'])
+def delete_trades():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'DELETE':
+                return tradeHandler.deleteTrades(request.json)
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
 
 
 if __name__ == "__main__":
