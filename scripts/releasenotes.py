@@ -23,11 +23,11 @@ email_subject = 'Release Notes for the Latest Version of MyTradingTracker'
 release_notes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'releasenotes.txt')
 
 # Connect to the database
-connection = mysql.connector.connect(host=DB_HOST,
-                                        port=DB_PORT,
-                                        database=DB_NAME,
-                                        user=DB_USERNAME,
-                                        password=DB_PASSWORD)
+connection = mysql.connector.connect(host='localhost',
+                                        port=3306,
+                                        database='TradingApp',
+                                        user='jp',
+                                        password='Jpalmieri20!')
 
 cursor = connection.cursor(dictionary=True)
 
@@ -47,13 +47,13 @@ for email_address in email_addresses:
     message = MIMEText(email_body)
     message['Subject'] = email_subject
     message['From'] = SMTP_USERNAME
-    message['To'] = email_address[0]
+    message['To'] = email_address['email']
 
     # Send the email
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
         server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
-        server.sendmail(SMTP_USERNAME, email_address[0], message.as_string())
+        server.login('mytradingtrackerapp@gmail.com', 'wryynkcgwctrwdmx')
+        server.sendmail(SMTP_USERNAME, email_address['email'], message.as_string())
 
 # Close the database connection
 cursor.close()
