@@ -1,4 +1,4 @@
-Version 1.0.1
+Version 1.0.1 - 05-18-2023
 
 
 Features:
@@ -6,13 +6,13 @@ Features:
 - Trade Summary Page Improvements:
     - Ability to select and delete multiple trades at once
     - 'Select All' button which will select all trades with the push of a button
-    - 'Clear' button which will clear your current select of trades
+    - 'Clear' button which will clear your current selection of trades
 
 - Ticker Name Search Bar when updating or adding a trades
     - Autocomplete search bar to help you find the exact ticker you need
 
 - Strong Password Suggestion
-    - When singing up for a new account, you are now prompted to generate a strong password in one button press
+    - When signing up for a new account, you are now prompted to generate a strong password in one button press
     - Promp will go away if you start typing your own password
 
 
