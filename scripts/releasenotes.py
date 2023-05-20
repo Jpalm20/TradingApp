@@ -47,13 +47,13 @@ for email_address in email_addresses:
     message = MIMEText(email_body)
     message['Subject'] = email_subject
     message['From'] = SMTP_USERNAME
-    message['To'] = email_address
+    message['To'] = email_address[0]
 
     # Send the email
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
         server.starttls()
         server.login(SMTP_USERNAME, SMTP_PASSWORD)
-        server.sendmail(SMTP_USERNAME, email_address, message.as_string())
+        server.sendmail(SMTP_USERNAME, email_address[0], message.as_string())
 
 # Close the database connection
 cursor.close()
