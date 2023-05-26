@@ -7,6 +7,7 @@ import { Pie } from 'react-chartjs-2';
 import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import '../styles/filter.css';
+import '../styles/home.css';
 import {
   Flex,
   Text,
@@ -116,19 +117,19 @@ export default function Home({ user }) {
   });
 
   const pieOptionsA = {
-    title: "",
+    title: "Day Trade vs Swing Trade",
     chartArea: {
-      width: "100%",
-      height: "100%"
+      width: "80%",
+      height: "75%"
     },
     height: "100%",
     width: "100%",
-    titlePosition: 'none',
+    backgroundColor: "#FDFDFD",
     titleTextStyle: {
-      color: '#000',
+      color: '#636363',
+      fontName: 'Open Sans',
       bold: true,
-      fontSize: 16,
-      position: 'centered'
+      fontSize: 18,
     },
     is3D: false,
     pieSliceTextStyle: {
@@ -149,24 +150,24 @@ export default function Home({ user }) {
       }
     ],
     legend: {
-      position: "none",
+      position: "left",
     },
   };
 
   const pieOptionsB = {
-    title: "",
+    title: "Options vs Shares",
     chartArea: {
-      width: "100%",
-      height: "100%"
+      width: "80%",
+      height: "75%"
     },
     height: "100%",
     width: "100%",
-    titlePosition: 'none',
+    backgroundColor: "#FDFDFD",
     titleTextStyle: {
-      color: '#000',
+      color: '#636363',
+      fontName: 'Open Sans',
       bold: true,
-      fontSize: 16,
-      position: 'centered'
+      fontSize: 18,
     },
     is3D: false,
     pieSliceTextStyle: {
@@ -187,7 +188,7 @@ export default function Home({ user }) {
       }
     ],
     legend: {
-      position: "none",
+      position: "left",
     },
   };
 
@@ -214,7 +215,7 @@ export default function Home({ user }) {
   const getFilterComponent = () => {
     let content = [];
     content.push(
-      <div className="large-component">
+      <div class="large-component">
             <Box flexGrow="1" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
               <Stack
                 spacing={4}
@@ -224,7 +225,7 @@ export default function Home({ user }) {
                 align='center'
                 minWidth="30vh"
               >
-                <Heading color="teal.400" size="md">Filters</Heading>
+                <Heading class="filterheader">Filters</Heading>
                 <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -263,10 +264,10 @@ export default function Home({ user }) {
                 </FormControl>
 
               </Box>
-                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                  <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                  <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
               </Stack>
@@ -274,7 +275,7 @@ export default function Home({ user }) {
           </div>
     );
     content.push(
-      <div padd className="small-component">
+      <div padd class="small-component">
       <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
       <Button ref={btnRef} colorScheme='white' onClick={onOpen}>
        <Icon as={BsFilter} color='grey' size='lg'></Icon>
@@ -289,7 +290,7 @@ export default function Home({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader>Filters</DrawerHeader>
+          <DrawerHeader class="filterheader">Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -330,10 +331,10 @@ export default function Home({ user }) {
           </DrawerBody>
 
           <DrawerFooter>
-            <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter}>
+            <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter}>
               Submit Filter
             </Button>
-            <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+            <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
               Clear Filter
             </Button>
           </DrawerFooter>
@@ -474,8 +475,8 @@ export default function Home({ user }) {
             >
             {hasTrades ? (
             <HStack h="full" w="full" align='top'>
-            <VStack w='100%' h='100%'>
-            <Heading color="teal.400" w='full' paddingTop={1} paddingBottom={3} size="md">
+            <VStack w='50%' h='100%'>
+            <Heading class="statsheader">
               <Center>
                 Statistics
               </Center>
@@ -486,8 +487,8 @@ export default function Home({ user }) {
                 <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
                   <Center fontWeight='bold'>
                   <Stat>
-                    <StatLabel># of Trades</StatLabel>
-                    <StatNumber>{trades.stats.num_trades + " Trades"}</StatNumber>
+                    <StatLabel>Total PNL</StatLabel>
+                    <StatNumber color={colorChange(trades.stats.total_pnl)}>{pnlValue(formatter.format(trades.stats.total_pnl))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -496,8 +497,8 @@ export default function Home({ user }) {
               <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
                   <Center fontWeight='bold'>
                   <Stat>
-                    <StatLabel>Total PNL</StatLabel>
-                    <StatNumber color={colorChange(trades.stats.total_pnl)}>{pnlValue(formatter.format(trades.stats.total_pnl))}</StatNumber>
+                    <StatLabel># of Trades</StatLabel>
+                    <StatNumber>{trades.stats.num_trades + " Trades"}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -593,43 +594,7 @@ export default function Home({ user }) {
             </Box>
             </VStack>
             <VStack h="full" w="full" rounded="lg">
-              <Box overflowX="auto" h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
-                <HStack overflowX="auto" h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
-                  <Box h="full" w="35vh" align="center" >
-                    <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
-                      <Center>
-                        Day Trade vs Swing Trade
-                      </Center>
-                    </Heading>
-                    <TableContainer align="center" padding={10} paddingTop={10} overflowY="auto">
-                    <Table size='sm' borderWidth='2px' variant='striped' colorScheme='whiteAlpha' rounded="lg">
-                      <Thead position="sticky" top={0} bgColor="lightgrey">
-                        <Tr>
-                          <Th>
-                            <Center>
-                              Key
-                            </Center>
-                          </Th>
-                        </Tr>
-                      </Thead>
-                          <Tbody align="center">
-                              <Tr bg="green.100">
-                                Day Trade Win
-                              </Tr>
-                              <Tr bg="green.300">
-                                Swing Trade Win
-                              </Tr>
-                              <Tr bg="red.100">
-                                Day Trade Loss
-                              </Tr>
-                              <Tr bg="red.300">
-                                Swing Trade Loss
-                              </Tr>
-                          </Tbody>
-                    </Table>
-                  </TableContainer>
-                  </Box>
-                  <Box h="42vh" w="70vh" alignItems="center">
+              <Box overflowX="auto" h="full" w="full" overflow="auto" rounded="lg">
                     <Chart
                       chartType="PieChart"
                       data={
@@ -641,46 +606,8 @@ export default function Home({ user }) {
                       ]}
                       options={pieOptionsA}
                     />
-                  </Box>
-                </HStack>
               </Box>
-              <Box overflowX="auto" h="full" w="full" borderWidth="2px" overflow="hidden" rounded="lg">
-                <HStack overflowX="auto" h="full" w="full" rounded="lg" divider={<StackDivider borderColor='gray.200' borderWidth="2px"/>}>
-                  <Box h="full" w="35vh" align="center">
-                    <Heading color="teal.400" w='full' paddingTop={4} paddingBottom={4} size="md">
-                      <Center>
-                        Options vs Shares
-                      </Center>
-                    </Heading>
-                    <TableContainer align="center" padding={10} paddingTop={10} overflowY="auto">
-                      <Table size='sm' borderWidth='2px' variant='striped' colorScheme='whiteAlpha' rounded="lg">
-                        <Thead position="sticky" top={0} bgColor="lightgrey">
-                          <Tr>
-                            <Th>
-                              <Center>
-                                Key
-                              </Center>
-                            </Th>
-                          </Tr>
-                        </Thead>
-                            <Tbody align="center">
-                                <Tr bg="green.100">
-                                  Options Win
-                                </Tr>
-                                <Tr bg="green.300">
-                                  Shares Win
-                                </Tr>
-                                <Tr bg="red.100">
-                                  Options Loss
-                                </Tr>
-                                <Tr bg="red.300">
-                                  Shares Loss
-                                </Tr>
-                            </Tbody>
-                      </Table>
-                    </TableContainer>
-                  </Box>
-                  <Box h="42vh" w="70vh" alignItems="center">
+              <Box overflowX="auto" h="full" w="full" overflow="auto" rounded="lg">
                     <Chart
                       chartType="PieChart"
                       data={
@@ -692,8 +619,6 @@ export default function Home({ user }) {
                       ]}
                       options={pieOptionsB}
                     />
-                  </Box>
-                </HStack>
               </Box>
             </VStack>
             </HStack>

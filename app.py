@@ -137,7 +137,32 @@ def import_csv():
         return {
             "result": "Authorization Header is Missing"
         }, 401
-        
+  
+
+@app.route('/user/reportBug',methods= ['POST'])
+def report_bug():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        eval2,message2 = sessionHandler.getEmailFromToken(auth_token)
+        if eval and eval2:
+            if request.method == 'POST':
+                email = message2
+                return userHandler.reportBug(request.json, email) 
+        elif not eval:
+            return {
+                "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+              
         
 @app.route('/user/changePassword/<int:user_id>',methods= ['POST'])
 def change_Password(user_id):
@@ -156,25 +181,7 @@ def change_Password(user_id):
         return {
             "result": "Authorization Header is Missing"
         }, 401
-        
-
-@app.route('/user/reportBug',methods= ['POST'])
-def report_bug():
-    auth_header = request.headers.get('Authorization')
-    if auth_header:
-        auth_token = auth_header.split(" ")[1]
-        eval,message = sessionHandler.validateToken(auth_token)
-        if eval:
-            if request.method == 'POST':
-                return userHandler.reportBug(request.json) 
-        else:
-            return {
-                "result": message
-            }, 401
-    else:
-        return {
-            "result": "Authorization Header is Missing"
-        }, 401
+    
         
 @app.route('/user/logout',methods= ['POST'])
 def logout_session():

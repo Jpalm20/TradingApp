@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered } from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import '../styles/summary.css';
+import '../styles/logtrade.css';
+import '../styles/filter.css';
 import { BsFilter } from "react-icons/bs";
 import axios from "axios";
 import {
@@ -325,7 +327,7 @@ export default function Summary({ user }) {
   const getFilterComponent = () => {
     let content = [];
     content.push(
-      <div className="large-component">
+      <div class="large-component">
             <Box flexGrow="1" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
               <Stack
                 spacing={4}
@@ -335,7 +337,7 @@ export default function Summary({ user }) {
                 align='center'
                 minWidth="30vh"
               >
-                <Heading color="teal.400" size="md">Filters</Heading>
+                <Heading class="filterheader">Filters</Heading>
                 <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -362,10 +364,10 @@ export default function Summary({ user }) {
                   <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
               </Box>
-                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                  <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                  <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
               </Stack>
@@ -373,7 +375,7 @@ export default function Summary({ user }) {
           </div>
     );
     content.push(
-      <div padd className="small-component">
+      <div padd class="small-component">
       <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
       <Button ref={btnRef} colorScheme='white' onClick={e => setFilterDrawer(true)}>
        <Icon as={BsFilter} color='grey' size='lg'></Icon>
@@ -389,7 +391,7 @@ export default function Summary({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader>Filters</DrawerHeader>
+          <DrawerHeader class="filterheader">Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -419,10 +421,10 @@ export default function Summary({ user }) {
           </DrawerBody>
 
           <DrawerFooter>
-            <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter}>
+            <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter}>
               Submit Filter
             </Button>
-            <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+            <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
               Clear Filter
             </Button>
           </DrawerFooter>
@@ -667,14 +669,14 @@ export default function Summary({ user }) {
               w="full"
             >
             <div class='container'>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleSelectAll(e.target.value)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' onClick={(e) => handleSelectAll(e.target.value)}>
               Select All
             </Button>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleClearSelected(e.target.value)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300'  onClick={(e) => handleClearSelected(e.target.value)}>
               Clear
             </Button>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleImportButton(e.target.value)}>
-              Import CSV
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300' onClick={(e) => handleImportButton(e.target.value)}>
+              Import
             </Button>
             {importCsvDialog}
               <AlertDialog
@@ -746,7 +748,7 @@ export default function Summary({ user }) {
                     Cancel
                   </Button>
                   {tradeLoading ?
-                    <Button colorScheme='teal' minWidth='150px' ml={3}>
+                    <Button colorScheme='blue' minWidth='150px' ml={3}>
                       <Center>
                         <Spinner
                           thickness='2px'
@@ -758,7 +760,7 @@ export default function Summary({ user }) {
                       </Center>
                     </Button>
                   :
-                    <Button colorScheme='teal' minWidth='150px' isDisabled={!selectedFile} onClick={e => handleConfirmImportCsv(e)} ml={3}>
+                    <Button colorScheme='blue' minWidth='150px' isDisabled={!selectedFile} onClick={e => handleConfirmImportCsv(e)} ml={3}>
                       Submit
                     </Button>
                   } 
@@ -766,11 +768,11 @@ export default function Summary({ user }) {
               </AlertDialogContent>
               </AlertDialogOverlay>
             </AlertDialog>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' colorScheme='teal' border='1px' borderColor='black' onClick={(e) => handleLogTrade(e.target.value)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' onClick={(e) => handleLogTrade(e.target.value)}>
               + Add Trade
             </Button>
             {tradeLoading && !deletealertdialog && !importCsvDialog?
-              <Button size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='telegram' border='1px' borderColor='black'>
+              <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue'>
                 <Center>
                   <Spinner
                     thickness='2px'
@@ -782,17 +784,17 @@ export default function Summary({ user }) {
                 </Center>
               </Button>
             :
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='telegram' border='1px' borderColor='black' isDisabled={selectedRow.length !== 1} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue' isDisabled={selectedRow.length !== 1} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
               Edit
             </Button>
             }
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='red' border='1px' borderColor='black' isDisabled={selectedRow.length === 0} onClick={e => handleDeleteButton(e)}>
+            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='red' isDisabled={selectedRow.length === 0} onClick={e => handleDeleteButton(e)}>
               Delete
             </Button>
             </div>
             {hasTrades ? (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
-              <Table size='sm' variant='striped' colorScheme='white'>
+              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor="gray.100">
                 <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
                   <Tr>
                     <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
@@ -855,7 +857,7 @@ export default function Summary({ user }) {
             </TableContainer>
             ) : (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
-              <Table size='sm' variant='striped' colorScheme='white'>
+              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor="gray.100">
                 <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
                   <Tr>
                     <Th resize='horizontal' overflow='auto'>Trade Type</Th>
@@ -945,8 +947,8 @@ export default function Summary({ user }) {
           justifyContent="center"
           alignItems="center"
         >
-        <Heading color="teal.400">Update Trade</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        <Heading class="edittradeheader">Update Trade</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {tradeLoading ? 
             <Stack
                 spacing={4}
@@ -997,10 +999,10 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <div className="ticker-search">
+                  <div class="ticker-search">
                     <Input type="text" placeholder={trade.ticker_name} value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange}/>
                     {isDropdownOpen && (
-                      <ul className="search-dropdown">
+                      <ul class="search-dropdown">
                         {isLoading ? (
                           <div>Loading...</div>
                         ) : (
@@ -1121,12 +1123,12 @@ export default function Summary({ user }) {
                   </FormHelperText>
                   <Textarea placeholder={trade.comments} onChange={(e) => setComments(e.target.value)}/>
               </FormControl>
-
+              <ButtonGroup>
               <Button
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full"
                 onClick={handleDoneEdit}
               >
@@ -1137,12 +1139,13 @@ export default function Summary({ user }) {
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="gray"
                 width="full"
                 onClick={handleCancel}
               >
                 Cancel
               </Button>
+              </ButtonGroup>
             </Stack>
           </form>
         }

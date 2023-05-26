@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import '../styles/profile.css';
 import {
   Flex,
   Text,
@@ -32,6 +33,7 @@ import {
   Center,
   InputRightElement,
   HStack,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
@@ -253,9 +255,9 @@ export default function UserProfile({ user }) {
             justifyContent="center"
             alignItems="center"
           >
-          <Avatar bg="teal.500" />
-          <Heading color="teal.400">Profile Information</Heading>
-          <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden">
+          <Avatar class='avatar' />
+          <Heading class='profileheader'>Profile Information</Heading>
+          <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {authLoading && !changepwdialog && !deletealertdialog? 
             <Stack
                 spacing={4}
@@ -323,7 +325,7 @@ export default function UserProfile({ user }) {
               <Button  borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full" 
                 onClick={handleGotoUpdate}>
                 Update Information
@@ -331,7 +333,7 @@ export default function UserProfile({ user }) {
               <Button  borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full" 
                 onClick={handleChangePassword}>
                 Change Password
@@ -340,7 +342,7 @@ export default function UserProfile({ user }) {
               <Button  borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full" 
                 onClick={handleLogout}>
                 Logout
@@ -386,7 +388,7 @@ export default function UserProfile({ user }) {
                 </AlertDialogHeader>
 
                 <AlertDialogBody>
-                  Are you sure? You can't undo this action afterwards. All User data and Trade information will be lost.
+                  Are you sure? <br></br> <br></br> You can't undo this action afterwards. All User data and Trade information will be lost. 
                 </AlertDialogBody>
 
                 <AlertDialogFooter>
@@ -501,7 +503,7 @@ export default function UserProfile({ user }) {
                   <Button ref={cancelRef} onClick={e => handleCancelChangePw(e)}>
                     Cancel
                   </Button>
-                  <Button colorScheme='teal' onClick={e => handleConfirmChangePw(e)} ml={3}>
+                  <Button colorScheme='blue' onClick={e => handleConfirmChangePw(e)} ml={3}>
                     Change Password
                   </Button>
                 </AlertDialogFooter>
@@ -527,9 +529,9 @@ export default function UserProfile({ user }) {
             justifyContent="center"
             alignItems="center"
           >
-          <Avatar bg="teal.500" />
-          <Heading color="teal.400">Update Information</Heading>
-          <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+          <Avatar class='avatar' />
+          <Heading class='profileheader'>Update Information</Heading>
+          <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {authLoading && !changepwdialog && !deletealertdialog? 
             <Stack
                 spacing={4}
@@ -883,12 +885,12 @@ export default function UserProfile({ user }) {
                   </Select>
               </FormControl>
               </Box>
-
+              <ButtonGroup>
               <Button
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full"
                 onClick={handleUpdate}
               >
@@ -899,12 +901,13 @@ export default function UserProfile({ user }) {
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="gray"
                 width="full"
                 onClick={handleCancel}
               >
                 Cancel
               </Button>
+              </ButtonGroup>
             </Stack>
           </form>
           }

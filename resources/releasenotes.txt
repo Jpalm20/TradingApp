@@ -1,21 +1,28 @@
-Version 1.0.1 - 05-18-2023
+📣 MyTradingTracker Release Notes - Version 1.0.2 🚀
 
+We are excited to present the latest update for MyTradingTracker! 🎉 
 
-Features:
+This version comes packed with new features, improvements, and bug fixes to enhance your trading experience. Here are the highlights:
 
-- Trade Summary Page Improvements:
-    - Ability to select and delete multiple trades at once
-    - 'Select All' button which will select all trades with the push of a button
-    - 'Clear' button which will clear your current selection of trades
+📈 New Features:
+    1️⃣ Release Notes will now be included in all releases going forward to keep our users involved!
 
-- Ticker Name Search Bar when updating or adding a trades
-    - Autocomplete search bar to help you find the exact ticker you need
+🔄 Improvements:
+    1️⃣ User Interface Enhancements: Fonts, Colors, Styling improvements made accross the app, this is the first of a series of UI updates to make the app looking sleek and professional
+    2️⃣ User Feedback Enhancements: Experience is now shifted form just 'Bug Report' to both Bug Report and Feature Request with this choice affecting how the team will respond. User email will also be attached to the report now so we can reach out to the user if needed/we want to know whos contibuting to we can thank you!
 
-- Strong Password Suggestion
-    - When signing up for a new account, you are now prompted to generate a strong password in one button press
-    - Promp will go away if you start typing your own password
+🐞 Bug Fixes:
+    1️⃣ % Gain/Loss getting stuck when successfully logging a trade and selecting 'Yes' to log another
 
+🔧 Under the Hood:
+    1️⃣ 'Forgot Your Password' functionality for those that need to recover their account and/or forgot login credentials
+    2️⃣ Ability to export your trades from MyTradingTracker and save as a .csv
+    3️⃣ Pagination on Trade Summary page for users logging many trades, this will keep the application running quick!
 
-Bug Fixes:
+🙏 Thank You
 
-- None
+We would like to express our gratitude to all our users for their valuable feedback and support. Your input has been invaluable in shaping this update and making MyTradingTracker even better.
+
+🚀 Check out the latest version now and take your trading journey to new heights! Happy trading! 📈💰
+
+Stay tuned for more exciting updates in the future! 💪

@@ -280,8 +280,9 @@ export const reportBug = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { summary, description, page } = formInfo;
+        const { requestType, summary, description, page } = formInfo;
         const res = await axios.post(API_URL + `user/reportBug`,{
+          requestType,
           summary,
           description,
           page

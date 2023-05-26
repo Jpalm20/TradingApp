@@ -3,7 +3,7 @@
     font-size: medium;
     color: white;
     font-family: 'Open Sans', sans-serif;
-    padding-left: 7px;
+    padding-left: 5px;
 }
   
   @media (max-width: 450px) {
@@ -14,13 +14,13 @@
 
 .username {
     display: block;
-    padding-left: 4;
+    padding-left: 14px;
     font-size: medium;
     color: white;
     font-family: 'Open Sans', sans-serif;
 }
   
-  @media (max-width: 300px) {
+  @media (max-width: 400px) {
     .username {
       display: none;
     }
@@ -28,10 +28,23 @@
 
   .my-trading-tracker {
     display: block;
-    font-size: large;
+    font-size: x-large;
     color: white;
     font-family: 'Open Sans', sans-serif;
-}
+    padding-left: 10px;
+    padding-right: 5px;
+  }
+
+  .my-trading-tracker-alone {
+    display: block;
+    font-size: x-large;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    padding-left: 10px;
+    padding-right: 5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
   
   @media (max-width: 375px) {
     .my-trading-tracker {

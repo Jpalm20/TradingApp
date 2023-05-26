@@ -1,0 +1,18 @@
+.statsheader {
+    display: block;
+    font-size: large;
+    color: rgb(99, 99, 99);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 5px
+  }
+
+.keyheader {
+  display: block;
+  font-size: large;
+  color: rgb(99, 99, 99);
+  font-family: 'Open Sans', sans-serif;
+  padding-bottom: 5px
+}
+
+  
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

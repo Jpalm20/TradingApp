@@ -187,15 +187,15 @@ def deleteExistingUser(user_id):
             "result": "User Successfully Deleted"
         }
         
-def reportBug(requestBody):
+def reportBug(requestBody, email):
     response = userValidator.validateReportBug(requestBody)
     if response != True:
         return response
-    response = userTransformer.transformReportBug(requestBody)
+    response = userTransformer.transformReportBug(requestBody, email)
     response = requests.post(("https://"+JIRA_URL+"/rest/api/2/issue"), auth=(JIRA_EMAIL, JIRA_API_KEY), json=response)
     if response.status_code == 201:
         return {
-            "result": "Bug Ticket Created Successfully"
+            "result": "Feedback Submitted Successfully"
         }
     else:
         return 'Error calling API: {}'.format(response), response.status_code

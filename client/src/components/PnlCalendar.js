@@ -4,6 +4,8 @@ import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import monthsString from "../data/months";
 import { BsFilter } from "react-icons/bs";
+import '../styles/filter.css';
+
 
 
 import {
@@ -307,7 +309,7 @@ export default function PnlCalendar({ user }) {
   const getFilterComponent = () => {
     let content = [];
     content.push(
-      <div className="large-component">
+      <div class="large-component">
             <Box flexGrow="1" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
               <Stack
                 spacing={4}
@@ -317,7 +319,7 @@ export default function PnlCalendar({ user }) {
                 align='center'
                 minWidth="30vh"
               >
-                <Heading color="teal.400" size="md">Filters</Heading>
+                <Heading class="filterheader">Filters</Heading>
                 <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -344,10 +346,10 @@ export default function PnlCalendar({ user }) {
                   <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
                 </FormControl>
               </Box>
-                  <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter} >
+                  <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
-                  <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+                  <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
               </Stack>
@@ -355,7 +357,7 @@ export default function PnlCalendar({ user }) {
           </div>
     );
     content.push(
-      <div padd className="small-component">
+      <div padd class="small-component">
       <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
       <Button ref={btnRef} colorScheme='white' onClick={e => setFilterDrawer(true)}>
        <Icon as={BsFilter} color='grey' size='lg'></Icon>
@@ -371,7 +373,7 @@ export default function PnlCalendar({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader>Filters</DrawerHeader>
+          <DrawerHeader class="filterheader">Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -401,10 +403,10 @@ export default function PnlCalendar({ user }) {
           </DrawerBody>
 
           <DrawerFooter>
-            <Button size="sm" colorScheme='teal' width="full" border='1px' borderColor='black' onClick={handleSubmitFilter}>
+            <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter}>
               Submit Filter
             </Button>
-            <Button size="sm" colorScheme='red' width="full" border='1px' borderColor='black' onClick={handleClearFilter} >
+            <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
               Clear Filter
             </Button>
           </DrawerFooter>

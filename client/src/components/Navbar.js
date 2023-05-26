@@ -61,10 +61,11 @@ export default function Navbar({ user }) {
   const year = today.getFullYear();
   const authLoading = useSelector((state) => state.auth.loading);
   const [reportBugFlag, setReportBugFlag] = useState(false);
+  const [requestType, setRequestType] = useState("");
   const [page, setPage] = useState("");
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
-  const isBugReported = ((info && Object.keys(info).length === 1 && info.result && info.result === "Bug Ticket Created Successfully") ? (true):(false));
+  const isBugReported = ((info && Object.keys(info).length === 1 && info.result && info.result === "Feedback Submitted Successfully") ? (true):(false));
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -139,6 +140,7 @@ export default function Navbar({ user }) {
     e.preventDefault();
     await dispatch(
       reportBug({ 
+        requestType,
         summary,
         description,
         page 
@@ -162,17 +164,17 @@ export default function Navbar({ user }) {
   }
   
   return (
-    <Flex justify="space-between" backgroundColor="teal.600">
+    <Flex justify="space-between" backgroundColor="blue.500" >
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <HStack >
-        <Heading className='my-trading-tracker' m={2} size='lg' color="white" _hover={{ color: "gray.300" }} onClick={(e) => handleHome(e.target.value, user.user_id)}>
+        <Heading class='my-trading-tracker' m={2} size='lg' color="white" _hover={{ color: "gray.300" }} onClick={(e) => handleHome(e.target.value, user.user_id)}>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
         {displayPageName()}
         </HStack>
       ) : (
-        <Heading m={2} size='lg' color="white">
+        <Heading class='my-trading-tracker-alone' m={2} size='lg' color="white">
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
@@ -181,17 +183,17 @@ export default function Navbar({ user }) {
         <><Spacer /><Center >
           <span>
           <ButtonGroup gap='2' padding={4} flexWrap='wrap'>
-            <Button size="sm" backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleHome(e.target.value, user.user_id)}>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleHome(e.target.value, user.user_id)}>
               Home
             </Button>
-            <Button size="sm" backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handleTrades(e.target.value, user.user_id)}>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleTrades(e.target.value, user.user_id)}>
               Trades
             </Button>
-            <Button size="sm" backgroundColor="white" border='1px' borderColor='black' onClick={(e) => handlePnlCalendar(e.target.value, user.user_id)}>
-              Pnl Calendar
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value, user.user_id)}>
+              Calendar
             </Button>
-            <Button size="sm" backgroundColor="#FFC257" border='1px' borderColor='black' onClick={(e) => handleReportBug(e.target.value)}>
-              Report A Bug
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
+              Provide Feedback
             </Button>
             {reportBugFlag}
               <AlertDialog
@@ -220,10 +222,19 @@ export default function Navbar({ user }) {
               <AlertDialogOverlay>
               <AlertDialogContent>
                 <AlertDialogHeader fontSize='lg' fontWeight='bold'>
-                  Report Bug
+                  Provide Feedback
                 </AlertDialogHeader>
 
                 <AlertDialogBody>
+                  <FormControl>
+                    <FormHelperText mb={2} ml={1}>
+                      Feedback Type *
+                    </FormHelperText>
+                    <Select id="optionsSelection" placeholder='Bug Report or Feature Request?' onChange={(e) => setRequestType(e.target.value)}>
+                    <option>Bug Report</option>
+                    <option>Feature Request</option>
+                    </Select>
+                  </FormControl>
                   <FormControl>
                     <FormHelperText mb={2} ml={1}>
                       Summary *
@@ -239,7 +250,7 @@ export default function Navbar({ user }) {
                     <FormHelperText mb={2} ml={1}>
                       Page *
                     </FormHelperText>
-                    <Select id="optionsSelection" placeholder='Which Page has a Bug?' onChange={(e) => setPage(e.target.value)}>
+                    <Select id="optionsSelection" placeholder='Which Page is affected?' onChange={(e) => setPage(e.target.value)}>
                     <option>Login</option>
                     <option>Signup</option>
                     <option>Home</option>
@@ -261,8 +272,8 @@ export default function Navbar({ user }) {
                   <Button ref={cancelRef} onClick={e => handleCancelReportBug(e)}>
                     Cancel
                   </Button>
-                  <Button colorScheme='teal' onClick={e => handleConfirmReportBug(e)} ml={3}>
-                    Submit Bug Report
+                  <Button colorScheme='blue' onClick={e => handleConfirmReportBug(e)} ml={3}>
+                    Submit Feedback
                   </Button>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -274,7 +285,7 @@ export default function Navbar({ user }) {
         <Divider orientation="vertical" borderColor="grey.400"/>
         <span>
         <HStack>
-        <Text paddingStart={4} as='kbd' className="username">
+        <Text class="username">
           {user.first_name}
         </Text>
         <Link as={RouterLink} to="/profile">

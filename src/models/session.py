@@ -52,6 +52,13 @@ class Session:
         response = utils.execute_db(Query,Args)
         return response
     
+    def getEmailFromSession(token):
+            
+        Query = """SELECT u.email FROM User u JOIN Session s on s.user_id = u.user_id where s.token = %s"""
+        Args = (token,)
+        response = utils.execute_db(Query,Args)
+        return response
+    
 #--------Tests--------# 
 
 #Testing addSession      
