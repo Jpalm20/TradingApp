@@ -4,6 +4,7 @@ import { create , reset} from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { getTrades } from '../store/auth';
 // import { Link } from "react-router-dom";   
+import '../styles/logtrade.css';
 import axios from "axios";
 
 import {
@@ -71,7 +72,6 @@ export default function LogTrade({ user }) {
   const [comments, setComments] = useState(""); 
   const cancelRef = React.useRef();
   const { isOpen, onOpen, onClose } = useDisclosure();
-
 
   const tradeLoading = useSelector((state) => state.trade.loading);
 
@@ -290,8 +290,8 @@ export default function LogTrade({ user }) {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading color="teal.400">Log A Trade</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        <Heading class="logtradeheader">Log Trade</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {tradeLoading ? 
             <Stack
                 spacing={4}
@@ -340,10 +340,10 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <div className="ticker-search">
+                  <div class="ticker-search">
                     <Input type="text" value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange}/>
                     {isDropdownOpen && (
-                      <ul className="search-dropdown">
+                      <ul class="search-dropdown">
                         {isLoading ? (
                           <div>Loading...</div>
                         ) : (
@@ -444,7 +444,7 @@ export default function LogTrade({ user }) {
                     type="name"
                     readOnly
                     placeholder={"0.00"}
-                    defaultValue={percent_wl}
+                    value={percent_wl}
                   />
               </FormControl>
               </Box>
@@ -455,13 +455,13 @@ export default function LogTrade({ user }) {
                   </FormHelperText>
                   <Textarea placeholder='Reflect on your Trade...' onChange={(e) => setComments(e.target.value)}/>
               </FormControl>
-
+              <ButtonGroup>
               <Button
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
-                width="full"
+                colorScheme='blue'
+                width="50%"
                 onClick={handleSubmit}
               >
                 Create Trade Entry
@@ -471,12 +471,13 @@ export default function LogTrade({ user }) {
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
-                width="full"
+                colorScheme="gray"
+                width="50%"
                 onClick={handleCancel}
               >
                 Cancel
               </Button>
+              </ButtonGroup>
             </Stack>
           </form>
         }
@@ -502,10 +503,10 @@ export default function LogTrade({ user }) {
           </AlertDialogBody>
 
           <AlertDialogFooter>
-            <Button colorScheme='teal' onClick={e => handleAnswerYes(e)}>
+            <Button colorScheme='blue' onClick={e => handleAnswerYes(e)}>
               Yes
             </Button>
-            <Button ref={cancelRef} colorScheme='red' onClick={e => handleAnswerNo(e)} ml={3}>
+            <Button ref={cancelRef} colorScheme='gray' onClick={e => handleAnswerNo(e)} ml={3}>
               No
             </Button>
           </AlertDialogFooter>

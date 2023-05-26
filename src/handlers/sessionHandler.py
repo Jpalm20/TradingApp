@@ -41,3 +41,10 @@ def getUserFromToken(auth_token):
         return True, response[0][0]['user_id']
     else:
         return False, "No User Associated with this Session"
+    
+def getEmailFromToken(auth_token):
+    response = session.Session.getEmailFromSession(auth_token)
+    if 'email' in response[0][0]:
+        return True, response[0][0]['email']
+    else:
+        return False, "No Email Associated with this Session"

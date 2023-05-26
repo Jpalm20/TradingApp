@@ -27,7 +27,12 @@ def transformEditUser(request):
             transformedRequest[key] = request[key]
     return transformedRequest
 
-def transformReportBug(request):
+def transformReportBug(request, email):
+    issueType = ''
+    if (request['requestType'] == 'Bug Report'):
+        issueType = 'Bug'
+    elif (request['requestType'] == 'Feature Request'):
+        issueType= 'Story'
     return {
         "fields": {
             "project":
@@ -35,9 +40,9 @@ def transformReportBug(request):
                 "id": str(JIRA_PROJECT_ID)
             },
             "summary": request['page'] + " - " + request['summary'],
-            "description": request['description'],
+            "description": request['description'] + " \n\nSubmitted By: " + email,
             "issuetype": {
-                "name": "Bug"
+                "name": issueType
             }
         }
     }

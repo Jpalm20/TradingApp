@@ -24,3 +24,13 @@
       display: block;
     }
   }
+
+  .filterheader {
+    display: block;
+    font-size: large;
+    color: rgb(99, 99, 99);
+    font-family: 'Open Sans', sans-serif;
+  }
+
+
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

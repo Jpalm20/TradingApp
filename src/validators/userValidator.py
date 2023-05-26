@@ -54,8 +54,12 @@ def validateChangePassword(request):
     return True
 
 def validateReportBug(request):
-    if ('summary' not in request or request['summary'] == '') or ('page' not in request or request['page'] == '') or ('description' not in request or request['description'] == ''):
+    if ('summary' not in request or request['summary'] == '') or ('page' not in request or request['page'] == '') or ('description' not in request or request['description'] == '') or ('requestType' not in request or request['requestType'] == ''):
         return {
             "result": "Please Include All Fields"
+        }, 403 
+    if (request['requestType'] != 'Bug Report' and request['requestType'] != 'Feature Request'):
+        return {
+            "result": "Please Select a Valid Request Type"
         }, 403 
     return True

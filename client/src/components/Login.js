@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../store/auth";
+import '../styles/login.css';
+
 // import { Link } from "react-router-dom";
 import {
   Flex,
@@ -117,8 +119,8 @@ export default function Login() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading color="teal.400">Welcome</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        <Heading class='loginheader'>Welcome</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack
               spacing={4}
@@ -188,7 +190,7 @@ export default function Login() {
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full"
                 onClick={handleSubmit}
               >
@@ -202,7 +204,7 @@ export default function Login() {
       </Stack>
       <Box>
         Don't have an account?{" "}
-        <Link color="teal.500" href="/signup">
+        <Link color="blue.500" href="/signup">
           Sign Up
         </Link>
       </Box>

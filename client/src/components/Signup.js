@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { register } from "../store/auth";
 import states from "../data/states";
+import '../styles/signup.css';
+
 // import { Link } from "react-router-dom";
 
 import {
@@ -171,8 +173,8 @@ export default function Signup() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading color="teal.400">Create an account</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden">
+        <Heading class="signupheader">Sign Up</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack
               spacing={4}
@@ -250,8 +252,8 @@ export default function Signup() {
                 </InputGroup>
               </FormControl>
               {showPasswordModal && (
-                <div className="modal">
-                  <div className="modal-content">
+                <div>
+                  <div>
                     <Center>
                       <Text fontSize="sm" paddingBottom={2}>Would you like to generate a strong password?</Text>
                       </Center>
@@ -259,7 +261,7 @@ export default function Signup() {
                       <Button size="sm" onClick={handleGeneratePassword}>Generate Strong Password</Button>
                     </Center>
                   </div>
-                  <div className="modal-overlay" onClick={handleHidePasswordModal} />
+                  <div  onClick={handleHidePasswordModal} />
                 </div>
               )}
               <FormControl>
@@ -560,7 +562,7 @@ export default function Signup() {
                 borderRadius={0}
                 type="submit"
                 variant="solid"
-                colorScheme="teal"
+                colorScheme="blue"
                 width="full"
                 onClick={handleSubmit}
               >
@@ -573,7 +575,7 @@ export default function Signup() {
       </Stack>
       <Box>
         Already have an account?{" "}
-        <Link color="teal.500" href="/login">
+        <Link color="blue.500" href="/login">
           Log in
         </Link>
       </Box>
