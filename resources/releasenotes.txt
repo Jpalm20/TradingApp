@@ -1,23 +1,24 @@
-📣 MyTradingTracker Release Notes - Version 1.0.2
+📣 MyTradingTracker Release Notes - Version 1.0.3
 
 We are excited to present the latest update for MyTradingTracker! 🎉 
 
 This version comes packed with new features, improvements, and bug fixes to enhance your trading experience. Here are the highlights:
 
 📈 New Features:
-    1️⃣ Release Notes will now be included in all releases going forward to keep our users involved!
+    1️⃣ Export your Trades from the Trade Summary Page to a .csv file
+    2️⃣ Forgot Your Password functionality for those who need to recover their account
 
 🔄 Improvements:
-    1️⃣ User Interface Enhancements: Fonts, Colors, Styling improvements made accross the app, this is the first of a series of UI updates to make the app looking sleek and professional
-    2️⃣ User Feedback Enhancements: Experience is now shifted form just 'Bug Report' to both Bug Report and Feature Request with this choice affecting how the team will respond. User email will also be attached to the report now so we can reach out to the user if needed/we want to know whos contibuting to we can thank you!
 
 🐞 Bug Fixes:
-    1️⃣ % Gain/Loss getting stuck when successfully logging a trade and selecting 'Yes' to log another
+    1️⃣ Due to some UI improvements in Release 1.0.2 the User Profile icon on Mobile Devices was partially cut off and hidden off screen, this has been fixed
+    2️⃣ Due to some UI improvements in Release 1.0.2 the Filter Header on Mobile was poorly formatted and lacking margin spacing, this has been fixed
 
 🔧 Under the Hood:
-    1️⃣ 'Forgot Your Password' functionality for those that need to recover their account and/or forgot login credentials
-    2️⃣ Ability to export your trades from MyTradingTracker and save as a .csv
-    3️⃣ Pagination on Trade Summary page for users logging many trades, this will keep the application running quick!
+    1️⃣ Pagination on Trade Summary page for users logging many trades, this will keep the application running quick!
+    2️⃣ Dark Mode!
+    3️⃣ Ability to track your trading account value based on trades entered into MyTradingTracker
+    4️⃣ Journaling Page for you to reflect on your strategy or track your trading rules
 
 🙏 Thank You
 
