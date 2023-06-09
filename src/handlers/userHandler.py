@@ -1,4 +1,6 @@
 import os
+import smtplib
+from email.mime.text import MIMEText
 import sys
 import numpy
 from datetime import date, datetime, timedelta
@@ -22,6 +24,16 @@ sys.path.append( mymodule_dir )
 import trade
 
 script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import resetcode
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import utils
+
+script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'validators',)
 sys.path.append( mymodule_dir )
 import userValidator
@@ -36,6 +48,13 @@ import hashlib
 JIRA_URL = os.environ.get('JIRA_URL')
 JIRA_EMAIL = os.environ.get('JIRA_EMAIL')
 JIRA_API_KEY = os.environ.get('JIRA_API_KEY')
+
+# Email details
+SMTP_HOST = os.environ.get('SMTP_HOST')
+SMTP_PORT = os.environ.get('SMTP_PORT')
+SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+
 
 def registerUser(requestBody):
     response = userValidator.validateNewUser(requestBody)
@@ -406,7 +425,108 @@ def getPnLbyYear(user_id, date_year, filters=None):
             ]
         }
     
+def generateResetCode(requestBody):
+    response = user.User.getUserbyEmail(requestBody['email'])
+    if not response[0]:
+        return {
+            "result": "No Account Found with this Email, Please Use a Valid Email or Create an Account"
+        }, 403
+    else:
+        code = utils.generate_code()
+        newResetCode = resetcode.Resetcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15))
+        resetcodeResponse = resetcode.Resetcode.addResetCode(newResetCode)
+        if resetcodeResponse[0]:
+            return {
+                "result": str(resetcodeResponse)
+            }, 400
+
+        try:
+            email_subject = 'MyTradingTracker - Reset Your Password'
+            email_body = f"Hello,\n\nPlease find the code blow needed to reset your password:\n\n{code}"
+            message = MIMEText(email_body)
+            message['Subject'] = email_subject
+            message['From'] = SMTP_USERNAME
+            message['To'] = requestBody['email']
+            # Send the email
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+                server.sendmail(SMTP_USERNAME, requestBody['email'], message.as_string())
+            
+            return {
+                "result": "Reset Code Generated Successfully"
+            }
+                
+        except Exception as e:
+            print("Error:", str(e))
+            return {
+                "result": "Error: " + str(e)
+            }, 403
+            
+
+def validateResetCode(requestBody):
+    response = user.User.getUserbyEmail(requestBody['email'])
+    if not response[0]:
+        return {
+            "result": "No Account Found with this Email, Please Use a Valid Email or Create an Account"
+        }, 403
+    response = resetcode.Resetcode.getResetCode(requestBody['code'],response[0][0]['user_id'])
+    if not response[0]:
+        return {
+            "result": "Reset Code Doesn't Exist"
+        }, 401
+    elif 'expiration' in response[0][0]:
+        if response[0][0]['expiration'] < datetime.now():
+            return {
+                "result": "Reset Code Has Expired"
+            }, 401
+        else:
+            return {
+                "result": "Reset Code Verified Successfully"   
+            }
+    else:
+        return {
+            "result": "An Issue Occurred Validating Reset Code, Please Try Again"
+        }, 403
         
+
+def resetPassword(requestBody):
+    response = userValidator.validateResetPassword(requestBody)
+    if response != True:
+        return response
+    userResponse = user.User.getUserbyEmail(requestBody['email'])
+    if not userResponse[0]:
+        return {
+            "result": "No Account Found with this Email, Please Use a Valid Email or Create an Account"
+        }, 403
+    validateCodeResponse = validateResetCode({"code": requestBody['code'], "email": requestBody['email']})
+    if validateCodeResponse['result'] == "Reset Code Verified Successfully":
+        hashPass = userTransformer.hashPassword(requestBody['new_pass_1'])
+        response = user.User.updatePass(userResponse[0][0]['user_id'],hashPass)
+        if response[0]:
+            return {
+                "result": response
+            }, 400
+        else:
+            response = resetcode.Resetcode.getResetCode(requestBody['code'],userResponse[0][0]['user_id'])
+            if not response[0]:
+                return {
+                    "result": "Reset Code Doesn't Exist"
+                }, 401
+            response = resetcode.Resetcode.deleteResetCode(response[0][0]['resetcode_id'])
+            if response[0]:
+                return {
+                    "result": str(response)
+                }, 400
+            else:
+                return {
+                    "result": "Password Reset Successfully"
+                }
+            
+    else:
+        return validateCodeResponse
+
+  
 
 #--------Tests--------# 
 

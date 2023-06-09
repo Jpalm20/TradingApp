@@ -2,6 +2,8 @@ import os
 import sys
 from unittest import result
 import csv
+from flask import make_response
+
 
 
 script_dir = os.path.dirname( __file__ )
@@ -141,7 +143,30 @@ def importCsv(file, user_id):
     else:
         return {
             "result": result
-        }, 400    
+        }, 400   
+        
+
+def exportCsv(requestBody):
+    if not tradeValidator.validateExportTrades(requestBody):
+        return {
+            "result": "Error Generating CSV"
+        }, 400
+    trades = requestBody['exported_trades']
+    table_data = [list(trades[0].keys())]  # Header row
+    for trade in trades:
+        row = [str(trade[key]) for key in trade.keys()]
+        table_data.append(row)
+        
+    final_trades = []    
+    for row in table_data:
+        final_trades.append([row[9],row[11],row[6],row[8],row[0],row[12],row[2],row[7],row[4],row[3],row[5]])
+
+    csv_data = ''.join([','.join(row) + '\n' for row in final_trades])
+    response = make_response(csv_data)
+    response.headers['Content-Disposition'] = 'attachment; filename=trades.csv'
+    response.headers['Content-Type'] = 'text/csv'
+    return response
+
         
         
 #--------Tests--------# 

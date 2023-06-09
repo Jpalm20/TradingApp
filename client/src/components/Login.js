@@ -184,7 +184,12 @@ export default function Login() {
                   </Button>
                   </InputRightElement>
                 </InputGroup>
-
+                
+                <Box display="flex" justifyContent="right" paddingTop={2}>
+                  <Link  color="blue.500" href="/resetpassword">
+                    Forgot password?
+                  </Link>
+                </Box>
               </FormControl>
               <Button
                 borderRadius={0}

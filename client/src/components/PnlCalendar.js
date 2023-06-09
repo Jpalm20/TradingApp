@@ -373,7 +373,7 @@ export default function PnlCalendar({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader class="filterheader">Filters</DrawerHeader>
+          <DrawerHeader class="smallfilterheader">Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>

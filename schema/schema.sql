@@ -22,6 +22,16 @@ CREATE TABLE `Session` (
   CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
+CREATE TABLE `Resetcode` (
+  `resetcode_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `code` varchar(255) NOT NULL,
+  `expiration` datetime NOT NULL,
+  PRIMARY KEY (`resetcode_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `resetcode_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
 CREATE TABLE `Trade` (
   `trade_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,

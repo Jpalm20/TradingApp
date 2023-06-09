@@ -126,6 +126,32 @@ export const importCsv = createAsyncThunk(
   }
 );
 
+export const exportCsv = createAsyncThunk(
+  "trade/exportCsv",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { exported_trades } = formInfo;
+        const res = await axios.post(API_URL + `trade/exportCsv`,{
+          exported_trades: exported_trades
+        },{
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const update = createAsyncThunk(
   "trade/update",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -249,6 +275,21 @@ const tradeSlice = createSlice({
         state.success = false;
       },
       [importCsv.rejected]: (state, action) => {
+        state.error = true;
+        state.info = action.payload;
+        state.loading = false;
+      },
+      [exportCsv.fulfilled]: (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = false;
+      },
+      [exportCsv.pending]: (state) => {
+        state.loading = true;
+        state.error = false;
+        state.success = false;
+      },
+      [exportCsv.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
         state.loading = false;

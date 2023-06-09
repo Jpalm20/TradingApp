@@ -21,6 +21,7 @@ import LogTrade from "./components/LogTrade";
 import Navbar from "./components/Navbar";
 import UserProfile from "./components/UserProfile";
 import Summary from "./components/Summary";
+import ResetPass from "./components/ResetPass";
 import { TOKEN } from './store/auth';
 
 export default function App() {
@@ -40,6 +41,8 @@ export default function App() {
   const isDeleted = ((info && Object.keys(info).length === 1 && info.result && info.result === "User Successfully Deleted") ? (true):(false));
   const [changed, setChanged] = useState(true);
   const isChanged = ((info && Object.keys(info).length === 1 && info.result && info.result === "Password Successfully Changed") ? (true):(false));
+  const [reset, setReset] = useState(true);
+  const isReset = ((info && Object.keys(info).length === 1 && info.result && info.result === "Password Reset Successfully") ? (true):(false));
   const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false)); 
   
@@ -57,6 +60,11 @@ export default function App() {
   if(isChanged === true && changed === true){
     setToastMessage(info.result);
     setChanged(false);
+  }
+
+  if(isReset === true && reset === true){
+    setToastMessage(info.result);
+    setReset(false);
   }
 
   useEffect(() => {
@@ -110,6 +118,7 @@ export default function App() {
               <Route path="/home" element={<Home user={user}/>} />
               <Route path="/PnlCalendar" element={<PnlCalendar user={user}/>} />
               <Route path="/login" element={<Navigate to="/profile"/>} />
+              <Route path="/resetpassword" element={<Navigate to="/profile"/>} />
               <Route path="/signup" element={<Navigate to="/"/>} />
               <Route path="/logTrade" element={<LogTrade user={user}/>} />
               <Route path='/profile' element={<UserProfile user={user}/>} />
@@ -124,6 +133,7 @@ export default function App() {
               <Route path="/logTrade" element={<Navigate to="/login"/>} />
               <Route path='/summary' element={<Navigate to="/login"/>} />
               <Route path="/login" element={<Login />} />
+              <Route path="/resetpassword" element={<ResetPass />} />
               {isRegistered ? (
                 <Route path="/signup" element={<Navigate to="/login"/>} />
               ) : (
