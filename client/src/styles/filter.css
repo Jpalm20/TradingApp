@@ -32,5 +32,14 @@
     font-family: 'Open Sans', sans-serif;
   }
 
+  .smallfilterheader {
+    display: block;
+    font-size: large;
+    color: rgb(99, 99, 99);
+    font-family: 'Open Sans', sans-serif;
+    margin-top: 20px;
+    margin-left: 30px;
+  }
+
 
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

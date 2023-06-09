@@ -264,6 +264,43 @@ def delete_trades():
         return {
             "result": "Authorization Header is Missing"
         }, 401
+        
+
+@app.route('/trade/exportCsv',methods = ['POST'])
+def export_csv():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        if eval:
+            if request.method == 'POST':
+                return tradeHandler.exportCsv(request.json)
+        else:
+            return {
+                "result": message
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+        
+
+@app.route('/user/generateResetCode',methods = ['POST'])
+def generate_reset_code():
+    if request.method == 'POST':
+        return userHandler.generateResetCode(request.json)
+    
+    
+@app.route('/user/confirmResetCode',methods = ['POST'])
+def validate_reset_code():
+    if request.method == 'POST':
+        return userHandler.validateResetCode(request.json)
+    
+
+@app.route('/user/resetPassword',methods = ['POST'])
+def reset_password():
+    if request.method == 'POST':
+        return userHandler.resetPassword(request.json)
 
 
 if __name__ == "__main__":

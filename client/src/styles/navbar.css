@@ -20,7 +20,7 @@
     font-family: 'Open Sans', sans-serif;
 }
   
-  @media (max-width: 400px) {
+  @media (max-width: 575px) {
     .username {
       display: none;
     }

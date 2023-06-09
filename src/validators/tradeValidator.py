@@ -92,3 +92,20 @@ def validateNewTradeFromCsv(request):
             "result": "Trade Closure Date Can't be in the Future"
         }, 400
     return True
+
+
+def validateExportTrades(request):
+    if 'exported_trades' not in request:
+        return False
+
+    trades = request['exported_trades']
+    if trades is None:
+        return False
+    
+    # List of keys expected in each trade object
+    expected_keys = ['buy_value', 'comments', 'expiry', 'percent_wl', 'pnl', 'rr', 'security_type', 'strike', 'ticker_name', 'trade_date', 'trade_id', 'trade_type', 'units', 'user_id']
+
+    for trade in trades:
+        if not all(key in trade for key in expected_keys):
+            return False
+    return True

@@ -274,6 +274,67 @@ export const changePassword = createAsyncThunk(
 );
 
 
+export const generateResetCode = createAsyncThunk(
+  "auth/generateResetCode",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+        const { email } = formInfo;
+        const res = await axios.post(API_URL + `user/generateResetCode`,{
+          email
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+export const confirmResetCode = createAsyncThunk(
+  "auth/confirmResetCode",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+        const { email, code } = formInfo;
+        const res = await axios.post(API_URL + `user/confirmResetCode`,{
+          email,
+          code
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+        const { code, email, new_pass_1, new_pass_2 } = formInfo;
+        const res = await axios.post(API_URL + `user/resetPassword`,{
+          code,
+          email,
+          new_pass_1,
+          new_pass_2
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
 export const reportBug = createAsyncThunk(
   "auth/reportBug",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -596,6 +657,54 @@ const authSlice = createSlice({
       state.pnlYTD = null;
       state.info = null;
       state.error = false;
+      state.loading = false;
+    },
+    [resetPassword.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [resetPassword.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [resetPassword.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [generateResetCode.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [generateResetCode.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [generateResetCode.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [confirmResetCode.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [confirmResetCode.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [confirmResetCode.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
       state.loading = false;
     },
   },

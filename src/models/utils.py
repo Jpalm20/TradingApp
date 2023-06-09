@@ -1,4 +1,5 @@
 import os
+import random
 import mysql.connector
 
 DB_HOST = os.environ.get('DB_HOST')
@@ -32,3 +33,10 @@ def execute_db(query,args):
                 connection.close()
         
     return response
+
+
+def generate_code():
+    code = ""
+    for _ in range(6):
+        code += str(random.randint(0, 9))  # Generate a random digit (0-9)
+    return code

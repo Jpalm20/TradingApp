@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getTrades, getTradesFiltered } from '../store/auth'
+import { getTrades, getTradesFiltered , expiredLogout} from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import '../styles/summary.css';
 import '../styles/logtrade.css';
@@ -61,7 +61,7 @@ import {
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { update, getTrade, reset, deleteTrade, importCsv } from '../store/trade';
+import { update, getTrade, reset, deleteTrade, importCsv, exportCsv } from '../store/trade';
 
 
 const CFaUserAlt = chakra(FaUserAlt);
@@ -122,6 +122,8 @@ export default function Summary({ user }) {
 
   const authLoading = useSelector((state) => state.auth.loading);
   const tradeLoading = useSelector((state) => state.trade.loading);
+
+  const [exportLoading, setExportLoading] = useState(false);
 
   const [editButtonInstance, setEditButtonInstance] = useState(null);
 
@@ -238,6 +240,25 @@ export default function Summary({ user }) {
     checkVisbility(res.payload);
     setTradeID(trade_id);
     setEditTrade(true);
+  };
+
+  const handleExport = async (e) => {
+    setExportLoading(true);
+    const exported_trades = trades.trades
+    const res = await dispatch(
+      exportCsv({
+        exported_trades
+      })
+    );
+    const csvData = res.payload;
+    // Create a downloadable link in the client's browser
+    const downloadLink = document.createElement('a');
+    downloadLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvData);
+    downloadLink.download = 'trades.csv';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    setExportLoading(false);
   };
 
 
@@ -391,7 +412,7 @@ export default function Summary({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader class="filterheader">Filters</DrawerHeader>
+          <DrawerHeader class="smallfilterheader">Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -768,10 +789,27 @@ export default function Summary({ user }) {
               </AlertDialogContent>
               </AlertDialogOverlay>
             </AlertDialog>
+            {tradeLoading && exportLoading?
+              <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300'>
+                <Center>
+                  <Spinner
+                    thickness='2px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='grey.500'
+                    size='sm'
+                  />
+                </Center>
+              </Button>
+            :
+              <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300' onClick={(e) => handleExport(e.target.value)}>
+                Export
+              </Button>
+            }
             <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' onClick={(e) => handleLogTrade(e.target.value)}>
               + Add Trade
             </Button>
-            {tradeLoading && !deletealertdialog && !importCsvDialog?
+            {tradeLoading && !deletealertdialog && !importCsvDialog && !exportLoading?
               <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue'>
                 <Center>
                   <Spinner
