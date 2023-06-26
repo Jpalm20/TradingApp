@@ -41,5 +41,21 @@
     margin-left: 30px;
   }
 
+  .filterheaderdark {
+    display: block;
+    font-size: large;
+    color: rgb(223, 223, 223);
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  .smallfilterheaderdark {
+    display: block;
+    font-size: large;
+    color: rgb(223, 223, 223);
+    font-family: 'Open Sans', sans-serif;
+    margin-top: 20px;
+    margin-left: 30px;
+  }
+
 
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

@@ -21,12 +21,14 @@ import {
   chakra,
   Box,
   Spinner,
+  useColorMode,
   AlertDialog,
   AlertDialogBody,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  AlertDialogCloseButton,
   useDisclosure,
   Toast,
   useToast,
@@ -66,6 +68,8 @@ export default function Login() {
 
   const authLoading = useSelector((state) => state.auth.loading);
 
+  const { colorMode, toggleColorMode } = useColorMode();
+
   const handleSubmit = async(e) => {
     e.preventDefault();
     await dispatch(generateResetCode({ email }));
@@ -77,8 +81,7 @@ export default function Login() {
   };
 
   const handleChangePassword = (e) => {
-    setEnterPw(true);
-    onOpen();
+    setEnterPw(false);
   };
 
   const handleConfirmChangePw = async (e) => {
@@ -154,7 +157,7 @@ export default function Login() {
       flexDirection="column"
       width="100wh"
       height="100vh"
-      backgroundColor="gray.200"
+      backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       justifyContent="center"
       alignItems="center"
     >
@@ -164,13 +167,13 @@ export default function Login() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading class='loginheader'>Reset Your Password</Heading>
+        <Heading class={colorMode === 'light' ? 'loginheader' : 'loginheaderdark'}>Reset Your Password</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
             <Center>
@@ -188,7 +191,7 @@ export default function Login() {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
               <FormControl>
@@ -284,7 +287,7 @@ export default function Login() {
                 <AlertDialogHeader fontSize='lg' fontWeight='bold'>
                   Change Password
                 </AlertDialogHeader>
-
+                <AlertDialogCloseButton onClick={e => handleChangePassword(e)}/>
                 <AlertDialogBody>
                   <FormControl>
                     <FormHelperText mb={2} ml={1}>

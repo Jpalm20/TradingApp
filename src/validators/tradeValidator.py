@@ -109,3 +109,11 @@ def validateExportTrades(request):
         if not all(key in trade for key in expected_keys):
             return False
     return True
+
+
+def validateSearchTicker(filter):
+    if 'ticker_name' not in filter:
+        return False, "Please include ticker_name only for filtering parameters"
+
+    return True, "Passed"
+

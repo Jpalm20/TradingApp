@@ -11,4 +11,26 @@
     font-size: x-large;
   }
 
+  .edittradeheaderdark {
+    color: rgb(223, 223, 223);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 5px;
+    font-size: x-large;
+  }
+
+  .pagenumbers {
+    font-family: 'Saira Semi Condensed', sans-serif;
+    font-weight: bold; 
+  }
+
+  .pagearrows {
+    font-size: 1.25em;
+  }
+
+  .pagearrows:hover {
+    color: rgb(128, 128, 128);
+  }
+  
+
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@700&display=swap');

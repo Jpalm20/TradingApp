@@ -24,6 +24,7 @@ import {
   Box,
   Link,
   Avatar,
+  useColorMode,
   FormControl,
   FormHelperText,
   InputRightElement,
@@ -67,6 +68,8 @@ export default function Signup() {
   const [country, setCountry] = useState("");
 
   const authLoading = useSelector((state) => state.auth.loading);
+
+  const { colorMode, toggleColorMode } = useColorMode();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -163,7 +166,7 @@ export default function Signup() {
       flexDirection="column"
       width="100wh"
       height="100vh"
-      backgroundColor="gray.200"
+      backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       justifyContent="center"
       alignItems="center"
     >
@@ -173,13 +176,13 @@ export default function Signup() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading class="signupheader">Sign Up</Heading>
+        <Heading class={colorMode === 'light' ? 'signupheader' : 'loginheaderdark'}>Sign Up</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
             <Center>
@@ -197,7 +200,7 @@ export default function Signup() {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
               <Box display="flex">

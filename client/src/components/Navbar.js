@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, reportBug } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug } from '../store/auth'
 import '../styles/navbar.css';
 import { 
   Flex, 
@@ -15,6 +15,8 @@ import {
   InputGroup,
   useToast,
   Select,
+  useColorMode,
+  Switch,
   Textarea,
   AlertDialog,
   AlertDialogBody,
@@ -70,6 +72,8 @@ export default function Navbar({ user }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
 
+  const { colorMode, toggleColorMode } = useColorMode();
+
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
@@ -97,19 +101,22 @@ export default function Navbar({ user }) {
     setToastMessage(undefined);
   }, [toastMessage, toast]);
 
-  const handleHome = async (e, user_id) => {
+  const handleHome = async (e) => {
     navigate("/");
-    await dispatch(getTrades({ user_id }));
+    await dispatch(getTrades());
   }
 
-  const handlePnlCalendar = async (e, user_id) => {
+  const handlePnlCalendar = async (e) => {
     navigate("/PnlCalendar");
-    await dispatch(getPnlByYear({ user_id, year }));
+    await dispatch(getPnlByYear({ year }));
   }
 
-  const handleTrades = async (e, user_id) => {
+  const handleTrades = async (e) => {
     navigate("/summary");
-    await dispatch(getTrades({ user_id }));
+    const filters = {};
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
   }
 
   const handleReportBug = (e) => {
@@ -123,10 +130,10 @@ export default function Navbar({ user }) {
     const pageText = PAGE_NAME.find(el => el.page === location.pathname)?.text
     if (pageText !== "None"){
       content.push(
-        <Divider orientation="vertical" borderColor="grey.400"/>
+        <Divider orientation="vertical" colorScheme="gray"/>
       );
       content.push(
-        <Heading class='pagename'>
+        <Heading class={colorMode === 'light' ? 'pagename' : 'pagenamedark'}>
           {pageText}
         </Heading>
       );
@@ -164,17 +171,17 @@ export default function Navbar({ user }) {
   }
   
   return (
-    <Flex justify="space-between" backgroundColor="blue.500" >
+    <Flex justify="space-between" bg={colorMode === 'light' ? "blue.500" : "blue.200"} >
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <HStack >
-        <Heading class='my-trading-tracker' m={2} size='lg' color="white" _hover={{ color: "gray.300" }} onClick={(e) => handleHome(e.target.value, user.user_id)}>
+        <Heading class={colorMode === 'light' ? 'my-trading-tracker' : 'my-trading-trackerdark'} m={2} size='lg' onClick={(e) => handleHome(e.target.value)}>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
         {displayPageName()}
         </HStack>
       ) : (
-        <Heading class='my-trading-tracker-alone' m={2} size='lg' color="white">
+        <Heading class={colorMode === 'light' ? 'my-trading-tracker-alone' : 'my-trading-tracker-alonedark'} m={2} size='lg'>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
@@ -183,13 +190,13 @@ export default function Navbar({ user }) {
         <><Spacer /><Center >
           <span>
           <ButtonGroup gap='2' padding={4} flexWrap='wrap'>
-            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleHome(e.target.value, user.user_id)}>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleHome(e.target.value)}>
               Home
             </Button>
-            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleTrades(e.target.value, user.user_id)}>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleTrades(e.target.value)}>
               Trades
             </Button>
-            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value, user.user_id)}>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value)}>
               Calendar
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
@@ -282,14 +289,14 @@ export default function Navbar({ user }) {
             </AlertDialog>
         </ButtonGroup>
         </span>
-        <Divider orientation="vertical" borderColor="grey.400"/>
+        <Divider orientation="vertical" colorScheme="gray"/>
         <span>
         <HStack>
-        <Text class="username">
+        <Text class={colorMode === 'light' ? "username" : "usernamedark"}>
           {user.first_name}
         </Text>
         <Link as={RouterLink} to="/profile">
-          <Avatar border='1px' borderColor='black' size="sm" m={2} />
+          <Avatar size="sm" m={2} />
         </Link>
         </HStack>
         </span>

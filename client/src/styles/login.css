@@ -5,4 +5,23 @@
   font-size: x-large;
 }
 
+.loginheaderdark {
+  color: rgb(223, 223, 223);
+  font-family: 'Open Sans', sans-serif;
+  padding-bottom: 5px;
+  font-size: x-large;
+}
+
+.toggle-dark-mode {
+  font-family: 'Open Sans', sans-serif;
+  padding-left: 6px;
+  font-size: small;
+}
+
+.top-right-component {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

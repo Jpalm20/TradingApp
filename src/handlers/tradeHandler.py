@@ -21,12 +21,12 @@ mymodule_dir = os.path.join( script_dir, '..', 'transformers',)
 sys.path.append( mymodule_dir )
 import tradeTransformer
 
-def logTrade(requestBody):
+def logTrade(user_id, requestBody):
     response = tradeValidator.validateNewTrade(requestBody)
     if response != True:
         return response
     requestTransformed = tradeTransformer.transformNewTrade(requestBody)
-    newTrade = trade.Trade(None,requestTransformed['user_id'],requestTransformed['trade_type'],requestTransformed['security_type'],
+    newTrade = trade.Trade(None,user_id,requestTransformed['trade_type'],requestTransformed['security_type'],
                         requestTransformed['ticker_name'],requestTransformed['trade_date'],requestTransformed['expiry'],requestTransformed['strike'],
                         requestTransformed['buy_value'],requestTransformed['units'],requestTransformed['rr'],requestTransformed['pnl'],
                         requestTransformed['percent_wl'],requestTransformed['comments'])
@@ -73,6 +73,28 @@ def getExistingTrade(trade_id):
         }
     else:
         return response, 400
+    
+
+def searchUserTicker(user_id, filter=None):
+    if filter:
+        filterBody = filter.to_dict()
+        eval, response = tradeValidator.validateSearchTicker(filterBody)
+        if eval == False:
+            return {
+                "result": response
+            }, 400
+        response = trade.Trade.getUserTicker(user_id,filter['ticker_name'])
+    else:
+        response = trade.Trade.getUserTicker(user_id)
+    if response[0] or response[0] == []:
+        return {
+            "tickers": response[0]
+        }
+    else:
+        return {
+            "result": response
+        }, 400
+
 
 def editExistingTrade(trade_id,requestBody):
     response = tradeValidator.validateEditTrade(requestBody)

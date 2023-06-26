@@ -10,6 +10,7 @@ const initialState = {
   error: false,
   loading: false,
   info: {},
+  tickerNameSearch: {},
 };
 
 export const reset = createAsyncThunk(
@@ -23,9 +24,8 @@ export const create = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+        const {trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
         const res = await axios.post(API_URL + `trade/create`, {
-          user_id,
           trade_type,
           security_type,
           ticker_name,
@@ -65,6 +65,30 @@ export const getTrade = createAsyncThunk(
           headers: {
             Authorization: "Bearer " + token,
           }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const searchTicker = createAsyncThunk(
+  "trade/searchTicker",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { filter } = formInfo;
+        const res = await axios.get(API_URL + `trade/searchTicker`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filter
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
@@ -158,9 +182,8 @@ export const update = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { trade_id, user_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
+        const { trade_id, trade_type, security_type, ticker_name, trade_date, expiry, strike, buy_value, units, rr, pnl, percent_wl, comments } = formInfo;
         const res = await axios.post(API_URL + `trade/${trade_id}`, {
-          user_id,
           trade_type,
           security_type,
           ticker_name,
@@ -206,6 +229,22 @@ const tradeSlice = createSlice({
         state.success = false;
       },
       [getTrade.rejected]: (state, action) => {
+        state.error = true;
+        state.info = action.payload;
+        state.loading = false;
+      },
+      [searchTicker.fulfilled]: (state, action) => {
+        state.tickerNameSearch = action.payload;
+        state.success = true;
+        state.error = false;
+        state.loading = false;
+      },
+      [searchTicker.pending]: (state) => {
+        state.loading = true;
+        state.error = false;
+        state.success = false;
+      },
+      [searchTicker.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
         state.loading = false;

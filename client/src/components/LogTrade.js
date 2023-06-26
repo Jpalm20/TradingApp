@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { create , reset} from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
-import { getTrades } from '../store/auth';
+import { getTrades, getTradesPage } from '../store/auth';
 // import { Link } from "react-router-dom";   
 import '../styles/logtrade.css';
 import axios from "axios";
@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  useColorMode,
   Spinner,
   useDisclosure,
   Select,
@@ -74,6 +75,9 @@ export default function LogTrade({ user }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const tradeLoading = useSelector((state) => state.trade.loading);
+
+  const { colorMode, toggleColorMode } = useColorMode();
+
 
   useEffect(() => {
     evaluateSuccess();
@@ -154,7 +158,6 @@ export default function LogTrade({ user }) {
     e.preventDefault();
     await dispatch(
       create({
-        user_id,
         trade_type,
         security_type,
         ticker_name,
@@ -169,20 +172,23 @@ export default function LogTrade({ user }) {
         comments
       })
     );
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
+    const filters = {};
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
     setSearchValue('');
     setSelectedValue('');
     setIsDropdownOpen(false);
   }
 
-  const handleCancel = (e) => {
+  const handleCancel = async (e) => {
     e.preventDefault();
     clearFormStates();
     navigate("/summary");
+    const filters = {};
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
     setSearchValue('');
     setSelectedValue('');
     setIsDropdownOpen(false);
@@ -249,6 +255,11 @@ export default function LogTrade({ user }) {
   const handleInputChange = (event) => {
     setSelectedValue('');
     setSearchValue(event.target.value);
+    setTickerName(event.target.value);
+  };
+
+  const handleInputClick = (event) => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const handleSelection = (selection) => {
@@ -280,7 +291,7 @@ export default function LogTrade({ user }) {
       flexDirection="column"
       width="100wh"
       height="100vh"
-      backgroundColor="gray.200"
+      backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       justifyContent="center"
       alignItems="center"
     >
@@ -290,13 +301,13 @@ export default function LogTrade({ user }) {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading class="logtradeheader">Log Trade</Heading>
+        <Heading class={colorMode === 'light' ? "logtradeheader" : "logtradeheaderdark"}>Log Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {tradeLoading ? 
             <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
                 boxShadow="md"
               >
               <Center>
@@ -314,7 +325,7 @@ export default function LogTrade({ user }) {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
               <Box display="flex">
@@ -341,9 +352,9 @@ export default function LogTrade({ user }) {
                     Ticker *
                   </FormHelperText>
                   <div class="ticker-search">
-                    <Input type="text" value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange}/>
+                    <Input type="text" value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange} onClick={handleInputClick}/>
                     {isDropdownOpen && (
-                      <ul class="search-dropdown">
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
                         {isLoading ? (
                           <div>Loading...</div>
                         ) : (
