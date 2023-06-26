@@ -22,12 +22,16 @@ import {
   Spinner,
   Toast,
   useToast,
+  useColorMode,
+  Switch,
   Link,
   Avatar,
   FormControl,
+  FormLabel,
   FormHelperText,
   InputRightElement,
   Center,
+  HStack,
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
@@ -48,6 +52,9 @@ export default function Login() {
   const [errorFlag, setErrorFlag] = useState(false);
 
   const authLoading = useSelector((state) => state.auth.loading);
+
+  const { colorMode, toggleColorMode } = useColorMode();
+
 
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -109,7 +116,7 @@ export default function Login() {
       flexDirection="column"
       width="100wh"
       height="100vh"
-      backgroundColor="gray.200"
+      backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       justifyContent="center"
       alignItems="center"
     >
@@ -119,13 +126,13 @@ export default function Login() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading class='loginheader'>Welcome</Heading>
+        <Heading class={colorMode === 'light' ? 'loginheader' : 'loginheaderdark'} >Welcome</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
             <Center>
@@ -143,7 +150,7 @@ export default function Login() {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
               <FormControl>

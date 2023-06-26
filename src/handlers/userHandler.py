@@ -377,6 +377,37 @@ def getUserTrades(user_id,filters=None):
             }
         }
         
+def getUserTradesPage(user_id,filters):
+    if filters is None:
+        return {
+            "result": "Please include Page Number and Rows per Page"
+        }, 400
+    else:
+        page = filters['page']
+        numrows = filters['numrows']
+        filterBody = filters.to_dict()
+        del filterBody['page'], filterBody['numrows']
+        count = user.User.getTotalTrades(user_id,filterBody)[0][0]['COUNT(*)']
+        if 'date_range' in filters:
+            filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        offset = (int(page)-1)*int(numrows)
+        response = user.User.getUserTradesPage(user_id,int(numrows),offset,filterBody)
+    if len(response[0]) != 0 and "trade_id" in response[0][0]:
+        return {
+            "trades": response[0],
+            "page": page,
+            "count": count,
+            "numrows": numrows 
+        }
+    else:
+        return {
+            "trades": [],
+            "page": 0,
+            "count": 0,
+            "numrows": 0 
+        }
+
+        
 def getPnLbyYear(user_id, date_year, filters=None):
     if filters is None:
         response = user.User.getUserPnLbyYear(user_id, date_year)
@@ -441,9 +472,12 @@ def generateResetCode(requestBody):
             }, 400
 
         try:
+            reset_code_email = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'resources', 'resetcode.html')
+            with open(reset_code_email, 'r') as file:
+                reset_code_html = file.read()
             email_subject = 'MyTradingTracker - Reset Your Password'
-            email_body = f"Hello,\n\nPlease find the code blow needed to reset your password:\n\n{code}"
-            message = MIMEText(email_body)
+            email_body = reset_code_html.replace('RESET_CODE', code)
+            message = MIMEText(email_body, 'html')
             message['Subject'] = email_subject
             message['From'] = SMTP_USERNAME
             message['To'] = requestBody['email']
@@ -575,5 +609,13 @@ def resetPassword(requestBody):
 #   "security_type": "Options"
 #}
 #response = getUserTrades(testUserID,testFilters)
+
+#Testing getUserTradesPage
+#testUserID = 71
+#testFilters = {
+#   "page": "1",
+#   "numrows": "100",
+#}
+#response = getUserTradesPage(testUserID,testFilters)
 
 #print(response)

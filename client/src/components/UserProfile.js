@@ -17,6 +17,7 @@ import {
   Toast,
   useToast,
   Link,
+  Switch,
   Avatar,
   AlertDialog,
   AlertDialogBody,
@@ -34,6 +35,7 @@ import {
   InputRightElement,
   HStack,
   ButtonGroup,
+  useColorMode 
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
@@ -84,6 +86,9 @@ export default function UserProfile({ user }) {
   const authLoading = useSelector((state) => state.auth.loading);
   const tradeLoading = useSelector((state) => state.trade.loading);
 
+  const { colorMode, toggleColorMode } = useColorMode();
+
+
 
   useEffect(() => {
     evaluateSuccess();
@@ -91,8 +96,13 @@ export default function UserProfile({ user }) {
 
 
   const evaluateSuccess = () => {
-    if(success === true && user.result === "User Edited Successfully"){
+    if(success === true && user.result === "User Edited Successfully" && !(info && info.result && info.result === "Password Successfully Changed")){
         setToastMessage(user.result);
+    }else if(success === true && info && info.result && info.result === "Password Successfully Changed"){
+      setToastMessage(info.result);
+      setChangePwAlertDialog(false);
+      handleLogout();
+      onClose();
     }
   }
 
@@ -158,15 +168,11 @@ export default function UserProfile({ user }) {
     e.preventDefault();
     await dispatch(
       changePassword({
-        user_id,
         curr_pass,
         new_pass_1,
         new_pass_2
       })
     );
-    handleLogout(e);    
-    setChangePwAlertDialog(false);
-    onClose();
   };
 
   const handleCancelChangePw = (e) => {
@@ -174,8 +180,7 @@ export default function UserProfile({ user }) {
     onClose();
   };
 
-  const handleLogout = async (e) => {
-    e.preventDefault();
+  const handleLogout = async () => {
     setSelectPage(true);
     selectUpdateInfo(false);
     await dispatch(logout());
@@ -189,11 +194,7 @@ export default function UserProfile({ user }) {
 
   const handleConfirmDelete = async (e) => {
     e.preventDefault();
-    await dispatch(
-      deleteUser({
-        user_id
-      })
-    );
+    await dispatch(deleteUser());
     handleLogout(e);    
     setDeleteAlertDialog(false);
     onClose();
@@ -208,7 +209,6 @@ export default function UserProfile({ user }) {
     e.preventDefault();
     await dispatch(
       update({
-        user_id,
         first_name,
         last_name,
         email,
@@ -245,7 +245,7 @@ export default function UserProfile({ user }) {
           flexDirection="column"
           width="100wh"
           height="100vh"
-          backgroundColor="gray.200"
+          backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
           justifyContent="center"
           alignItems="center"
         >
@@ -256,13 +256,13 @@ export default function UserProfile({ user }) {
             alignItems="center"
           >
           <Avatar class='avatar' />
-          <Heading class='profileheader'>Profile Information</Heading>
+          <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Profile Information</Heading>
           <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {authLoading && !changepwdialog && !deletealertdialog? 
             <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
                 boxShadow="md"
               >
               <Center>
@@ -279,11 +279,17 @@ export default function UserProfile({ user }) {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
 
               <Card>
+              <div class='top-right-component'>
+                <HStack padding="5px" rounded="xl">
+                  <Text class="toggle-dark-mode">{colorMode === 'light' ? 'Light' : 'Dark'} Mode</Text>
+                  <Switch onChange={toggleColorMode} paddingTop="5px" paddingBottom="5px" paddingRight="6px"/>
+                </HStack>
+              </div>
                 <CardBody>
                   <Stack divider={<StackDivider />} spacing='3'>
                     <Box>
@@ -519,7 +525,7 @@ export default function UserProfile({ user }) {
           flexDirection="column"
           width="100wh"
           height="100vh"
-          backgroundColor="gray.200"
+          backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
           justifyContent="center"
           alignItems="center"
         >
@@ -530,13 +536,13 @@ export default function UserProfile({ user }) {
             alignItems="center"
           >
           <Avatar class='avatar' />
-          <Heading class='profileheader'>Update Information</Heading>
+          <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Information</Heading>
           <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {authLoading && !changepwdialog && !deletealertdialog? 
             <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
                 boxShadow="md"
               >
               <Center>
@@ -554,7 +560,7 @@ export default function UserProfile({ user }) {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
               <Box display="flex">

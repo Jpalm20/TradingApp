@@ -14,5 +14,29 @@
   padding-bottom: 5px
 }
 
+.statsheaderdark {
+  display: block;
+  font-size: large;
+  color: rgb(223, 223, 223);
+  font-family: 'Open Sans', sans-serif;
+  padding-bottom: 5px
+}
+
+.keyheaderdark {
+display: block;
+font-size: large;
+color: rgb(223, 223, 223);
+font-family: 'Open Sans', sans-serif;
+padding-bottom: 5px
+}
+
+.no-trade-text {
+  font-size: large;
+  font-family: 'Open Sans', sans-serif;
+  padding-top: 50px;
+  padding-bottom: 10px;
+}
+
+
   
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

@@ -1,12 +1,11 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../store/auth';
+import { searchTicker } from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import monthsString from "../data/months";
 import { BsFilter } from "react-icons/bs";
 import '../styles/filter.css';
-
-
 
 import {
   Flex,
@@ -36,6 +35,7 @@ import {
   TableCaption,
   TableContainer,
   Stack,
+  useColorMode,
   StackDivider,
   useDisclosure,
   Drawer,
@@ -109,6 +109,63 @@ export default function PnlCalendar({ user }) {
   const authLoading = useSelector((state) => state.auth.loading);
   const tradeLoading = useSelector((state) => state.trade.loading);
 
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  const [searchValue, setSearchValue] = useState('');
+  const [searchTickerValue, setSearchTickerValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchTickerResults, setSearchTickerResults] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedTickerValue, setSelectedTickerValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      setIsLoading(true);
+      const filter = {};
+      if(searchTickerValue !== ''){
+        filter.ticker_name = searchTickerValue;
+      }
+      const response = await dispatch(searchTicker({filter})); 
+      const topResults = response.payload.tickers.map(f => [f.ticker_name]);
+      setSearchTickerResults(topResults);
+      setIsLoading(false);
+    };
+
+    if (searchTickerValue) {
+      fetchSearchResults();
+      setIsDropdownOpen(true);
+    } else {
+      setSearchTickerResults([]);
+      setIsDropdownOpen(false);
+    }
+  }, [searchTickerValue]);
+
+  const handleInputTickerFilterChange = (event) => {
+    setSelectedTickerValue('');
+    setSearchTickerValue(event.target.value);
+    setFilterTickerName(event.target.value);
+  };
+
+  const handleInputTickerFIlterClick = (event) => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleTickerSelection = (selection) => {
+    const selectionString = selection[0];
+    setSelectedTickerValue(selectionString);
+    setFilterTickerName(selectionString);
+    setIsDropdownOpen(false);
+  };
+
+  const searchTickerResultItems = searchTickerResults.map((result) => (
+    <li key={result} onClick={() => handleTickerSelection(result)}> 
+      {result}
+    </li>
+  ));
+
 
   var formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -140,8 +197,7 @@ export default function PnlCalendar({ user }) {
     filters.trade_date = cal_date.toISOString().split('T')[0]
     await dispatch(
       getTradesOfDateFiltered({
-        filters,
-        user_id
+        filters
       })
     );
   };
@@ -154,11 +210,11 @@ export default function PnlCalendar({ user }) {
   const colorChange = (pnl) => {
     let bgColor;
     if (pnl > 0){
-      bgColor = "green.200"
+      bgColor = (colorMode === 'light' ? "green.200" : "green.400");
     } else if (pnl < 0) {
-      bgColor = "red.200"
+      bgColor = (colorMode === 'light' ? "red.200" : "red.400");
     } else {
-      bgColor = "gray.100"
+      bgColor = (colorMode === 'light' ? "gray.100" : "gray.700");
     }
     return bgColor;
   };
@@ -170,7 +226,7 @@ export default function PnlCalendar({ user }) {
     } else if (pnl < 0) {
       bgColor = "red.400"
     } else {
-      bgColor = "black"
+      bgColor = (colorMode === 'light' ? "black" : "white");
     }
     return bgColor;
   };
@@ -191,7 +247,7 @@ export default function PnlCalendar({ user }) {
     let content = [];
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     for (let i = 0; i < firstDay; i++) {
-      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -207,7 +263,7 @@ export default function PnlCalendar({ user }) {
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     let spotsLeft = 42-totalDays-1-firstDay-(30-totalDays);
     for (let i = 0; i < spotsLeft; i++) {
-      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   -
                   <Center fontWeight='bold' >
                     -
@@ -302,8 +358,13 @@ export default function PnlCalendar({ user }) {
   useEffect(() => {
     let year = calYear;
     if(user.user_id != undefined){
-      dispatch(getPnlByYear({ user_id, year }));
+      dispatch(getPnlByYear({ year }));
     }
+    setFilterTradeType('');
+    setFilterSecurityType('');
+    setFilterTickerName('');
+    setSearchTickerValue('');
+    setSelectedTickerValue('');
   }, [calYear, user]); 
 
   const getFilterComponent = () => {
@@ -314,12 +375,12 @@ export default function PnlCalendar({ user }) {
               <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
                 boxShadow="md"
                 align='center'
                 minWidth="30vh"
               >
-                <Heading class="filterheader">Filters</Heading>
+                <Heading class={colorMode === 'light' ? "filterheader" : "filterheaderdark"}>Filters</Heading>
                 <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -343,10 +404,21 @@ export default function PnlCalendar({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <div class="ticker-search">
+                    <Input type="name" placeholder='Enter Ticker' value={selectedTickerValue ? selectedTickerValue : searchTickerValue} onChange={handleInputTickerFilterChange} onClick={handleInputTickerFIlterClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchTickerResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>  
                 </FormControl>
               </Box>
-                  <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter} >
+                  <Button size="sm" backgroundColor='gray.300' width="full" color={colorMode === 'light' ? "none" : "gray.800"} onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
                   <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
@@ -358,7 +430,7 @@ export default function PnlCalendar({ user }) {
     );
     content.push(
       <div padd class="small-component">
-      <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+      <Box flexGrow="1"  backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"} display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
       <Button ref={btnRef} colorScheme='white' onClick={e => setFilterDrawer(true)}>
        <Icon as={BsFilter} color='grey' size='lg'></Icon>
       </Button>
@@ -373,7 +445,7 @@ export default function PnlCalendar({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader class="smallfilterheader">Filters</DrawerHeader>
+          <DrawerHeader class={colorMode === 'light' ? "smallfilterheader" : "smallfilterheaderdark"}>Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -398,12 +470,23 @@ export default function PnlCalendar({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <div class="ticker-search">
+                    <Input type="name" placeholder='Enter Ticker' value={selectedTickerValue ? selectedTickerValue : searchTickerValue} onChange={handleInputTickerFilterChange} onClick={handleInputTickerFIlterClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchTickerResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>   
                 </FormControl>
           </DrawerBody>
 
           <DrawerFooter>
-            <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter}>
+            <Button size="sm" backgroundColor='gray.300' width="full" color={colorMode === 'light' ? "none" : "gray.800"} onClick={handleSubmitFilter}>
               Submit Filter
             </Button>
             <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
@@ -434,7 +517,6 @@ export default function PnlCalendar({ user }) {
     await dispatch(
       getPnlByYearFiltered({
         filters,
-        user_id,
         year
       })
     );
@@ -447,8 +529,10 @@ export default function PnlCalendar({ user }) {
     setFilterTradeType('');
     setFilterSecurityType('');
     setFilterTickerName('');
+    setSearchTickerValue('');
+    setSelectedTickerValue('');
     let year = calYear;
-    await dispatch(getPnlByYear({ user_id, year }));
+    await dispatch(getPnlByYear({ year }));
     //setToggleFilter(!toggleFilter);
   }
 
@@ -481,7 +565,7 @@ export default function PnlCalendar({ user }) {
       <Flex           
         flexDirection="column"
         height="100vh"
-        backgroundColor="gray.200"
+        backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       >
 
        
@@ -490,7 +574,7 @@ export default function PnlCalendar({ user }) {
           w='full'
           flexDirection="row"
           flex="auto"
-          backgroundColor="gray.200"
+          backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
         >
           
           {getFilterComponent()}
@@ -508,7 +592,7 @@ export default function PnlCalendar({ user }) {
             <Stack
             flex="auto"
             p="1rem"
-            backgroundColor="whiteAlpha.900"
+            backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
             boxShadow="md"
             h="full"
             w="full"
@@ -527,7 +611,7 @@ export default function PnlCalendar({ user }) {
             <Stack
               flex="auto"
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
               boxShadow="md"
               h="full"
               w='full'
@@ -585,37 +669,37 @@ export default function PnlCalendar({ user }) {
                 align='stretch'
               >
               <Grid templateColumns='repeat(7, 1fr)' templateRows='repeat(1, 1fr)' gap={3}>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Sunday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Monday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Tuesday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Wednesday
                   </Center>
                 </GridItem>                
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Thursday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Friday
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Saturday
                   </Center>
@@ -664,8 +748,8 @@ export default function PnlCalendar({ user }) {
                   <AlertDialogBody>
                   {hasTradesofDay ? (
                   <TableContainer overflowY="auto" maxHeight="300px" rounded="lg">
-                    <Table size='sm' variant='striped' colorScheme='whiteAlpha'>
-                      <Thead position="sticky" top={0} bgColor="lightgrey">
+                    <Table size='sm' variant='striped' colorScheme={colorMode === 'light' ? 'whiteAlpha' : "gray.700"}>
+                      <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"}>
                         <Tr>
                           <Th>Trade<br></br>Type</Th>
                           <Th>Security<br></br>Type</Th>
@@ -715,7 +799,7 @@ export default function PnlCalendar({ user }) {
                 display='flex'
               >
               <Grid templateColumns='repeat(1, 1fr)' templateRows='repeat(1, 1fr)' gap={3}>
-                <GridItem whiteSpace='nowrap' boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg='gray.100' >
+                <GridItem whiteSpace='nowrap' boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                     Weekly Totals
                   </Center>
@@ -737,7 +821,7 @@ export default function PnlCalendar({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># Green Days</StatLabel>
@@ -745,7 +829,7 @@ export default function PnlCalendar({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># Red Days</StatLabel>
@@ -753,7 +837,7 @@ export default function PnlCalendar({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg='gray.100' >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>% Green Days</StatLabel>

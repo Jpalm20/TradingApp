@@ -1,6 +1,7 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered } from '../store/auth'
+import { searchTicker } from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
@@ -8,6 +9,8 @@ import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import '../styles/filter.css';
 import '../styles/home.css';
+import Lottie from "react-lottie";
+import animationData from "../lotties/no-data-animation";
 import {
   Flex,
   Text,
@@ -44,6 +47,7 @@ import {
   Icon,
   Select,
   chakra,
+  useColorMode,
   Box,
   Link,
   Avatar,
@@ -78,6 +82,14 @@ const CFaLock = chakra(FaLock);
 
 
 export default function Home({ user }) {
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
+    rendererSettings: {
+      // preserveAspectRatio: "xMidYMid slice"
+    }
+  };
   ChartJS.register(ArcElement, Tooltip, Legend);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = React.useRef()
@@ -88,7 +100,7 @@ export default function Home({ user }) {
   const { trades } = useSelector((state) => state.auth);
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
-  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0 && trades.stats && Object.keys(trades.stats).length > 0) ? (true):(false)); //need to look into this for home error
+  const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0 && trades.stats && Object.keys(trades.stats).length > 0) ? (true):(false)); //need to look into this for home error
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
 
   const [toggleFilter, setToggleFilter] = useState(false);
@@ -103,6 +115,64 @@ export default function Home({ user }) {
   const [filter_switch_time, setFilterSwitchDate] = useState("");
 
   const authLoading = useSelector((state) => state.auth.loading);
+
+  const { colorMode, toggleColorMode } = useColorMode();
+
+
+  const [searchValue, setSearchValue] = useState('');
+  const [searchTickerValue, setSearchTickerValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchTickerResults, setSearchTickerResults] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedTickerValue, setSelectedTickerValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      setIsLoading(true);
+      const filter = {};
+      if(searchTickerValue !== ''){
+        filter.ticker_name = searchTickerValue;
+      }
+      const response = await dispatch(searchTicker({filter})); 
+      const topResults = response.payload.tickers.map(f => [f.ticker_name]);
+      setSearchTickerResults(topResults);
+      setIsLoading(false);
+    };
+
+    if (searchTickerValue) {
+      fetchSearchResults();
+      setIsDropdownOpen(true);
+    } else {
+      setSearchTickerResults([]);
+      setIsDropdownOpen(false);
+    }
+  }, [searchTickerValue]);
+
+  const handleInputTickerFilterChange = (event) => {
+    setSelectedTickerValue('');
+    setSearchTickerValue(event.target.value);
+    setFilterTickerName(event.target.value);
+  };
+
+  const handleInputTickerFIlterClick = (event) => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleTickerSelection = (selection) => {
+    const selectionString = selection[0];
+    setSelectedTickerValue(selectionString);
+    setFilterTickerName(selectionString);
+    setIsDropdownOpen(false);
+  };
+
+  const searchTickerResultItems = searchTickerResults.map((result) => (
+    <li key={result} onClick={() => handleTickerSelection(result)}> 
+      {result}
+    </li>
+  ));
 
 
   var formatter = new Intl.NumberFormat('en-US', {
@@ -151,6 +221,10 @@ export default function Home({ user }) {
     ],
     legend: {
       position: "left",
+      textStyle: {
+        color: '#636363',
+        fontName: 'Open Sans',
+      },
     },
   };
 
@@ -189,6 +263,94 @@ export default function Home({ user }) {
     ],
     legend: {
       position: "left",
+      textStyle: {
+        color: '#636363',
+        fontName: 'Open Sans',
+      },
+    },
+  };
+
+  const pieOptionsAdark = {
+    title: "Day Trade vs Swing Trade",
+    chartArea: {
+      width: "80%",
+      height: "75%"
+    },
+    height: "100%",
+    width: "100%",
+    backgroundColor: "#1a202c",
+    titleTextStyle: {
+      color: '#dfdfdf',
+      fontName: 'Open Sans',
+      bold: true,
+      fontSize: 18,
+    },
+    is3D: false,
+    pieSliceTextStyle: {
+      color: 'black',
+    },
+    slices: [
+      {
+        color: "#FF8B8B"
+      },
+      {
+        color: "#F51313"
+      },
+      {
+        color: "#85F98B"
+      },
+      {
+        color: "#017209"
+      }
+    ],
+    legend: {
+      position: "left",
+      textStyle: {
+        color: '#dfdfdf',
+        fontName: 'Open Sans',
+      },
+    },
+  };
+
+  const pieOptionsBdark = {
+    title: "Options vs Shares",
+    chartArea: {
+      width: "80%",
+      height: "75%"
+    },
+    height: "100%",
+    width: "100%",
+    backgroundColor: "#1a202c",
+    titleTextStyle: {
+      color: '#dfdfdf',
+      fontName: 'Open Sans',
+      bold: true,
+      fontSize: 18,
+    },
+    is3D: false,
+    pieSliceTextStyle: {
+      color: 'black',
+    },
+    slices: [
+      {
+        color: "#FF8B8B"
+      },
+      {
+        color: "#F51313"
+      },
+      {
+        color: "#85F98B"
+      },
+      {
+        color: "#017209"
+      }
+    ],
+    legend: {
+      position: "left",
+      textStyle: {
+        color: '#dfdfdf',
+        fontName: 'Open Sans',
+      },
     },
   };
 
@@ -220,12 +382,12 @@ export default function Home({ user }) {
               <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
                 boxShadow="md"
                 align='center'
                 minWidth="30vh"
               >
-                <Heading class="filterheader">Filters</Heading>
+                <Heading class={colorMode === 'light' ? "filterheader" : "filterheaderdark"}>Filters</Heading>
                 <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -249,7 +411,18 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <div class="ticker-search">
+                    <Input type="name" placeholder='Enter Ticker' value={selectedTickerValue ? selectedTickerValue : searchTickerValue} onChange={handleInputTickerFilterChange} onClick={handleInputTickerFIlterClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchTickerResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>                
                 </FormControl>
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -264,7 +437,7 @@ export default function Home({ user }) {
                 </FormControl>
 
               </Box>
-                  <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter} >
+                  <Button size="sm" backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} width="full" onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
                   <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
@@ -276,7 +449,7 @@ export default function Home({ user }) {
     );
     content.push(
       <div padd class="small-component">
-      <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+      <Box flexGrow="1"  backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"} display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
       <Button ref={btnRef} colorScheme='white' onClick={onOpen}>
        <Icon as={BsFilter} color='grey' size='lg'></Icon>
       </Button>
@@ -290,7 +463,7 @@ export default function Home({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader class="smallfilterheader">Filters</DrawerHeader>
+          <DrawerHeader class={colorMode === 'light' ? "smallfilterheader" : "smallfilterheaderdark"}>Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -315,7 +488,18 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <div class="ticker-search">
+                    <Input type="name" placeholder='Enter Ticker' value={selectedTickerValue ? selectedTickerValue : searchTickerValue} onChange={handleInputTickerFilterChange} onClick={handleInputTickerFIlterClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchTickerResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>                
                 </FormControl>
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -331,7 +515,7 @@ export default function Home({ user }) {
           </DrawerBody>
 
           <DrawerFooter>
-            <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter}>
+            <Button size="sm" backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} width="full" onClick={handleSubmitFilter}>
               Submit Filter
             </Button>
             <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
@@ -364,8 +548,7 @@ export default function Home({ user }) {
     }
     await dispatch(
       getTradesFiltered({
-        filters,
-        user_id
+        filters
       })
     );
     //setToggleFilter(!toggleFilter);
@@ -378,11 +561,9 @@ export default function Home({ user }) {
     setFilterSecurityType('');
     setFilterTickerName('');
     setFilterSwitchDate('');
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
+    setSearchTickerValue('');
+    setSelectedTickerValue('');
+    await dispatch(getTrades());
     //setToggleFilter(!toggleFilter);
   }
 
@@ -409,6 +590,10 @@ export default function Home({ user }) {
     setToastErrorMessage(undefined);
   }, [toastErrorMessage, toast]);
 
+  const handleLogTrade = (e) => {
+    navigate("/logTrade");
+  }
+
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
   let [month, day, year] = currentDate.toLocaleDateString().split("/");
@@ -422,7 +607,7 @@ export default function Home({ user }) {
       <Flex           
         flexDirection="column"
         height="100vh"
-        backgroundColor="gray.200"
+        backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       >
        
         
@@ -430,7 +615,7 @@ export default function Home({ user }) {
           w='full'
           flexDirection="row"
           flex="auto"
-          backgroundColor="gray.200"
+          backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
         >
           
          {getFilterComponent()}
@@ -447,7 +632,7 @@ export default function Home({ user }) {
             <Stack
             flex="auto"
             p="1rem"
-            backgroundColor="whiteAlpha.900"
+            backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
             boxShadow="md"
             h="full"
             w="full"
@@ -466,7 +651,7 @@ export default function Home({ user }) {
             <Stack
               flex="auto"
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
               boxShadow="md"
               h="full"
               w="full"
@@ -476,7 +661,7 @@ export default function Home({ user }) {
             {hasTrades ? (
             <HStack h="full" w="full" align='top'>
             <VStack w='50%' h='100%'>
-            <Heading class="statsheader">
+            <Heading class={colorMode === 'light' ? 'statsheader' : 'statsheaderdark'}>
               <Center>
                 Statistics
               </Center>
@@ -604,7 +789,7 @@ export default function Home({ user }) {
                         ["Day Win", trades.stats.num_day_win],
                         ["Swing Win", trades.stats.num_swing_win]
                       ]}
-                      options={pieOptionsA}
+                      options={colorMode === 'light' ? pieOptionsA : pieOptionsAdark}
                     />
               </Box>
               <Box overflowX="auto" h="full" w="full" overflow="auto" rounded="lg">
@@ -617,15 +802,23 @@ export default function Home({ user }) {
                         ["Options Win", trades.stats.num_options_win],
                         ["Shares Win", trades.stats.num_shares_win]
                       ]}
-                      options={pieOptionsB}
+                      options={colorMode === 'light' ? pieOptionsB : pieOptionsBdark}
                     />
               </Box>
             </VStack>
             </HStack>
             ) : (
-              <Text>
-                No Trade Data To Display
+              <Center>
+              <VStack marginTop={20}>
+              <Lottie options={defaultOptions} height={400} width={400} />
+              <Text class='no-trade-text'>
+                No Trade Data To Display, Please Add Trades  
               </Text>
+              <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" width='100px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleLogTrade(e.target.value)}>
+                + Add Trade
+              </Button>
+              </VStack>
+              </Center>
             )}
             </Stack>
           }

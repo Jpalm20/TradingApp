@@ -79,6 +79,20 @@ class Trade:
         response = utils.execute_db(Query,Args)
         return response
     
+    def getUserTicker(userID,ticker=None):
+        
+        if (ticker == '' or ticker is None):
+            Query = """SELECT distinct ticker_name FROM Trade WHERE user_id = %s"""
+            Args = (userID,)
+            response = utils.execute_db(Query,Args)
+            return response
+        else:
+            Query = """SELECT distinct ticker_name FROM Trade WHERE user_id = %s and ticker_name like %s """
+            parameter = f"{ticker}%"
+            Args = (userID,parameter)
+            response = utils.execute_db(Query,Args)
+            return response
+    
     
 #--------Tests--------# 
 

@@ -79,8 +79,8 @@ export const update = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, first_name, last_name, email, street_address, city, state, country } = formInfo;
-        const res = await axios.post(API_URL + `user/${user_id}`, {
+        const { first_name, last_name, email, street_address, city, state, country } = formInfo;
+        const res = await axios.post(API_URL + `user`, {
           first_name,
           last_name,
           email,
@@ -110,8 +110,7 @@ export const getTrades = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id } = formInfo;
-        const res = await axios.get(API_URL + `user/trades/${user_id}`,{
+        const res = await axios.get(API_URL + `user/trades`,{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -133,8 +132,32 @@ export const getTradesFiltered = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, filters } = formInfo;
-        const res = await axios.get(API_URL + `user/trades/${user_id}`,{
+        const { filters } = formInfo;
+        const res = await axios.get(API_URL + `user/trades`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getTradesPage = createAsyncThunk(
+  "auth/getTradesPage",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { filters } = formInfo;
+        const res = await axios.get(API_URL + `user/trades/page`,{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -157,8 +180,8 @@ export const getTradesOfDateFiltered = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, filters } = formInfo;
-        const res = await axios.get(API_URL + `user/trades/${user_id}`,{
+        const { filters } = formInfo;
+        const res = await axios.get(API_URL + `user/trades`,{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -181,8 +204,8 @@ export const getPnlByYear = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, year } = formInfo;
-        const res = await axios.get(API_URL + `user/pnlbyYear/${user_id}/${year}`,{
+        const { year } = formInfo;
+        const res = await axios.get(API_URL + `user/pnlbyYear/${year}`,{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -204,8 +227,8 @@ export const getPnlByYearFiltered = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, year, filters } = formInfo;
-        const res = await axios.get(API_URL + `user/pnlbyYear/${user_id}/${year}`,{
+        const { year, filters } = formInfo;
+        const res = await axios.get(API_URL + `user/pnlbyYear/${year}`,{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -228,8 +251,7 @@ export const deleteUser = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id } = formInfo;
-        const res = await axios.delete(API_URL + `user/${user_id}`,{
+        const res = await axios.delete(API_URL + `user`,{
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -252,8 +274,8 @@ export const changePassword = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { user_id, curr_pass, new_pass_1, new_pass_2 } = formInfo;
-        const res = await axios.post(API_URL + `user/changePassword/${user_id}`,{
+        const { curr_pass, new_pass_1, new_pass_2 } = formInfo;
+        const res = await axios.post(API_URL + `user/changePassword`,{
           curr_pass,
           new_pass_1,
           new_pass_2
@@ -703,6 +725,22 @@ const authSlice = createSlice({
       state.success = false;
     },
     [confirmResetCode.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },[getTradesPage.fulfilled]: (state, action) => {
+      state.trades = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getTradesPage.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getTradesPage.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;

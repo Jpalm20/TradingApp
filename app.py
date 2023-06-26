@@ -49,22 +49,88 @@ def user_from_session():
             "result": "Authorization Header is Missing"
         }, 401    
 
-@app.route('/user/trades/<int:user_id>',methods = ['GET'])
-def user_trades(user_id):
+@app.route('/user/trades',methods = ['GET'])
+def user_trades():
     auth_header = request.headers.get('Authorization')
     if auth_header:
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
-        if eval:
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
+            user_id = message2
             if request.args is not None:
                 if request.method == 'GET':
                     return userHandler.getUserTrades(user_id, request.args) 
             else: 
                 if request.method == 'GET':
                     return userHandler.getUserTrades(user_id) 
-        else:
+        elif not eval:
             return {
                 "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+        
+        
+@app.route('/user/trades/page',methods = ['GET'])
+def user_trades_page():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
+            if request.args is not None:
+                if request.method == 'GET':
+                    user_id = message2
+                    return userHandler.getUserTradesPage(user_id, request.args) 
+            else: 
+                return {
+                    "result": "Please include Page Number and Rows per Page"
+                }, 400
+        elif not eval:
+            return {
+                "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
+            }, 401
+    else:
+        return {
+            "result": "Authorization Header is Missing"
+        }, 401
+        
+
+@app.route('/trade/searchTicker',methods = ['GET'])
+def search_user_ticker():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+        eval,message = sessionHandler.validateToken(auth_token)
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
+            if request.args is not None:
+                if request.method == 'GET':
+                    user_id = message2
+                    return tradeHandler.searchUserTicker(user_id, request.args)
+            else: 
+                if request.method == 'GET':
+                    user_id = message2
+                    return tradeHandler.searchUserTicker(user_id)
+        elif not eval:
+            return {
+                "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
             }, 401
     else:
         return {
@@ -72,21 +138,28 @@ def user_trades(user_id):
         }, 401
   
 
-@app.route('/user/pnlbyYear/<int:user_id>/<int:date_year>',methods = ['GET'])
-def pnl_year(user_id, date_year):
+@app.route('/user/pnlbyYear/<int:date_year>',methods = ['GET'])
+def pnl_year(date_year):
     auth_header = request.headers.get('Authorization')
     if auth_header:
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
-        if eval:
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
+            user_id = message2
             if request.args is not None:
                 if request.method == 'GET':
                     return userHandler.getPnLbyYear(user_id, date_year, request.args) 
-                else:
+            else:
+                if request.method == 'GET':
                     return userHandler.getPnLbyYear(user_id, date_year)
-        else:
+        elif not eval:
             return {
                 "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
             }, 401
     else:
         return {
@@ -100,12 +173,18 @@ def log_trade():
     if auth_header:
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
-        if eval:
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
             if request.method == 'POST':
-                return tradeHandler.logTrade(request.json) 
-        else:
+                user_id = message2
+                return tradeHandler.logTrade(user_id, request.json) 
+        elif not eval:
             return {
                 "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
             }, 401
     else:
         return {
@@ -164,18 +243,24 @@ def report_bug():
         }, 401
               
         
-@app.route('/user/changePassword/<int:user_id>',methods= ['POST'])
-def change_Password(user_id):
+@app.route('/user/changePassword',methods= ['POST'])
+def change_Password():
     auth_header = request.headers.get('Authorization')
     if auth_header:
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
-        if eval:
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
             if request.method == 'POST':
+                user_id = message2
                 return userHandler.changePassword(user_id, request.json) 
-        else:
+        elif not eval:
             return {
                 "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
             }, 401
     else:
         return {
@@ -202,22 +287,28 @@ def logout_session():
         }, 401
 
 
-@app.route('/user/<int:user_id>',methods = ['GET','POST','DELETE'])
-def existing_user(user_id):
+@app.route('/user',methods = ['GET','POST','DELETE'])
+def existing_user():
     auth_header = request.headers.get('Authorization')
     if auth_header:
         auth_token = auth_header.split(" ")[1]
         eval,message = sessionHandler.validateToken(auth_token)
-        if eval:
+        eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+        if eval and eval2:
+            user_id = message2
             if request.method == 'GET':
                 return userHandler.getExistingUser(user_id)
             elif request.method == 'POST':
                 return userHandler.editExistingUser(user_id,request.json)
             if request.method == 'DELETE':
                 return userHandler.deleteExistingUser(user_id)
-        else:
+        elif not eval:
             return {
                 "result": message
+            }, 401
+        else:
+            return {
+                "result": message2
             }, 401
     else:
         return {

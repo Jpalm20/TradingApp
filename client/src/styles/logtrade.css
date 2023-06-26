@@ -32,9 +32,43 @@
     background-color: #f2f2f2;
   }
 
+  .search-dropdowndark {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: rgb(66, 65, 65);
+    border: 1px solid rgb(70, 70, 70);
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  
+  .search-dropdowndark li {
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  .search-dropdowndark li:hover {
+    background-color: rgb(80, 80, 80);
+  }
+
+
 
   .logtradeheader {
     color: rgb(99, 99, 99);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 5px;
+    font-size: x-large;
+  }
+
+  .logtradeheaderdark {
+    color: rgb(223, 223, 223);
     font-family: 'Open Sans', sans-serif;
     padding-bottom: 5px;
     font-size: x-large;

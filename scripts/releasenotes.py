@@ -20,7 +20,7 @@ SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 email_subject = 'Release Notes for the Latest Version of MyTradingTracker'
 
 # Path to release notes file
-release_notes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'releasenotes.txt')
+release_notes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'releasenotes.html')
 
 # Connect to the database
 connection = mysql.connector.connect(host=DB_HOST,
@@ -43,8 +43,8 @@ with open(release_notes_file, 'r') as file:
 
 # Loop through email addresses and send release notes
 for email_address in email_addresses:
-    email_body = f"Hello,\n\nPlease find the release notes for the latest version below:\n\n{release_notes}"
-    message = MIMEText(email_body)
+    email_body = release_notes
+    message = MIMEText(email_body, 'html')
     message['Subject'] = email_subject
     message['From'] = SMTP_USERNAME
     message['To'] = email_address['email']

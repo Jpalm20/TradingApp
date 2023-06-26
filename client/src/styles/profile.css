@@ -5,6 +5,13 @@
     font-size: x-large;
   }
 
+  .profileheaderdark {
+    color: rgb(223, 223, 223);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 5px;
+    font-size: x-large;
+  }
+
   .avatar {
     background-color: rgb(99, 99, 99);
   }

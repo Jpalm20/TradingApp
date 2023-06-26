@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getTrades, getTradesFiltered , expiredLogout} from '../store/auth'
+import { getTrades, getTradesFiltered , getTradesPage, expiredLogout} from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import '../styles/summary.css';
 import '../styles/logtrade.css';
 import '../styles/filter.css';
 import { BsFilter } from "react-icons/bs";
 import axios from "axios";
+import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
 import {
   Flex,
   Text,
@@ -40,6 +41,7 @@ import {
   DrawerContent,
   DrawerCloseButton,
   Input,
+  useColorMode,
   Button,
   InputGroup,
   Stack,
@@ -61,7 +63,7 @@ import {
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { update, getTrade, reset, deleteTrade, importCsv, exportCsv } from '../store/trade';
+import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCsv } from '../store/trade';
 
 
 const CFaUserAlt = chakra(FaUserAlt);
@@ -95,7 +97,17 @@ export default function Summary({ user }) {
     setVisib(tradePayload.security_type === "Options");
   }
 
+  const { tickerNameSearch } = useSelector((state) => state.trade);
+
   const user_id = user.user_id;
+
+  const page = parseInt(trades.page);
+  const totalCount = parseInt(trades.count);
+  const numRows = parseInt(trades.numrows);
+  const pageStartOffset = (page !== 0) ? ((page*numRows)-99) : 0;
+  const pageEndOffset = totalCount < (page*numRows) ? totalCount : (page*numRows);
+  const [backPageEnable, setBackPageEnable] = useState(false);
+  const [nextPageEnable, setNextPageEnable] = useState(false);
 
   const [trade_id, setTradeID] = useState(null);
 
@@ -125,6 +137,8 @@ export default function Summary({ user }) {
 
   const [exportLoading, setExportLoading] = useState(false);
 
+  const [editLoading, setEditLoading] = useState(false);
+
   const [editButtonInstance, setEditButtonInstance] = useState(null);
 
   const [importCsvDialog, setImportDialog] = useState(false);
@@ -133,23 +147,78 @@ export default function Summary({ user }) {
   const [selectedRow, setSelectedRow] = useState([]);
   const [trade_ids, setSelectedTradeIds] = useState([]);
 
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  const [searchValue, setSearchValue] = useState('');
+  const [searchTickerValue, setSearchTickerValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchTickerResults, setSearchTickerResults] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedTickerValue, setSelectedTickerValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      setIsLoading(true);
+      const filter = {};
+      if(searchTickerValue !== ''){
+        filter.ticker_name = searchTickerValue;
+      }
+      const response = await dispatch(searchTicker({filter})); 
+      const topResults = response.payload.tickers.map(f => [f.ticker_name]);
+      setSearchTickerResults(topResults);
+      setIsLoading(false);
+    };
+
+    if (searchTickerValue) {
+      fetchSearchResults();
+      setIsDropdownOpen(true);
+    } else {
+      setSearchTickerResults([]);
+      setIsDropdownOpen(false);
+    }
+  }, [searchTickerValue]);
 
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
 
+  useEffect(() => {
+    evaluatePage();
+  }, [page,totalCount]);
+
   const evaluateSuccess = () => {
-    if(success === true && trade.result === "Trade Edited Successfully"){
+    if(success === true && trade && trade.result === "Trade Edited Successfully"){
         setToastMessage(trade.result);
     }
-    if(success === true && trade.result === "Trade Successfully Deleted"){
+    if(success === true && trade && trade.result === "Trade Successfully Deleted"){
       setToastMessage(trade.result);
     }
-    if(success === true && trade.result === "Trades Successfully Deleted"){
+    if(success === true && trade && trade.result === "Trades Successfully Deleted"){
       setToastMessage(trade.result);
     }
-    if(success === true && trade.result === "Trades Imported Successfully"){
+    if(success === true && trade && trade.result === "Trades Imported Successfully"){
       setToastMessage(trade.trades.length.toString() + " " + trade.result);
+    }
+  }
+
+  const evaluatePage = () => {
+    if(totalCount > 0){
+      const pageCount = Math.ceil(totalCount/numRows);
+      if(page === pageCount){
+        setNextPageEnable(false);
+      }else if (page < pageCount){
+        setNextPageEnable(true);
+      }
+    }else{
+      setNextPageEnable(false);
+    }
+    if(page === 1 || page === 0){
+      setBackPageEnable(false);
+    }else{
+      setBackPageEnable(true);
     }
   }
 
@@ -231,6 +300,7 @@ export default function Summary({ user }) {
 
   const handleGotoEdit = async (e, trade_id, index) => {
     e.preventDefault();
+    setEditLoading(true);
     setEditButtonInstance(index);
     const res = await dispatch(
       getTrade({
@@ -240,6 +310,7 @@ export default function Summary({ user }) {
     checkVisbility(res.payload);
     setTradeID(trade_id);
     setEditTrade(true);
+    setEditLoading(false);
   };
 
   const handleExport = async (e) => {
@@ -275,11 +346,19 @@ export default function Summary({ user }) {
         trade_ids
       })
     );
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
     dispatch(
       reset()      
     );
@@ -300,7 +379,6 @@ export default function Summary({ user }) {
     await dispatch(
         update({
           trade_id,
-          user_id,
           trade_type,
           security_type,
           ticker_name,
@@ -316,11 +394,19 @@ export default function Summary({ user }) {
         })
       );
     setEditTrade(false);
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
     dispatch(
       reset()      
     );
@@ -345,6 +431,48 @@ export default function Summary({ user }) {
     setIsDropdownOpen(false);
   }
 
+  const handleNextPage = async (e) => {
+    if(nextPageEnable){
+      const filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      filters.page = page+1;
+      filters.numrows = 100;
+      await dispatch(getTradesPage({ filters }));  
+      setSelectedRow([]);
+    }
+  }
+
+  const handleBackPage = async (e) => {
+    if(backPageEnable){
+      const filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      filters.page = page-1;
+      filters.numrows = 100;
+      await dispatch(getTradesPage({ filters }));  
+      setSelectedRow([]);
+    }
+  }
+
+  const handleInputTickerFIlterClick = (event) => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   const getFilterComponent = () => {
     let content = [];
     content.push(
@@ -353,12 +481,12 @@ export default function Summary({ user }) {
               <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
                 boxShadow="md"
                 align='center'
                 minWidth="30vh"
               >
-                <Heading class="filterheader">Filters</Heading>
+                <Heading class={colorMode === 'light' ? "filterheader" : "filterheaderdark"}>Filters</Heading>
                 <Box width="full">
                 <FormControl>
                   <FormHelperText mb={2} ml={1}>
@@ -382,10 +510,21 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <div class="ticker-search">
+                    <Input type="name" placeholder='Enter Ticker' value={selectedTickerValue ? selectedTickerValue : searchTickerValue} onChange={handleInputTickerFilterChange} onClick={handleInputTickerFIlterClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchTickerResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>
                 </FormControl>
               </Box>
-                  <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter} >
+                  <Button size="sm" backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} width="full" onClick={handleSubmitFilter} >
                     Submit Filter
                   </Button>
                   <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
@@ -397,7 +536,7 @@ export default function Summary({ user }) {
     );
     content.push(
       <div padd class="small-component">
-      <Box flexGrow="1"  backgroundColor="whiteAlpha.900" display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
+      <Box flexGrow="1"  backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"} display="flex" borderWidth="1px" h="100%" rounded="lg" overflow="hidden" alignItems="stretch">
       <Button ref={btnRef} colorScheme='white' onClick={e => setFilterDrawer(true)}>
        <Icon as={BsFilter} color='grey' size='lg'></Icon>
       </Button>
@@ -412,7 +551,7 @@ export default function Summary({ user }) {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader class="smallfilterheader">Filters</DrawerHeader>
+          <DrawerHeader class={colorMode === 'light' ? "smallfilterheader" : "smallfilterheaderdark"}>Filters</DrawerHeader>
 
           <DrawerBody>
           <FormControl>
@@ -437,12 +576,23 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Ticker *
                   </FormHelperText>
-                  <Input type="name" placeholder='Enter Ticker' value={filter_ticker_name} onChange={(e) => setFilterTickerName(e.target.value)} />
+                  <div class="ticker-search">
+                    <Input type="name" placeholder='Enter Ticker' value={selectedTickerValue ? selectedTickerValue : searchTickerValue} onChange={handleInputTickerFilterChange} onClick={handleInputTickerFIlterClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchTickerResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>               
                 </FormControl>
           </DrawerBody>
 
           <DrawerFooter>
-            <Button size="sm" backgroundColor='gray.300' width="full" onClick={handleSubmitFilter}>
+            <Button size="sm" backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} width="full" onClick={handleSubmitFilter}>
               Submit Filter
             </Button>
             <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
@@ -469,12 +619,10 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
-    await dispatch(
-      getTradesFiltered({
-        filters,
-        user_id
-      })
-    );
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));  
+    setSelectedRow([]);
     //setToggleFilter(!toggleFilter);
   }
 
@@ -484,11 +632,13 @@ export default function Summary({ user }) {
     setFilterTradeType('');
     setFilterSecurityType('');
     setFilterTickerName('');
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    );
+    setSearchTickerValue('');
+    setSelectedTickerValue('');
+    const filters = {};
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
+    setSelectedRow([]);
     //setToggleFilter(!toggleFilter);
   }
 
@@ -549,11 +699,19 @@ export default function Summary({ user }) {
       })
     );
     setImportDialog(false);
-    await dispatch(
-      getTrades({
-        user_id
-      })
-    ); 
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.page = 1;
+    filters.numrows = 100;
+    await dispatch(getTradesPage({ filters }));
     setSelectedFile(null);
   };
 
@@ -573,12 +731,6 @@ export default function Summary({ user }) {
     setSelectedRow([]);
     setTradeID(null);
   }
-
-  const [searchValue, setSearchValue] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedValue, setSelectedValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
 
   useEffect(() => {
@@ -602,7 +754,19 @@ export default function Summary({ user }) {
   const handleInputChange = (event) => {
     setSelectedValue('');
     setSearchValue(event.target.value);
+    setTickerName(event.target.value);
   };
+
+  const handleInputClick = (event) => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleInputTickerFilterChange = (event) => {
+    setSelectedTickerValue('');
+    setSearchTickerValue(event.target.value);
+    setFilterTickerName(event.target.value);
+  };
+
 
   const handleSelection = (selection) => {
     const selectionString = selection[0];
@@ -620,6 +784,19 @@ export default function Summary({ user }) {
     </li>
   ));
 
+  const handleTickerSelection = (selection) => {
+    const selectionString = selection[0];
+    setSelectedTickerValue(selectionString);
+    setFilterTickerName(selectionString);
+    setIsDropdownOpen(false);
+  };
+
+  const searchTickerResultItems = searchTickerResults.map((result) => (
+    <li key={result} onClick={() => handleTickerSelection(result)}> 
+      {result}
+    </li>
+  ));
+
   // grabbing current date to set a max to the birthday input
   const currentDate = new Date();
   let [month, day, year] = currentDate.toLocaleDateString().split("/");
@@ -633,7 +810,7 @@ export default function Summary({ user }) {
       <Flex           
         flexDirection="column"
         height="100vh"
-        backgroundColor="gray.200"
+        backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       >
 
        
@@ -644,7 +821,7 @@ export default function Summary({ user }) {
           overflowX="auto"
           overflowY="auto"
           flex="auto"
-          backgroundColor="gray.200"
+          backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
         >
           
           {getFilterComponent()}
@@ -663,7 +840,7 @@ export default function Summary({ user }) {
             <Stack
             flex="auto"
             p="1rem"
-            backgroundColor="whiteAlpha.900"
+            backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
             boxShadow="md"
             h="full"
             w="full"
@@ -682,7 +859,7 @@ export default function Summary({ user }) {
             <Stack
               flex="auto"
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "gray.800"}
               boxShadow="md"
               overflowX="auto"
               overflowY="auto"
@@ -690,13 +867,13 @@ export default function Summary({ user }) {
               w="full"
             >
             <div class='container'>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' onClick={(e) => handleSelectAll(e.target.value)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleSelectAll(e.target.value)}>
               Select All
             </Button>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300'  onClick={(e) => handleClearSelected(e.target.value)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300'  color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleClearSelected(e.target.value)}>
               Clear
             </Button>
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300' onClick={(e) => handleImportButton(e.target.value)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleImportButton(e.target.value)}>
               Import
             </Button>
             {importCsvDialog}
@@ -733,7 +910,7 @@ export default function Summary({ user }) {
                     <ListItem>Follow this layout (may require some formatting from you!)
                     <TableContainer overflowY="auto" overflowX="auto" paddingTop={2}>
                       <Table size='sm' variant='simple'>
-                        <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
+                        <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.800"} zIndex={2}>
                           <Tr>
                             <Th overflow='auto'>security_type</Th>
                             <Th overflow='auto'>ticker_name</Th>
@@ -790,7 +967,7 @@ export default function Summary({ user }) {
               </AlertDialogOverlay>
             </AlertDialog>
             {tradeLoading && exportLoading?
-              <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300'>
+              <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300'>
                 <Center>
                   <Spinner
                     thickness='2px'
@@ -802,15 +979,15 @@ export default function Summary({ user }) {
                 </Center>
               </Button>
             :
-              <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300' onClick={(e) => handleExport(e.target.value)}>
+              <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleExport(e.target.value)}>
                 Export
               </Button>
             }
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' onClick={(e) => handleLogTrade(e.target.value)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='100px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleLogTrade(e.target.value)}>
               + Add Trade
             </Button>
-            {tradeLoading && !deletealertdialog && !importCsvDialog && !exportLoading?
-              <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue'>
+            {tradeLoading && !deletealertdialog && !importCsvDialog && !exportLoading && editLoading?
+              <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue'>
                 <Center>
                   <Spinner
                     thickness='2px'
@@ -822,18 +999,29 @@ export default function Summary({ user }) {
                 </Center>
               </Button>
             :
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue' isDisabled={selectedRow.length !== 1} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue' isDisabled={selectedRow.length !== 1} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
               Edit
             </Button>
             }
-            <Button style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='red' isDisabled={selectedRow.length === 0} onClick={e => handleDeleteButton(e)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='red' isDisabled={selectedRow.length === 0} onClick={e => handleDeleteButton(e)}>
               Delete
             </Button>
             </div>
+            <HStack justifyContent='end' paddingEnd='4'>
+              <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrows' onClick={e => handleBackPage(e)}>
+
+              </VscTriangleLeft>
+              <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrows' onClick={e => handleNextPage(e)}>
+
+              </VscTriangleRight>
+              <Text class='pagenumbers'>
+                {pageStartOffset}-{pageEndOffset} of {totalCount}
+              </Text>
+            </HStack>
             {hasTrades ? (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
-              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor="gray.100">
-                <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
+              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
+                <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
                   <Tr>
                     <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
                     <Th resize='horizontal' overflow='auto'>Security<br></br>Type</Th>
@@ -874,7 +1062,7 @@ export default function Summary({ user }) {
                             setTradeID(null);
                           } 
                         }}
-                        style={{ backgroundColor: selectedRow.includes(index) ? 'lightgrey' : 'white' }}
+                        bgColor={colorMode === 'light' ? selectedRow.includes(index) ? 'lightgrey' : 'white' : selectedRow.includes(index) ? 'gray.900' : "gray.700"}
                         >
                           <Td>{trade.trade_type}</Td>
                           <Td>{trade.security_type}</Td>
@@ -895,8 +1083,8 @@ export default function Summary({ user }) {
             </TableContainer>
             ) : (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
-              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor="gray.100">
-                <Thead position="sticky" top={0} bgColor="lightgrey" zIndex={2}>
+              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
+                <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
                   <Tr>
                     <Th resize='horizontal' overflow='auto'>Trade Type</Th>
                     <Th resize='horizontal' overflow='auto'>Security Type</Th>
@@ -975,7 +1163,7 @@ export default function Summary({ user }) {
         flexDirection="column"
         width="100wh"
         height="100vh"
-        backgroundColor="gray.200"
+        backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
         justifyContent="center"
         alignItems="center"
       >
@@ -985,13 +1173,13 @@ export default function Summary({ user }) {
           justifyContent="center"
           alignItems="center"
         >
-        <Heading class="edittradeheader">Update Trade</Heading>
+        <Heading class={colorMode === 'light' ? "edittradeheader" : "edittradeheaderdark"}>Update Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {tradeLoading ? 
             <Stack
                 spacing={4}
                 p="1rem"
-                backgroundColor="whiteAlpha.900"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
                 boxShadow="md"
               >
               <Center>
@@ -1009,7 +1197,7 @@ export default function Summary({ user }) {
             <Stack
               spacing={4}
               p="1rem"
-              backgroundColor="whiteAlpha.900"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
               <Box display="flex">
@@ -1038,9 +1226,9 @@ export default function Summary({ user }) {
                     Ticker *
                   </FormHelperText>
                   <div class="ticker-search">
-                    <Input type="text" placeholder={trade.ticker_name} value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange}/>
+                    <Input type="text" placeholder={trade.ticker_name} value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange} onClick={handleInputClick}/>
                     {isDropdownOpen && (
-                      <ul class="search-dropdown">
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
                         {isLoading ? (
                           <div>Loading...</div>
                         ) : (

@@ -12,7 +12,7 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades, getUserFromSession, expiredLogout } from "./store/auth";
+import { me, getTrades, getTradesPage, getUserFromSession, expiredLogout } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
@@ -23,6 +23,7 @@ import UserProfile from "./components/UserProfile";
 import Summary from "./components/Summary";
 import ResetPass from "./components/ResetPass";
 import { TOKEN } from './store/auth';
+
 
 export default function App() {
   const [toastMessage, setToastMessage] = useState(undefined);
@@ -57,11 +58,6 @@ export default function App() {
     setDeleted(false);
   }
 
-  if(isChanged === true && changed === true){
-    setToastMessage(info.result);
-    setChanged(false);
-  }
-
   if(isReset === true && reset === true){
     setToastMessage(info.result);
     setReset(false);
@@ -85,7 +81,14 @@ export default function App() {
     async function getUserTrades(){
       if(isLoggedIn && !hasTrades && !noTrades && user.user_id){
         const user_id = user.user_id;
-        await dispatch(getTrades({ user_id }));
+        if (window.location.pathname !== "/summary"){
+          await dispatch(getTrades());
+        }else{
+          const filters = {};
+          filters.page = 1;
+          filters.numrows = 100;
+          await dispatch(getTradesPage({ filters }));
+        }
       }else if (isLoggedIn && user.user_id === undefined){
         await dispatch(getUserFromSession());
       }
@@ -117,8 +120,8 @@ export default function App() {
               <Route path="/" element={<Navigate to="/home"/>} />
               <Route path="/home" element={<Home user={user}/>} />
               <Route path="/PnlCalendar" element={<PnlCalendar user={user}/>} />
-              <Route path="/login" element={<Navigate to="/profile"/>} />
-              <Route path="/resetpassword" element={<Navigate to="/profile"/>} />
+              <Route path="/login" element={<Navigate to="/"/>} />
+              <Route path="/resetpassword" element={<Navigate to="/"/>} />
               <Route path="/signup" element={<Navigate to="/"/>} />
               <Route path="/logTrade" element={<LogTrade user={user}/>} />
               <Route path='/profile' element={<UserProfile user={user}/>} />

@@ -21,6 +21,25 @@ class User:
         response = utils.execute_db(Query,Args)
         return response  
     
+    def getTotalTrades(userID,filters):
+        
+        Query = """SELECT COUNT(*) FROM Trade WHERE user_id = %s"""
+            
+        if filters:
+            Query += " AND "
+        conditions = []
+        for key, value in filters.items():
+            if key == 'date_range':
+                continue
+            if value:
+                conditions.append(f"{key}='{value}'")
+        if 'date_range' in filters: 
+            conditions.append(filters['date_range'])
+        Query += " AND ".join(conditions)
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        return response  
+    
     def getUserbyEmail(userEmail):
         
         Query = """SELECT * FROM User WHERE email = %s"""
@@ -57,6 +76,25 @@ class User:
             conditions.append(filters['date_range'])
         Query += " AND ".join(conditions)
         Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        return response 
+    
+    def getUserTradesPage(userID,limit,offset,filters):
+        
+        Query = """SELECT * FROM Trade WHERE user_id = %s"""
+        if filters:
+            Query += " AND "
+        conditions = []
+        for key, value in filters.items():
+            if key == 'date_range':
+                continue
+            if value:
+                conditions.append(f"{key}='{value}'")
+        if 'date_range' in filters: 
+            conditions.append(filters['date_range'])
+        Query += " AND ".join(conditions)
+        Query += " LIMIT %s OFFSET %s"
+        Args = (userID,limit,offset)
         response = utils.execute_db(Query,Args)
         return response 
     

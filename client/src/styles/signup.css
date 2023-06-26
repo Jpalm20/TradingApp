@@ -5,4 +5,11 @@
   font-size: x-large;
 }
 
+.signupheaderdark {
+  color: rgb(223, 223, 223);
+  font-family: 'Open Sans', sans-serif;
+  padding-bottom: 5px;
+  font-size: x-large;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');
