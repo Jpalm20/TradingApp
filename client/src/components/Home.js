@@ -9,8 +9,8 @@ import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import '../styles/filter.css';
 import '../styles/home.css';
-import Lottie from "react-lottie";
-import animationData from "../lotties/no-data-animation";
+import Lottie from "lottie-react";
+import animationData from "../lotties/no-data-animation.json";
 import {
   Flex,
   Text,
@@ -82,14 +82,6 @@ const CFaLock = chakra(FaLock);
 
 
 export default function Home({ user }) {
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: animationData,
-    rendererSettings: {
-      // preserveAspectRatio: "xMidYMid slice"
-    }
-  };
   ChartJS.register(ArcElement, Tooltip, Legend);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = React.useRef()
@@ -810,7 +802,7 @@ export default function Home({ user }) {
             ) : (
               <Center>
               <VStack marginTop={20}>
-              <Lottie options={defaultOptions} height={400} width={400} />
+              <Lottie animationData={animationData} loop={true} />
               <Text class='no-trade-text'>
                 No Trade Data To Display, Please Add Trades  
               </Text>
