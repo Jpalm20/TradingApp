@@ -31,6 +31,7 @@ def logoutSession(auth_token):
         }
     else:
         return {
+            "result": "There was an issue expiring this Session, User not Logged Out",
             "expiration": str(responseSession[0][0]['expiration']),
             "now" : str(datetime.now())
         }, 400

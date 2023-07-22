@@ -102,7 +102,7 @@ export default function Signup() {
     if (toastErrorMessage) {
       toast({
         title: toastErrorMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'error',
         duration: 3000,
         isClosable: true

@@ -21,6 +21,18 @@ def transformNewTrade(request):
     if request['security_type'] == "Shares":
         request['expiry'] = None
         request['strike'] = None
+    if 'trade_date' in request and request['trade_date'] == "":
+        request['trade_date'] = None
+    if 'pnl' in request and request['pnl'] == "":
+        request['pnl'] = None
+    if 'units' in request and request['units'] == "":
+        request['units'] = None
+    if 'strike' in request and request['strike'] == "":
+        request['strike'] = None
+    if 'percent_wl' in request and request['percent_wl'] == "":
+        request['percent_wl'] = None
+    if 'buy_value' in request and request['buy_value'] == "":
+        request['buy_value'] = None
     return request
 
 def transformEditTrade(request):

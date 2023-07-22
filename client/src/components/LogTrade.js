@@ -37,7 +37,13 @@ import {
   FormControl,
   FormHelperText,
   InputRightElement,
-  ButtonGroup
+  ButtonGroup,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  HStack
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
@@ -67,7 +73,7 @@ export default function LogTrade({ user }) {
   const [strike, setStrike] = useState("");
   const [buy_value, setBuyValue] = useState("");
   const [units, setUnits] = useState("");
-  const [rr, setRR] = useState("");
+  const [rr, setRR] = useState("1:1");
   const [pnl, setPNL] = useState("");
   const [percent_wl, setPercentWL] = useState("");
   const [comments, setComments] = useState(""); 
@@ -78,10 +84,19 @@ export default function LogTrade({ user }) {
 
   const { colorMode, toggleColorMode } = useColorMode();
 
+  const format = (val1,val2) => val1 + ":" + val2;
+  const [risk, setRisk] = useState("1");
+  const [reward, setReward] = useState("1");
 
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
+
+  useEffect(() => {
+    if(risk > 0 && reward > 0){
+      setRR(format(risk,reward));
+    }
+  }, [risk, reward]); 
 
   const evaluateSuccess = () => {
     if(success === true && trade.result === "Trade Logged Successfully"){
@@ -93,7 +108,7 @@ export default function LogTrade({ user }) {
     if (toastMessage) {
       toast({
         title: toastMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'success',
         duration: 3000,
         isClosable: true
@@ -116,7 +131,7 @@ export default function LogTrade({ user }) {
     if (toastErrorMessage) {
       toast({
         title: toastErrorMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'error',
         duration: 3000,
         isClosable: true
@@ -134,10 +149,12 @@ export default function LogTrade({ user }) {
     setStrike("");
     setBuyValue("");
     setUnits("");
-    setRR("");
+    setRR("1:1");
     setPNL("");
     setPercentWL("");
     setComments("");
+    setRisk("1");
+    setReward("1");
   }
 
   const changeShowOptions = (e) => {
@@ -172,6 +189,7 @@ export default function LogTrade({ user }) {
         comments
       })
     );
+    clearFormStates();
     const filters = {};
     filters.page = 1;
     filters.numrows = 100;
@@ -302,7 +320,7 @@ export default function LogTrade({ user }) {
         alignItems="center"
       >
         <Heading class={colorMode === 'light' ? "logtradeheader" : "logtradeheaderdark"}>Log Trade</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
+        <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {tradeLoading ? 
             <Stack
                 spacing={4}
@@ -431,10 +449,37 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Risk/Reward Ratio (R:R) *
                   </FormHelperText>
-                  <Input
-                    type="name"
-                    onChange={(e) => setRR(e.target.value)}
-                  />
+                  <HStack>
+                  <NumberInput
+                    onChange={(stringValue) => setRisk(stringValue)}
+                    value = {risk}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  <Text>
+                    :
+                  </Text>
+                  <NumberInput
+                    onChange={(stringValue) => setReward(stringValue)}
+                    value = {reward}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  </HStack>
               </FormControl>
 
               <FormControl>

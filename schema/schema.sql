@@ -51,3 +51,39 @@ CREATE TABLE `Trade` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `trade_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+CREATE TABLE `Accountvalue` (
+  `accountvalue_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `accountvalue` float NOT NULL,
+  `date` date NOT NULL,
+  PRIMARY KEY (`accountvalue_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `accountvalue_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3270 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+ALTER TABLE user ADD COLUMN account_value_optin BOOLEAN DEFAULT FALSE;
+
+UPDATE user SET account_value_optin = false;
+
+SET GLOBAL time_zone = '+00:00';
+SET time_zone = '+00:00';
+
+CREATE EVENT CopyAccountValueEvent
+ON SCHEDULE EVERY 24 HOUR
+STARTS '2023-07-06 00:00:00'
+DO
+  CALL CopyAccountValue();
+
+CREATE PROCEDURE `CopyAccountValue`()
+BEGIN
+	-- Insert account value for the current day
+	INSERT INTO accountvalue (user_id, date, accountvalue)
+	SELECT u.user_id, UTC_DATE(), COALESCE(av.accountvalue, 0)
+	FROM user u
+	LEFT JOIN accountvalue av ON av.user_id = u.user_id AND av.date = UTC_DATE() - INTERVAL 1 DAY
+    WHERE NOT EXISTS (
+		SELECT 1 FROM accountvalue WHERE user_id = u.user_id AND date = UTC_DATE()
+	);
+END
+

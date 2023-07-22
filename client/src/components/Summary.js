@@ -50,6 +50,11 @@ import {
   Select,
   Toast,
   useToast,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
   chakra,
   Box,
   Link,
@@ -83,7 +88,7 @@ export default function Summary({ user }) {
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
-  const hasTrades = ((trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
+  const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
   const hasTrade = ((trade && Object.keys(trade).length > 2) ? (true):(false));
 
@@ -101,13 +106,21 @@ export default function Summary({ user }) {
 
   const user_id = user.user_id;
 
-  const page = parseInt(trades.page);
-  const totalCount = parseInt(trades.count);
-  const numRows = parseInt(trades.numrows);
+  const [filters, setFilters] = useState({});
+
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [numRows, setNumRows] = useState(0);
   const pageStartOffset = (page !== 0) ? ((page*numRows)-99) : 0;
   const pageEndOffset = totalCount < (page*numRows) ? totalCount : (page*numRows);
   const [backPageEnable, setBackPageEnable] = useState(false);
   const [nextPageEnable, setNextPageEnable] = useState(false);
+
+  useEffect(() => {
+    setPage(parseInt(trades.page));
+    setTotalCount(parseInt(trades.count));
+    setNumRows(parseInt(trades.numrows));
+  }, [trades]); 
 
   const [trade_id, setTradeID] = useState(null);
 
@@ -158,6 +171,15 @@ export default function Summary({ user }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const format = (val1,val2) => val1 + ":" + val2;
+  const [risk, setRisk] = useState("1");
+  const [reward, setReward] = useState("1");
+
+  useEffect(() => {
+    if(risk > 0 && reward > 0){
+      setRR(format(risk,reward));
+    }
+  }, [risk, reward]); 
 
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -226,7 +248,7 @@ export default function Summary({ user }) {
     if (toastMessage) {
       toast({
         title: toastMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'success',
         duration: 3000,
         isClosable: true
@@ -252,7 +274,7 @@ export default function Summary({ user }) {
     if (toastErrorMessage) {
       toast({
         title: toastErrorMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'error',
         duration: 3000,
         isClosable: true
@@ -275,6 +297,43 @@ export default function Summary({ user }) {
     setPercentWL("");
     setComments("");
   }
+
+  const keysToSkip = ['page', 'numrows'];
+  
+  const appliedFilters = Object.entries(filters).filter(([key]) => !keysToSkip.includes(key)).map(([key, value]) => (
+    <Tr key={key}>
+      <Td>{key}</Td>
+      <Td>{value}</Td>
+    </Tr>
+  ));
+
+
+  const appliedFiltersComponent = () => {
+    let content = [];
+    if(Object.keys(filters).length !== 0){
+      content.push(
+        <TableContainer>
+          <Table variant='simple' size='sm'>
+            <TableCaption placement="top">
+                Applied Filters
+            </TableCaption>
+            <Thead>
+              <Tr>
+                <Th>Filter</Th>
+                <Th>Value</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {appliedFilters}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      );
+    }
+    return content
+  };
+
+
   
   const changeShowOptions = (e) => {
     const choiceOptions = document.getElementById("optionsSelection");
@@ -530,6 +589,7 @@ export default function Summary({ user }) {
                   <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
+                {appliedFiltersComponent()}
               </Stack>
             </Box>
           </div>
@@ -589,6 +649,7 @@ export default function Summary({ user }) {
                     )}
                   </div>               
                 </FormControl>
+                {appliedFiltersComponent()}
           </DrawerBody>
 
           <DrawerFooter>
@@ -623,6 +684,7 @@ export default function Summary({ user }) {
     filters.numrows = 100;
     await dispatch(getTradesPage({ filters }));  
     setSelectedRow([]);
+    setFilters(filters);
     //setToggleFilter(!toggleFilter);
   }
 
@@ -638,6 +700,7 @@ export default function Summary({ user }) {
     filters.page = 1;
     filters.numrows = 100;
     await dispatch(getTradesPage({ filters }));
+    setFilters({});
     setSelectedRow([]);
     //setToggleFilter(!toggleFilter);
   }
@@ -716,7 +779,7 @@ export default function Summary({ user }) {
   };
 
   const handleSelectAll = (e) => {
-    if (hasTrades && trades.trades.length == 1) {
+    if (hasTrades && trades.trades.length === 1) {
       setSelectedRow([]);
       setTradeID(trades.trades[0].trade_id);
       setSelectedRow([...selectedRow, 0]);
@@ -1174,7 +1237,7 @@ export default function Summary({ user }) {
           alignItems="center"
         >
         <Heading class={colorMode === 'light' ? "edittradeheader" : "edittradeheaderdark"}>Update Trade</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
+        <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {tradeLoading ? 
             <Stack
                 spacing={4}
@@ -1312,11 +1375,37 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Risk/Reward Ratio (R:R) *
                   </FormHelperText>
-                  <Input
-                    type="name"
-                    placeholder={trade.rr}
-                    onChange={(e) => setRR(e.target.value)}
-                  />
+                  <HStack>
+                  <NumberInput
+                    onChange={(stringValue) => setRisk(stringValue)}
+                    defaultValue = {trade.rr.split(":")[0]}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  <Text>
+                    :
+                  </Text>
+                  <NumberInput
+                    onChange={(stringValue) => setReward(stringValue)}
+                    defaultValue = {trade.rr.split(":")[1]}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  </HStack>
               </FormControl>
 
               <FormControl>
