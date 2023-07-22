@@ -129,7 +129,7 @@ export default function Login() {
     if (toastErrorMessage) {
       toast({
         title: toastErrorMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'error',
         duration: 3000,
         isClosable: true
@@ -142,7 +142,7 @@ export default function Login() {
     if (toastMessage) {
       toast({
         title: toastMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'success',
         duration: 3000,
         isClosable: true

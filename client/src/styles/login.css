@@ -18,10 +18,22 @@
   font-size: small;
 }
 
+.toggle-account-value-tracking {
+  font-family: 'Open Sans', sans-serif;
+  padding-left: 6px;
+  font-size: small;
+}
+
 .top-right-component {
   position: absolute;
   top: 0;
   right: 0;
+  padding-top: 7px;
+  padding-right: 7px;
+}
+
+.top-right-component:hover {
+  color: rgb(136, 136, 136);
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

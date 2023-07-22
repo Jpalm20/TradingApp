@@ -8,6 +8,9 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
   trades: [],
+  stats: {},
+  preferences: {},
+  accountValues: {},
   tradesOfDay: [],
   pnlYTD: {},
   user: {},
@@ -104,6 +107,50 @@ export const update = createAsyncThunk(
   }
 );
 
+export const getPreferences = createAsyncThunk(
+  "auth/getPreferences",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.get(API_URL + `user/preferences`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getAccountValues = createAsyncThunk(
+  "auth/getAccountValues",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.get(API_URL + `user/accountValue`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const getTrades = createAsyncThunk(
   "auth/getTrades",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -134,6 +181,52 @@ export const getTradesFiltered = createAsyncThunk(
       if (token) {
         const { filters } = formInfo;
         const res = await axios.get(API_URL + `user/trades`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getTradesStats = createAsyncThunk(
+  "auth/getTradesStats",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.get(API_URL + `user/trades/stats`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getTradesStatsFiltered = createAsyncThunk(
+  "auth/getTradesStatsFiltered",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { filters } = formInfo;
+        const res = await axios.get(API_URL + `user/trades/stats`,{
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -268,6 +361,30 @@ export const deleteUser = createAsyncThunk(
 );
 
 
+export const toggleAvTracking = createAsyncThunk(
+  "auth/toggleAvTracking",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.post(API_URL + `user/preferences/toggleav`,{  
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
 export const changePassword = createAsyncThunk(
   "auth/changePassword",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -279,6 +396,32 @@ export const changePassword = createAsyncThunk(
           curr_pass,
           new_pass_1,
           new_pass_2
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+export const setAccountValue = createAsyncThunk(
+  "auth/setAccountValue",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { accountvalue } = formInfo;
+        const res = await axios.post(API_URL + `user/accountValue`,{
+          accountvalue
         },{
           headers: {
             Authorization: "Bearer " + token,
@@ -447,6 +590,57 @@ const authSlice = createSlice({
       state.success = true;
       state.error = false;
     },
+    [getPreferences.fulfilled]: (state, action) => {
+      state.preferences = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getPreferences.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getPreferences.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [toggleAvTracking.fulfilled]: (state, action) => {
+      state.preferences = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [toggleAvTracking.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [toggleAvTracking.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getAccountValues.fulfilled]: (state, action) => {
+      state.accountValues = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getAccountValues.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getAccountValues.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [getTrades.fulfilled]: (state, action) => {
       state.trades = action.payload;
       state.success = true;
@@ -477,6 +671,40 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getTradesFiltered.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getTradesStats.fulfilled]: (state, action) => {
+      state.stats = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getTradesStats.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getTradesStats.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getTradesStatsFiltered.fulfilled]: (state, action) => {
+      state.stats = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getTradesStatsFiltered.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getTradesStatsFiltered.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;
@@ -615,10 +843,25 @@ const authSlice = createSlice({
       state.info = action.payload;
       state.loading = false;
     },
+    [setAccountValue.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [setAccountValue.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [setAccountValue.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [deleteUser.fulfilled]: (state, action) => {
       state.loading = false;
-      state.success = false;
-      state.user = null;
+      state.success = true;
       state.trades = null;
       state.pnlYTD = null;
       state.tradesOfDay = null;
@@ -655,6 +898,9 @@ const authSlice = createSlice({
       state.success = true;
       state.user = null;
       state.trades = null;
+      state.stats = null;
+      state.preferences = null;
+      state.accountValues = null;
       state.tradesOfDay = null;
       state.pnlYTD = null;
       state.info = null;
@@ -675,6 +921,9 @@ const authSlice = createSlice({
       state.success = true;
       state.user = null;
       state.trades = null;
+      state.stats = null;
+      state.preferences = null;
+      state.accountValues = null;
       state.tradesOfDay = null;
       state.pnlYTD = null;
       state.info = null;
@@ -728,7 +977,8 @@ const authSlice = createSlice({
       state.error = true;
       state.info = action.payload;
       state.loading = false;
-    },[getTradesPage.fulfilled]: (state, action) => {
+    },
+    [getTradesPage.fulfilled]: (state, action) => {
       state.trades = action.payload;
       state.success = true;
       state.loading = false;

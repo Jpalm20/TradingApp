@@ -120,6 +120,8 @@ export default function PnlCalendar({ user }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const [filters, setFilters] = useState({});
+
 
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -165,6 +167,40 @@ export default function PnlCalendar({ user }) {
       {result}
     </li>
   ));
+
+  const appliedFilters = Object.entries(filters).map(([key, value]) => (
+    <Tr key={key}>
+      <Td>{key}</Td>
+      <Td>{value}</Td>
+    </Tr>
+  ));
+
+
+  const appliedFiltersComponent = () => {
+    let content = [];
+    if(Object.keys(filters).length !== 0){
+      content.push(
+        <TableContainer>
+          <Table variant='simple' size='sm'>
+            <TableCaption placement="top">
+                Applied Filters
+            </TableCaption>
+            <Thead>
+              <Tr>
+                <Th>Filter</Th>
+                <Th>Value</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {appliedFilters}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      );
+    }
+    return content
+  };
+
 
 
   var formatter = new Intl.NumberFormat('en-US', {
@@ -424,6 +460,7 @@ export default function PnlCalendar({ user }) {
                   <Button size="sm" colorScheme='red' width="full" onClick={handleClearFilter} >
                     Clear Filter
                   </Button>
+                {appliedFiltersComponent()}
               </Stack>
             </Box>
           </div>
@@ -483,6 +520,7 @@ export default function PnlCalendar({ user }) {
                     )}
                   </div>   
                 </FormControl>
+                {appliedFiltersComponent()}
           </DrawerBody>
 
           <DrawerFooter>
@@ -520,6 +558,7 @@ export default function PnlCalendar({ user }) {
         year
       })
     );
+    setFilters(filters);
     //setToggleFilter(!toggleFilter);
   }
 
@@ -533,6 +572,7 @@ export default function PnlCalendar({ user }) {
     setSelectedTickerValue('');
     let year = calYear;
     await dispatch(getPnlByYear({ year }));
+    setFilters({});
     //setToggleFilter(!toggleFilter);
   }
 
@@ -550,7 +590,7 @@ export default function PnlCalendar({ user }) {
     if (toastErrorMessage) {
       toast({
         title: toastErrorMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'error',
         duration: 3000,
         isClosable: true

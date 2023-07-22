@@ -40,3 +40,21 @@ def generate_code():
     for _ in range(6):
         code += str(random.randint(0, 9))  # Generate a random digit (0-9)
     return code
+
+
+def add_filters_to_query_sring(query,filters):
+    queryString = query
+    if filters:
+        queryString += " AND "
+    conditions = []
+    for key, value in filters.items():
+        if key == 'date_range':
+            continue
+        if value:
+            conditions.append(f"{key}='{value}'")
+    if 'date_range' in filters: 
+        conditions.append(filters['date_range'])
+    queryString += " AND ".join(conditions)
+    return queryString
+
+        

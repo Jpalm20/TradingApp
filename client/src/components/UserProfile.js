@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/profile.css';
+import { FiSettings } from "react-icons/fi";
 import {
   Flex,
   Text,
@@ -13,7 +14,10 @@ import {
   chakra,
   Select,
   Spinner,
+  SimpleGrid,
+  FormLabel,
   Box,
+  Icon,
   Toast,
   useToast,
   Link,
@@ -39,7 +43,7 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser, changePassword } from '../store/auth';
+import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
@@ -53,6 +57,8 @@ export default function UserProfile({ user }) {
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
+  const { preferences } = useSelector((state) => state.auth); 
+  const hasPreferences = ((preferences && Object.keys(preferences).length > 0) ? (true):(false)); 
   const { success } = useSelector((state) => state.auth);
   const toast = useToast();
   const navigate = useNavigate();
@@ -79,6 +85,9 @@ export default function UserProfile({ user }) {
   const [showNewPassword2, setShowNewPassword2] = useState(false);
 
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
+
+  const [settingsPopUp, setSettingsPopUp] = useState(false);
+
   
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -103,6 +112,11 @@ export default function UserProfile({ user }) {
       setChangePwAlertDialog(false);
       handleLogout();
       onClose();
+    }else if (success === true && info && info.result && info.result === "User Successfully Deleted"){
+      setToastMessage(info.result);
+      dispatch(expiredLogout());    
+      setDeleteAlertDialog(false);
+      onClose();
     }
   }
 
@@ -110,7 +124,7 @@ export default function UserProfile({ user }) {
     if (toastMessage) {
       toast({
         title: toastMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'success',
         duration: 3000,
         isClosable: true
@@ -133,7 +147,7 @@ export default function UserProfile({ user }) {
     if (toastErrorMessage) {
       toast({
         title: toastErrorMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'error',
         duration: 3000,
         isClosable: true
@@ -180,6 +194,18 @@ export default function UserProfile({ user }) {
     onClose();
   };
 
+  const handleSettingsPopUp = (e) => {
+    setSettingsPopUp(true);
+  };
+
+  const handleCloseSettingsPopUp = (e) => {
+    setSettingsPopUp(false);
+  };
+
+  const handleToggleAvTracking = async (e) => {
+    await dispatch(toggleAvTracking());
+  }
+
   const handleLogout = async () => {
     setSelectPage(true);
     selectUpdateInfo(false);
@@ -195,9 +221,6 @@ export default function UserProfile({ user }) {
   const handleConfirmDelete = async (e) => {
     e.preventDefault();
     await dispatch(deleteUser());
-    handleLogout(e);    
-    setDeleteAlertDialog(false);
-    onClose();
   };
 
   const handleCancelDelete = (e) => {
@@ -258,7 +281,7 @@ export default function UserProfile({ user }) {
           <Avatar class='avatar' />
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Profile Information</Heading>
           <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
-          {authLoading && !changepwdialog && !deletealertdialog? 
+          {authLoading && !changepwdialog && !deletealertdialog && !settingsPopUp? 
             <Stack
                 spacing={4}
                 p="1rem"
@@ -285,10 +308,59 @@ export default function UserProfile({ user }) {
 
               <Card>
               <div class='top-right-component'>
-                <HStack padding="5px" rounded="xl">
-                  <Text class="toggle-dark-mode">{colorMode === 'light' ? 'Light' : 'Dark'} Mode</Text>
-                  <Switch onChange={toggleColorMode} paddingTop="5px" paddingBottom="5px" paddingRight="6px"/>
-                </HStack>
+                <Icon padding="5px" as={FiSettings} boxSize={8} onClick={handleSettingsPopUp}/>
+                <AlertDialog
+                  motionPreset='slideInBottom'
+                  isOpen={settingsPopUp}
+                  leastDestructiveRef={cancelRef}
+                  onClose={e => handleCloseSettingsPopUp(e)}
+                  isCentered={true}
+                  closeOnOverlayClick={true}
+                >
+                {authLoading ?
+                <AlertDialogOverlay>
+                  <AlertDialogContent>
+                  <Center>
+                    <Spinner
+                        thickness='4px'
+                        speed='0.65s'
+                        emptyColor='gray.200'
+                        color='blue.500'
+                        size='xl'
+                    />
+                  </Center>
+                  </AlertDialogContent>
+                </AlertDialogOverlay>
+                :
+                  <AlertDialogOverlay>
+                  <AlertDialogContent maxWidth='350px' minWidth='300px' overflowX='auto' minHeight='250px'>
+                    <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                      Settings
+                    </AlertDialogHeader>
+
+                    <AlertDialogBody display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+                    <SimpleGrid rows={1}>
+                      <FormLabel paddingBottom={1} display="flex" alignItems="center">
+                        <Text>{colorMode === 'light' ? 'Light' : 'Dark'} Mode</Text>
+                        <Switch marginLeft={3} isChecked={colorMode === 'light' ? false : true} onChange={toggleColorMode}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
+                        <Text>Balance Tracking {hasPreferences && preferences.account_value_optin === 1 ? 'On' : 'Off'}</Text>
+                        <Switch marginLeft={3} isChecked={hasPreferences && preferences.account_value_optin === 1 ? true : false} onChange={handleToggleAvTracking}/>
+                      </FormLabel>
+                    </SimpleGrid>
+                    </AlertDialogBody>
+
+                    <AlertDialogFooter>
+                      <Button ref={cancelRef} onClick={handleCloseSettingsPopUp}>
+                        Done
+                      </Button>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                  </AlertDialogOverlay>
+                }
+                </AlertDialog>
               </div>
                 <CardBody>
                   <Stack divider={<StackDivider />} spacing='3'>

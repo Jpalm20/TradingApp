@@ -37,6 +37,27 @@ padding-bottom: 5px
   padding-bottom: 10px;
 }
 
+.avfeatureflagprompt {
+  color: rgb(99, 99, 99);
+  font-family: 'Open Sans', sans-serif;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.avfeatureflagpromptdark {
+  font-size: large;
+  color: rgb(223, 223, 223);
+  font-family: 'Open Sans', sans-serif;
+  margin-top: 20px;
+  padding-bottom: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
 
   
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

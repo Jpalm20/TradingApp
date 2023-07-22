@@ -12,7 +12,7 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades, getTradesPage, getUserFromSession, expiredLogout } from "./store/auth";
+import { me, getTrades, getTradesPage, getUserFromSession, expiredLogout, getTradesStats, getPreferences, getAccountValues } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
@@ -32,6 +32,7 @@ export default function App() {
   const { user } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
   const { trades } = useSelector((state) => state.auth);
+  const { stats } = useSelector((state) => state.auth);
   const authError = useSelector((state) => state.auth.error);
   const tradeError = useSelector((state) => state.trade.error);
   const tradeInfo = useSelector((state) => state.trade.info);
@@ -46,8 +47,8 @@ export default function App() {
   const isReset = ((info && Object.keys(info).length === 1 && info.result && info.result === "Password Reset Successfully") ? (true):(false));
   const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false)); 
+  const hasStats = ((stats && stats.stats && Object.keys(stats.stats).length > 0) ? (true):(false));
   
-
   if(isRegistered === true && registered === true){
     setToastMessage(info.result);
     setRegistered(false);
@@ -79,10 +80,12 @@ export default function App() {
   
   useEffect(() => {
     async function getUserTrades(){
-      if(isLoggedIn && !hasTrades && !noTrades && user.user_id){
+      if(isLoggedIn && !hasTrades && !noTrades && user.user_id && !hasStats){
         const user_id = user.user_id;
-        if (window.location.pathname !== "/summary"){
-          await dispatch(getTrades());
+        if (window.location.pathname === "/home" || window.location.pathname === "/"){
+          await dispatch(getTradesStats());
+          await dispatch(getPreferences());
+          await dispatch(getAccountValues());
         }else{
           const filters = {};
           filters.page = 1;
@@ -94,13 +97,13 @@ export default function App() {
       }
     }
     getUserTrades();
-  }, [isLoggedIn,hasTrades,user]);
+  }, [isLoggedIn,hasTrades,user,hasStats]);
 
   useEffect(() => {
     if (toastMessage) {
       toast({
         title: toastMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'success',
         duration: 3000,
         isClosable: true

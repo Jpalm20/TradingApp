@@ -12,6 +12,11 @@ sys.path.append( mymodule_dir )
 import trade
 
 script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import accountvalue
+
+script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'validators',)
 sys.path.append( mymodule_dir )
 import tradeValidator
@@ -32,8 +37,16 @@ def logTrade(user_id, requestBody):
                         requestTransformed['percent_wl'],requestTransformed['comments'])
     response = trade.Trade.addTrade(newTrade)
     if response[0]:
-        return response, 400
+        return {
+            "result": response
+        }, 400
     else:
+        if ('trade_date' in requestTransformed and requestTransformed['trade_date'] is not None) and ('pnl' in requestTransformed and requestTransformed['pnl'] is not None):
+            avresponse = accountvalue.Accountvalue.handleAddTrade(response[1])
+            if avresponse[0]:
+                return {
+                    "result": avresponse
+                }, 400
         return {
             "trade_id": response[1],
             "user_id": newTrade.userID,
@@ -72,7 +85,9 @@ def getExistingTrade(trade_id):
             "comments": response[0][0]['comments']
         }
     else:
-        return response, 400
+        return {
+            "result": response
+        }, 400
     
 
 def searchUserTicker(user_id, filter=None):
@@ -97,12 +112,52 @@ def searchUserTicker(user_id, filter=None):
 
 
 def editExistingTrade(trade_id,requestBody):
+    og_trade_info = getExistingTrade(trade_id)
     response = tradeValidator.validateEditTrade(requestBody)
     if response != True:
         return response
     requestTransformed = tradeTransformer.transformEditTrade(requestBody)
     response = trade.Trade.updateTrade(trade_id,requestTransformed)
     response = trade.Trade.getTrade(trade_id)
+    if ('pnl' in requestBody and requestBody['pnl'] != ""): #if updating pnl
+        if ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #pnl already exists, need to take difference and add it amonstg the days
+            pnl_diff = float(requestBody['pnl']) - float(og_trade_info['pnl'])
+            avresponse = accountvalue.Accountvalue.handlePnlUpdate(pnl_diff,trade_id)
+            if avresponse[0]:
+                return {
+                    "result": avresponse
+                }, 400
+        elif ('pnl' in og_trade_info and og_trade_info['pnl'] is None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #pnl was null originally, need to set value to full pnl not different from adding trade 
+            avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
+            if avresponse[0]:
+                return {
+                    "result": avresponse
+                }, 400
+    if('trade_date' in requestBody and requestBody['trade_date'] != ""):#if updating trade_date
+        if ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #trade_date already exists, need to add to extra days or subtract from days dependng on if updated date is further back or closer to today
+            if (requestBody['trade_date'] < og_trade_info['trade_date']):
+                first_date = requestBody['trade_date']
+                second_date = og_trade_info['trade_date']
+                avresponse = accountvalue.Accountvalue.handleDateUpdateAdd(first_date,second_date,trade_id)
+                if avresponse[0]:
+                    return {
+                        "result": avresponse
+                    }, 400
+            elif (requestBody['trade_date'] > og_trade_info['trade_date']):
+                second_date = requestBody['trade_date']
+                first_date = og_trade_info['trade_date']
+                avresponse = accountvalue.Accountvalue.handleDateUpdateSub(first_date,second_date,trade_id)
+                if avresponse[0]:
+                    return {
+                        "result": avresponse
+                    }, 400
+        elif ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is None): #trade_date was null originally, need to set all days with pnl fully as normal
+            avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
+            if avresponse[0]:
+                return {
+                    "result": avresponse
+                }, 400
+        
     if 'trade_id' in response[0][0]:
         return {
             "trade_id": response[0][0]['trade_id'],
@@ -122,21 +177,42 @@ def editExistingTrade(trade_id,requestBody):
             "result": "Trade Edited Successfully"
         }
     else:
-        return response, 400
+        return {
+            "result": response
+        }, 400
 
 def deleteExistingTrade(trade_id):
+    trade_info = getExistingTrade(trade_id)
+    if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
+        avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
+        if avresponse[0]:
+            return {
+                "result": avresponse
+            }, 400
     response = trade.Trade.deleteTrade(trade_id)
     if response[0]:
-        return response, 400
+        return {
+            "result": response
+        }, 400
     else:
         return {
             "result": "Trade Successfully Deleted"
         }
         
 def deleteTrades(requestBody):
+    for trade_id in requestBody:
+        trade_info = getExistingTrade(trade_id)
+        if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
+            avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
+            if avresponse[0]:
+                return {
+                    "result": avresponse
+                }, 400
     response = trade.Trade.deleteTradesByID(requestBody)
     if response[0]:
-        return response, 400
+        return {
+            "result": response
+        }, 400
     else:
         if len(requestBody) == 1:
             return {
@@ -156,7 +232,9 @@ def importCsv(file, user_id):
     if eval:
         eval, response = trade.Trade.addTrades(result)
         if not eval:
-            return response, 400
+            return {
+                "result": response
+            }, 400
         else:
             return {
                 "result": "Trades Imported Successfully", 

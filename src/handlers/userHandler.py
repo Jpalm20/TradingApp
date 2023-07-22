@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 import sys
+from urllib import request
 import numpy
 from datetime import date, datetime, timedelta
 import json
@@ -12,6 +13,11 @@ script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import user
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import accountvalue
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -63,10 +69,12 @@ def registerUser(requestBody):
     requestTransformed = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
                         requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
-                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'])
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None)
     response = user.User.addUser(newUser)
     if response[0]:
-        return response, 400
+        return {
+            "result": response
+        }, 400
     else:
         return {
             "user_id": response[1],
@@ -128,7 +136,9 @@ def changePassword(user_id, requestBody):
             hashPass = userTransformer.hashPassword(requestBody['new_pass_1'])
             response = user.User.updatePass(user_id,hashPass)
             if response[0]:
-                return response, 400
+                return {
+                    "result": response
+                }, 400
             else:
                 return {
                     "result": "Password Successfully Changed"
@@ -137,6 +147,7 @@ def changePassword(user_id, requestBody):
             return {
                 "result": "Incorrect Current Password, Please Try Again"
             }, 403
+        
         
 def getExistingUser(user_id):
     response = user.User.getUserbyID(user_id)
@@ -153,7 +164,39 @@ def getExistingUser(user_id):
             "country": response[0][0]['country']
         }
     else:
-        return response, 400
+        return {
+            "result": response
+        }, 400
+        
+        
+def getUserPreferences(user_id):
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        return {
+            "account_value_optin": response[0][0]['account_value_optin']
+        }
+    else:
+        return {
+            "result": response
+        }, 400
+        
+        
+def toggleAvTracking(user_id):
+    response = user.User.toggleAccountValueFeatureOptin(user_id) 
+    if response[0]:
+        return {
+            "result": response
+        }, 400   
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        return {
+            "account_value_optin": response[0][0]['account_value_optin']
+        }
+    else:
+        return {
+            "result": response
+        }, 400
+        
     
 def getUserFromSession(auth_token):
     response = user.User.getUserBySessionToken(auth_token)
@@ -170,7 +213,9 @@ def getUserFromSession(auth_token):
             "country": response[0][0]['country']
         }
     else:
-        return response, 400
+        return {
+            "result": response
+        }, 400
 
 def editExistingUser(user_id,requestBody):
     response = userValidator.validateEditUser(requestBody)
@@ -193,14 +238,18 @@ def editExistingUser(user_id,requestBody):
             "result": "User Edited Successfully"
         }
     else:
-        return response, 400
+        return {
+            "result": response
+        }, 400
 
 def deleteExistingUser(user_id):
     response = trade.Trade.deleteUserTrades(user_id)
     response = session.Session.deleteUserSessions(user_id)
     response = user.User.deleteUser(user_id)
     if response[0]:
-        return response, 400
+        return {
+            "result": response
+        }, 400
     else:
         return {
             "result": "User Successfully Deleted"
@@ -221,7 +270,7 @@ def reportBug(requestBody, email):
    
 
 def getUserTrades(user_id,filters=None):
-    if filters is None:
+    if not filters:
         response = user.User.getUserTrades(user_id)
     else:
         filterBody = filters.to_dict()
@@ -377,8 +426,80 @@ def getUserTrades(user_id,filters=None):
             }
         }
         
+        
+def getUserTradesStats(user_id,filters=None):
+    if not filters:
+        response = user.User.getUserTradesStats(user_id)
+    else:
+        filterBody = filters.to_dict()
+        if 'date_range' in filters:
+            filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        response = user.User.getUserTradesStatsFilter(user_id,filterBody)
+    if len(response[0]) != 0 and "numTrades" in response[0][0]:   
+        avgWin = 0
+        avgLoss = 0
+        winPercent = 0         
+        if(response[0][0]['numWins'] > 0):
+            avgWin = response[0][0]['sumWin']/response[0][0]['numWins']
+        if(response[0][0]['numLosses'] > 0):
+            avgLoss = response[0][0]['sumLoss']/response[0][0]['numLosses']  
+        if(response[0][0]['numTrades'] > 0):
+            winPercent = (response[0][0]['numWins']/response[0][0]['numTrades'])*100
+        return {
+            "stats": {
+                "num_trades": response[0][0]['numTrades'],
+                "num_losses": response[0][0]['numLosses'],
+                "num_wins": response[0][0]['numWins'],
+                "num_day": response[0][0]['numDT'],
+                "num_day_win": response[0][0]['numDTWin'],
+                "num_day_loss": response[0][0]['numDTLoss'],
+                "num_swing": response[0][0]['numSwT'],
+                "num_swing_win": response[0][0]['numSwTWin'],
+                "num_swing_loss": response[0][0]['numSwTLoss'],
+                "num_options": response[0][0]['numOT'],
+                "num_options_win": response[0][0]['numOTWin'],
+                "num_options_loss": response[0][0]['numOTLoss'],
+                "num_shares": response[0][0]['numShT'],
+                "num_shares_win": response[0][0]['numShTWin'],
+                "num_shares_loss": response[0][0]['numShTLoss'],
+                "largest_win": response[0][0]['largestWin'],
+                "largest_loss": response[0][0]['largestLoss'],
+                "avg_win": "{:.2f}".format(avgWin),
+                "avg_loss": "{:.2f}".format(avgLoss),
+                "total_pnl": response[0][0]['totalPNL'],
+                "win_percent": "{:.2f}".format(winPercent)
+            }
+        }
+    else:
+        return {
+            "stats": {
+                "num_trades": 0,
+                "num_losses": 0,
+                "num_wins": 0,
+                "num_day": 0,
+                "num_day_win": 0,
+                "num_day_loss": 0,
+                "num_swing": 0,
+                "num_swing_win": 0,
+                "num_swing_loss": 0,
+                "num_options": 0,
+                "num_options_win": 0,
+                "num_options_loss": 0,
+                "num_shares": 0,
+                "num_shares_win": 0,
+                "num_shares_loss": 0,
+                "largest_win": 0,
+                "largest_loss": 0,
+                "avg_win": "{:.2f}".format(0),
+                "avg_loss": "{:.2f}".format(0),
+                "total_pnl": 0,
+                "win_percent": "{:.2f}".format(0)
+            }
+        }
+        
+        
 def getUserTradesPage(user_id,filters):
-    if filters is None:
+    if not filters:
         return {
             "result": "Please include Page Number and Rows per Page"
         }, 400
@@ -409,7 +530,7 @@ def getUserTradesPage(user_id,filters):
 
         
 def getPnLbyYear(user_id, date_year, filters=None):
-    if filters is None:
+    if not filters:
         response = user.User.getUserPnLbyYear(user_id, date_year)
     else:
         response = user.User.getUserPnLbyYearFilter(user_id, date_year, filters)
@@ -559,6 +680,70 @@ def resetPassword(requestBody):
             
     else:
         return validateCodeResponse
+    
+    
+def setAccountValue(user_id,requestBody):
+    if('accountvalue' not in requestBody):
+        return {
+            "result": "Must Include an Account Value"
+        }, 400
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        if(response[0][0]['account_value_optin'] == 0):
+            response = user.User.accountValueFeatureOptin(user_id) 
+            if response[0]:
+                return {
+                    "result": response
+                }, 400   
+        response = accountvalue.Accountvalue.getAccountValue(date.today(),user_id)
+        if(len(response[0]) != 0 and 'accountvalue_id' in response[0][0]):
+            response = accountvalue.Accountvalue.updateAccountValue(response[0][0]['accountvalue_id'],requestBody['accountvalue'])
+            if response[0]:
+                return {
+                    "result": response
+                }, 400
+        else:
+            newAccountValueEntry = accountvalue.Accountvalue(None,user_id,requestBody['accountvalue'],date.today())
+            response = accountvalue.Accountvalue.addAccountValue(newAccountValueEntry)
+            if response[0]:
+                return {
+                    "result": response
+                }, 400
+        return {
+            "result": "Account Value Set Successfully"
+        }
+    else:
+        return {
+            "result": response
+        }, 400
+        
+
+def getAccountValue(user_id):
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        if(response[0][0]['account_value_optin'] == 0):
+            date_range = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+            result = [{'accountvalue': 0, 'date': date.strftime('%Y-%m-%d')} for date in date_range]
+            return {
+                "accountvalues": result
+            }
+        else:
+            response = accountvalue.Accountvalue.getAccountValues(user_id)
+            if len(response[0]) != 0 and "accountvalue" in response[0][0]:
+                data = {row['date'] : row['accountvalue'] for row in response[0]}
+                date_range = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+                result = [{'accountvalue': data.get(date, 0), 'date': date.strftime('%Y-%m-%d')} for date in date_range]
+                return {
+                    "accountvalues": result
+                }
+            else:
+                return {
+                    "result": response
+                }, 400
+    else:
+        return {
+            "result": response
+        }, 400
 
   
 

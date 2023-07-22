@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, getTradesPage, reportBug } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues } from '../store/auth'
 import '../styles/navbar.css';
 import { 
   Flex, 
@@ -92,7 +92,7 @@ export default function Navbar({ user }) {
     if (toastMessage) {
       toast({
         title: toastMessage,
-        variant: 'top-accent',
+        variant: 'solid',
         status: 'success',
         duration: 3000,
         isClosable: true
@@ -103,7 +103,9 @@ export default function Navbar({ user }) {
 
   const handleHome = async (e) => {
     navigate("/");
-    await dispatch(getTrades());
+    await dispatch(getTradesStats());
+    await dispatch(getPreferences());
+    await dispatch(getAccountValues());
   }
 
   const handlePnlCalendar = async (e) => {
