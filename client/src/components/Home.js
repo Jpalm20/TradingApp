@@ -1051,7 +1051,7 @@ export default function Home({ user }) {
                     height="400px"
                     data={
                       [["Date", "Value"], 
-                      ...accountValues.accountvalues.map(({ date, accountvalue }) => [new Date(date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }), accountvalue]),
+                      ...accountValues.accountvalues.map(({ date, accountvalue }) => [new Date(date).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit' }), accountvalue]),
                     ]}
                     options={colorMode === 'light' ? lineOptions : lineOptionsDark}
                   />
