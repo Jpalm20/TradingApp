@@ -136,8 +136,6 @@ export default function Home({ user }) {
     }
   }, [accountValues,todayAccountValue]); 
 
-  console.log(todayAccountValue);
-  console.log(accountvalue);
 
   const handleOptInButton = (e) => {
     e.preventDefault();
@@ -151,8 +149,6 @@ export default function Home({ user }) {
         accountvalue
       })
     );
-    console.log(todayAccountValue);
-    console.log(accountvalue);
     featureFlag ? setAccountvalue(todayAccountValue) : setAccountvalue("0");
   };
 
