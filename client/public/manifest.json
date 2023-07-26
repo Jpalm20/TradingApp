@@ -1,19 +1,19 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "MyTradingTracker",
+  "name": "MyTradingTracker App",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "mttlogo.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "mttlogo.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "274x274"
     },
     {
-      "src": "logo512.png",
+      "src": "mttlogo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
