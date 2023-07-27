@@ -16,6 +16,7 @@ import {
   useToast,
   Select,
   useColorMode,
+  Image,
   Switch,
   Textarea,
   AlertDialog,
@@ -35,7 +36,7 @@ import {
 import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
 import { useSelector, useDispatch } from "react-redux";
-
+import logo from '../logo/mttlogo512.png';
 
 const PAGE_NAME = [
   {page:"/home", text: "Home"}, 
@@ -176,17 +177,30 @@ export default function Navbar({ user }) {
     <Flex justify="space-between" bg={colorMode === 'light' ? "blue.500" : "blue.200"} >
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <HStack >
-        <Heading class={colorMode === 'light' ? 'my-trading-tracker' : 'my-trading-trackerdark'} m={2} size='lg' onClick={(e) => handleHome(e.target.value)}>
+        <Image
+          class='logo'
+          src={logo}
+          alt='Error'
+          onClick={(e) => handleHome(e.target.value)}
+        />
+        <Heading class={colorMode === 'light' ? 'my-trading-tracker' : 'my-trading-trackerdark'} onClick={(e) => handleHome(e.target.value)}>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
         {displayPageName()}
         </HStack>
       ) : (
-        <Heading class={colorMode === 'light' ? 'my-trading-tracker-alone' : 'my-trading-tracker-alonedark'} m={2} size='lg'>
+        <HStack >
+        <Image
+          class='logo-alone'
+          src={logo}
+          alt='Error'
+        />
+        <Heading class={colorMode === 'light' ? 'my-trading-tracker-alone' : 'my-trading-tracker-alonedark'}>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
+        </HStack>
       )}
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <><Spacer /><Center >
