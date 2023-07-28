@@ -87,3 +87,11 @@ BEGIN
 	);
 END
 
+
+-- 07-27-2023
+
+ALTER TABLE user ADD COLUMN created_at DATETIME DEFAULT (UTC_TIMESTAMP);
+
+UPDATE user SET created_at = UTC_TIMESTAMP();
+
+

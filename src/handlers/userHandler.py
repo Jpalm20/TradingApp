@@ -114,7 +114,8 @@ def validateUser(requestBody):
                     "street_address": response[0][0]['street_address'],
                     "city": response[0][0]['city'],
                     "state": response[0][0]['state'],
-                    "country": response[0][0]['country']
+                    "country": response[0][0]['country'],
+                    "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
                 }
         else:
             return {
@@ -161,7 +162,8 @@ def getExistingUser(user_id):
             "street_address": response[0][0]['street_address'],
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
-            "country": response[0][0]['country']
+            "country": response[0][0]['country'],
+            "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
         }
     else:
         return {
@@ -210,7 +212,8 @@ def getUserFromSession(auth_token):
             "street_address": response[0][0]['street_address'],
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
-            "country": response[0][0]['country']
+            "country": response[0][0]['country'],
+            "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
         }
     else:
         return {
@@ -235,6 +238,7 @@ def editExistingUser(user_id,requestBody):
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
             "country": response[0][0]['country'],
+            "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S"),
             "result": "User Edited Successfully"
         }
     else:

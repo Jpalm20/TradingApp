@@ -308,9 +308,13 @@ export default function Navbar({ user }) {
         <Divider orientation="vertical" colorScheme="gray"/>
         <span>
         <HStack>
+        {user.first_name !== "" ? (
         <Text class={colorMode === 'light' ? "username" : "usernamedark"}>
           {user.first_name}
         </Text>
+        ) : (
+          null
+        )}
         <Link as={RouterLink} to="/profile">
           <Avatar size="sm" m={2} />
         </Link>
