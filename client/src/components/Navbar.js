@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues } from '../store/auth'
 import '../styles/navbar.css';
+import moment from 'moment'; 
+import 'moment-timezone';
 import { 
   Flex, 
   Heading, 
@@ -75,6 +77,12 @@ export default function Navbar({ user }) {
 
   const { colorMode, toggleColorMode } = useColorMode();
 
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
@@ -106,7 +114,9 @@ export default function Navbar({ user }) {
     navigate("/");
     await dispatch(getTradesStats());
     await dispatch(getPreferences());
-    await dispatch(getAccountValues());
+    const filters = {};
+    filters.date = returnInTZ(today.toISOString());
+    await dispatch(getAccountValues({ filters }));
   }
 
   const handlePnlCalendar = async (e) => {

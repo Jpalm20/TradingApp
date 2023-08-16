@@ -1,6 +1,7 @@
 import os
 import sys
 from unittest import result
+from datetime import date, datetime, timedelta
 import csv
 from flask import make_response
 
@@ -42,6 +43,12 @@ def logTrade(user_id, requestBody):
         }, 400
     else:
         if ('trade_date' in requestTransformed and requestTransformed['trade_date'] is not None) and ('pnl' in requestTransformed and requestTransformed['pnl'] is not None):
+            if (datetime.strptime(requestTransformed['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                fdresponse = accountvalue.Accountvalue.insertFutureDay(user_id,requestTransformed['trade_date'])
+                if fdresponse[0]:
+                    return {
+                    "result": fdresponse
+                }, 400
             avresponse = accountvalue.Accountvalue.handleAddTrade(response[1])
             if avresponse[0]:
                 return {
@@ -127,7 +134,13 @@ def editExistingTrade(trade_id,requestBody):
                 return {
                     "result": avresponse
                 }, 400
-        elif ('pnl' in og_trade_info and og_trade_info['pnl'] is None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #pnl was null originally, need to set value to full pnl not different from adding trade 
+        elif ('pnl' in og_trade_info and og_trade_info['pnl'] is None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #pnl was null originally, need to set value to full pnl not different from adding trade
+            if (datetime.strptime(og_trade_info['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],og_trade_info['trade_date'])
+                if fdresponse[0]:
+                    return {
+                    "result": fdresponse
+                }, 400
             avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
             if avresponse[0]:
                 return {
@@ -135,6 +148,12 @@ def editExistingTrade(trade_id,requestBody):
                 }, 400
     if('trade_date' in requestBody and requestBody['trade_date'] != ""):#if updating trade_date
         if ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #trade_date already exists, need to add to extra days or subtract from days dependng on if updated date is further back or closer to today
+            if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
+                if fdresponse[0]:
+                    return {
+                    "result": fdresponse
+                }, 400
             if (requestBody['trade_date'] < og_trade_info['trade_date']):
                 first_date = requestBody['trade_date']
                 second_date = og_trade_info['trade_date']
@@ -152,6 +171,12 @@ def editExistingTrade(trade_id,requestBody):
                         "result": avresponse
                     }, 400
         elif ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is None): #trade_date was null originally, need to set all days with pnl fully as normal
+            if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
+                if fdresponse[0]:
+                    return {
+                    "result": fdresponse
+                }, 400
             avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
             if avresponse[0]:
                 return {

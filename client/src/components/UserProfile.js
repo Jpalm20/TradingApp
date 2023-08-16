@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/profile.css';
 import { FiSettings } from "react-icons/fi";
+import moment from 'moment'; 
+import 'moment-timezone';
 import {
   Flex,
   Text,
@@ -87,7 +89,6 @@ export default function UserProfile({ user }) {
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
   const [settingsPopUp, setSettingsPopUp] = useState(false);
-
   
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -100,6 +101,12 @@ export default function UserProfile({ user }) {
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
+
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
 
 
   const evaluateSuccess = () => {
@@ -411,7 +418,7 @@ export default function UserProfile({ user }) {
                         Member Since
                       </Heading>
                       <Text pt='2' fontSize='sm'>
-                        {Date(user.created_at).toLocaleString().slice(0, 15)}
+                        {returnInTZ(user.created_at)}
                       </Text>
                     </Box>
                   </Stack>

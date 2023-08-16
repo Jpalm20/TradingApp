@@ -1,5 +1,8 @@
 import os
 import sys
+import re
+from datetime import date, datetime, timedelta
+
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -73,4 +76,34 @@ def validateResetPassword(request):
         return {
             "result": "Both New Password Entries Must Match, Please Try Again"
         }, 403 
+    return True
+
+def validateSetAccountValue(request):
+    if('accountvalue' not in request):
+        return {
+            "result": "Must Include an Account Value"
+        }, 400
+    if('date' not in request or re.match(r'^\d{4}-\d{2}-\d{2}$', request['date']) is None):
+        return {
+            "result": "Missing or invalid 'date' key, Please provide the Date where you wish to update your Account Value in YYYY-MM-DD format"
+        }, 400
+    if('date' in request and datetime.strptime(request['date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
+        return {
+            "result": "Invalid date. The 'date' provided is more than one day into the future of the current UTC date."
+        }, 400
+    return True
+
+def validateGetAccountValue(request):
+    if('date' not in request or re.match(r'^\d{4}-\d{2}-\d{2}$', request['date']) is None):
+        return {
+            "result": "Missing or invalid 'date' key, Please provide the Date where you wish to start from in YYYY-MM-DD format"
+        }, 400
+    if('date' in request and datetime.strptime(request['date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
+        return {
+            "result": "Invalid date. The 'date' provided is more than one day into the future of the current UTC date."
+        }, 400
+    if('time_frame' in request and request['time_frame'] not in ['Day', 'Week', 'Month', 'Year']):
+        return {
+            "result": "Invalid Time Frame. The 'time frame' provided is not a valid option (Day, Week, Month, Year)"
+        }, 400
     return True

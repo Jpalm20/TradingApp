@@ -1,5 +1,8 @@
 import os
 import sys
+from datetime import date, datetime, timedelta
+import calendar
+
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -58,3 +61,40 @@ def transformDateRange(date_range):
     elif date_range == "Day":
         query += "DATE_ADD(NOW(), INTERVAL -1 DAY)"
     return query
+
+def transformAVtf(today_date,time_frame):
+    last_dates = []
+    if time_frame == 'Day':
+        last_dates = [datetime.strptime(today_date, '%Y-%m-%d').date() - timedelta(days=i) for i in range(6, -1, -1)]
+    elif time_frame == 'Week':
+        if datetime.strptime(today_date, '%Y-%m-%d').date().weekday() > 0:
+            last_dates.append(datetime.strptime(today_date, '%Y-%m-%d').date())
+            for i in range(6):
+                num_days = datetime.strptime(today_date, '%Y-%m-%d').date().weekday() + (i * 7)
+                prev_week_last_day = datetime.strptime(today_date, '%Y-%m-%d').date() - timedelta(days=num_days)
+                last_dates.append(prev_week_last_day)
+        else:
+            for i in range(7):
+                num_days = datetime.strptime(today_date, '%Y-%m-%d').date().weekday() + (i * 7)
+                prev_week_last_day = datetime.strptime(today_date, '%Y-%m-%d').date() - timedelta(days=num_days)
+                last_dates.append(prev_week_last_day)
+        last_dates.reverse()
+    elif time_frame == 'Month':
+        last_dates.append(datetime.strptime(today_date, '%Y-%m-%d').date())
+        for i in range(1, 7):
+            year = datetime.strptime(today_date, '%Y-%m-%d').date().year
+            month = datetime.strptime(today_date, '%Y-%m-%d').date().month - i
+            while month <= 0:
+                year -= 1
+                month += 12
+            day = calendar.monthrange(year, month)[1]
+            last_dates.append(date(year, month, day))
+        last_dates.reverse()
+    elif time_frame == 'Year':
+        last_dates.append(datetime.strptime(today_date, '%Y-%m-%d').date())
+        for i in range(1, 7):
+            year = datetime.strptime(today_date, '%Y-%m-%d').date().year - i
+            last_day = date(year, 12, 31)
+            last_dates.append(last_day)
+        last_dates.reverse()
+    return last_dates

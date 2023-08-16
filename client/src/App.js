@@ -1,5 +1,7 @@
 import React, { useEffect, Fragment, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import moment from 'moment'; 
+import 'moment-timezone';
 import {
   BrowserRouter as Router,
   Routes,
@@ -77,6 +79,14 @@ export default function App() {
     }
   }
 
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
+  const today = returnInTZ(new Date().toISOString());
+
   
   useEffect(() => {
     async function getUserTrades(){
@@ -85,7 +95,9 @@ export default function App() {
         if (window.location.pathname === "/home" || window.location.pathname === "/"){
           await dispatch(getTradesStats());
           await dispatch(getPreferences());
-          await dispatch(getAccountValues());
+          const filters = {};
+          filters.date = today
+          await dispatch(getAccountValues({ filters }));
         }else{
           const filters = {};
           filters.page = 1;

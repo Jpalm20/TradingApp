@@ -135,10 +135,12 @@ export const getAccountValues = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
+        const { filters } = formInfo;
         const res = await axios.get(API_URL + `user/accountValue`,{
           headers: {
             Authorization: "Bearer " + token,
-          }
+          },
+          params: filters
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
@@ -419,9 +421,10 @@ export const setAccountValue = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { accountvalue } = formInfo;
+        const { accountvalue, date } = formInfo;
         const res = await axios.post(API_URL + `user/accountValue`,{
-          accountvalue
+          accountvalue,
+          date
         },{
           headers: {
             Authorization: "Bearer " + token,
