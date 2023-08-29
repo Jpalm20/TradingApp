@@ -95,3 +95,14 @@ ALTER TABLE user ADD COLUMN created_at DATETIME DEFAULT (UTC_TIMESTAMP);
 UPDATE user SET created_at = UTC_TIMESTAMP();
 
 
+-- 08-15-2023
+
+CREATE TABLE `Journalentry` (
+  `journalentry_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `entrytext` mediumtext NOT NULL,
+  `date` date NOT NULL,
+  PRIMARY KEY (`journalentry_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `journalentry_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci

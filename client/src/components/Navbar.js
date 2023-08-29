@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues, getJournalEntries } from '../store/auth'
 import '../styles/navbar.css';
 import moment from 'moment'; 
 import 'moment-timezone';
@@ -124,6 +124,12 @@ export default function Navbar({ user }) {
     await dispatch(getPnlByYear({ year }));
   }
 
+  const handleJournal = async (e) => {
+    navigate("/journal");
+    const date = returnInTZ(today.toISOString());
+    await dispatch(getJournalEntries({ date })); 
+  }
+
   const handleTrades = async (e) => {
     navigate("/summary");
     const filters = {};
@@ -224,6 +230,9 @@ export default function Navbar({ user }) {
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value)}>
               Calendar
+            </Button>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleJournal(e.target.value)}>
+              Journal
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
               Provide Feedback

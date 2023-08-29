@@ -11,6 +11,7 @@ const initialState = {
   stats: {},
   preferences: {},
   accountValues: {},
+  journalentries: {},
   tradesOfDay: [],
   pnlYTD: {},
   user: {},
@@ -583,6 +584,77 @@ export const getUserFromSession = createAsyncThunk(
   }
 );
 
+export const getJournalEntries = createAsyncThunk(
+  "auth/getJournalEntries", 
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { date } = formInfo;
+        const res = await axios.get(API_URL + `journal/${date}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const postJournalEntry = createAsyncThunk(
+  "auth/postJournalEntry", 
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { date, entry } = formInfo;
+        const res = await axios.post(API_URL + `journal/${date}`,{
+          entry
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const clearJournalEntry = createAsyncThunk(
+  "auth/clearJournalEntry", 
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { date } = formInfo;
+        const res = await axios.delete(API_URL + `journal/${date}`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -640,6 +712,55 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getAccountValues.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getJournalEntries.fulfilled]: (state, action) => {
+      state.journalentries = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getJournalEntries.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getJournalEntries.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [postJournalEntry.fulfilled]: (state, action) => {
+      state.success = true;
+      state.loading = false;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [postJournalEntry.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [postJournalEntry.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [clearJournalEntry.fulfilled]: (state, action) => {
+      state.success = true;
+      state.loading = false;
+      state.info = action.payload;
+      state.error = false;
+    },
+    [clearJournalEntry.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [clearJournalEntry.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;
@@ -904,6 +1025,7 @@ const authSlice = createSlice({
       state.stats = null;
       state.preferences = null;
       state.accountValues = null;
+      state.journalentries = null;
       state.tradesOfDay = null;
       state.pnlYTD = null;
       state.info = null;
@@ -927,6 +1049,7 @@ const authSlice = createSlice({
       state.stats = null;
       state.preferences = null;
       state.accountValues = null;
+      state.journalentries = null;
       state.tradesOfDay = null;
       state.pnlYTD = null;
       state.info = null;

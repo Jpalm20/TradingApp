@@ -6,6 +6,7 @@ import base64
 import src.handlers.userHandler as userHandler
 import src.handlers.tradeHandler as tradeHandler
 import src.handlers.sessionHandler as sessionHandler
+import src.handlers.journalentryHandler as journalentryHandler
 import src.models.accountvalue as accountValue
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
@@ -674,6 +675,41 @@ def reset_password():
     try:
         if request.method == 'POST':
             return userHandler.resetPassword(request.json)
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        return {
+            "result": error_message
+        }, 400
+        
+
+@app.route('/journal/<string:date>',methods = ['GET','POST','DELETE'])
+def existing_journalentry(date):
+    try:
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+            eval,message = sessionHandler.validateToken(auth_token)
+            eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+            if eval and eval2:
+                user_id = message2
+                if request.method == 'GET':
+                    return journalentryHandler.getJournalEntries(user_id, date)
+                elif request.method == 'POST':
+                    return journalentryHandler.postJournalEntry(user_id, date, request.json)
+                if request.method == 'DELETE':
+                    return journalentryHandler.deleteJournalEntry(user_id, date)
+            elif not eval:
+                return {
+                    "result": message
+                }, 401
+            else:
+                return {
+                    "result": message2
+                }, 401
+        else:
+            return {
+                "result": "Authorization Header is Missing"
+            }, 401
     except Exception as e:
         error_message = "An error occurred: " + str(e)
         return {
