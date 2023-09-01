@@ -184,7 +184,7 @@ class User:
     
     def addUser(newUser):
 
-        Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT)"""
+        Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT)"""
         Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)

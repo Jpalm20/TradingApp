@@ -29,7 +29,7 @@ def validateNewTrade(request):
         return {
             "result": "Must Include a Valid Risk to Reward Ratio"
         }, 400
-    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d') >= datetime.now()):
+    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
         return {
             "result": "Trade Closure Date Can't be in the Future"
         }, 400
@@ -54,7 +54,7 @@ def validateEditTrade(request):
         return {
             "result": "Must Include a Valid Risk to Reward Ratio"
         }, 400
-    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d') >= datetime.now()):
+    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
         return {
             "result": "Trade Closure Date Can't be in the Future"
         }, 400
@@ -87,7 +87,7 @@ def validateNewTradeFromCsv(request):
         return {
             "result": "Must Include a Valid Ticker Symbol"
         }, 400
-    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d') >= datetime.now()):
+    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
         return {
             "result": "Trade Closure Date Can't be in the Future"
         }, 400

@@ -6,6 +6,8 @@ import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import { BiPencil } from "react-icons/bi";
+import moment from 'moment'; 
+import 'moment-timezone';
 import '../styles/filter.css';
 import '../styles/home.css';
 import Lottie from "lottie-react";
@@ -126,8 +128,61 @@ export default function Home({ user }) {
   const format = (val) => `$` + val
   const parse = (val) => val.replace(/^\$/, '')
 
-  const today = new Date().toISOString().split('T')[0];
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
+  const today = returnInTZ(new Date().toISOString());
   const [todayAccountValue, setTodayAccountValue] = useState(0);
+  const [filter_av_time, setFilterAvDate] = useState("");
+  const [avtimeloading, setAvTimeLoading] = useState(false);
+
+  useEffect(() => {
+    evaluateAvTime();
+  }, [filter_av_time]); 
+
+  const evaluateAvTime = async () => {
+    if(filter_av_time !== ''){
+      setAvTimeLoading(true);
+      const filters = {};
+      filters.date = today
+      filters.time_frame = filter_av_time;
+      await dispatch(getAccountValues({ filters }));
+      setAvTimeLoading(false);
+    }
+  }
+  
+  const setDateFormat = () => {
+    let dateFormat = {
+      timeZone: "UTC",
+      month: "2-digit",
+      day: "2-digit",
+    };
+    if (filter_av_time === "Month") {
+      // Format date differently for Month
+      dateFormat = {
+        timeZone: "UTC",
+        month: "short",
+        year: "numeric",
+      };
+    } else if (filter_av_time === "Year") {
+      // Format date differently for Year
+      dateFormat = {
+        timeZone: "UTC",
+        year: "numeric",
+      };
+    } else {
+      // Default format for Day
+      dateFormat = {
+        timeZone: "UTC",
+        month: "2-digit",
+        day: "2-digit",
+      };
+    }
+    return dateFormat
+  }
 
   useEffect(() => {
     if(hasAVs && featureFlag){
@@ -144,11 +199,14 @@ export default function Home({ user }) {
 
   const handleConfirmOptIn = async (e) => {
     e.preventDefault();
+    const date = today;
     await dispatch(
       setAccountValue({
-        accountvalue
+        accountvalue,
+        date
       })
     );
+    setFilterAvDate("");
     featureFlag ? setAccountvalue(todayAccountValue) : setAccountvalue("0");
   };
 
@@ -167,8 +225,10 @@ export default function Home({ user }) {
       setToastMessage(info.result);
       setOptInAlertDialog(false);
       onClose();
+      const filters = {};
+      filters.date = today
       await dispatch(getPreferences());
-      await dispatch(getAccountValues());
+      await dispatch(getAccountValues({ filters }));
     }
   }
 
@@ -195,7 +255,6 @@ export default function Home({ user }) {
   const authLoading = useSelector((state) => state.auth.loading);
 
   const { colorMode, toggleColorMode } = useColorMode();
-
 
   const [searchValue, setSearchValue] = useState('');
   const [searchTickerValue, setSearchTickerValue] = useState('');
@@ -391,7 +450,7 @@ export default function Home({ user }) {
       color: '#636363',
       fontName: 'Open Sans',
       bold: true,
-      fontSize: 18,
+      fontSize: 16,
     },
     hAxis: {
       textStyle: {
@@ -512,7 +571,7 @@ export default function Home({ user }) {
       color: '#dfdfdf',
       fontName: 'Open Sans',
       bold: true,
-      fontSize: 18,
+      fontSize: 16,
     },
     hAxis: {
       textStyle: {
@@ -825,7 +884,7 @@ export default function Home({ user }) {
           >
           
           <Box overflowX="auto" flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
-          {authLoading && !optInAlertDialog ?
+          {authLoading && !optInAlertDialog && !avtimeloading ?
             <Stack
             flex="auto"
             p="1rem"
@@ -897,7 +956,7 @@ export default function Home({ user }) {
                     </StatNumber>                     
                     )}
                     </div>
-                    <StatHelpText>{new Date(today).toLocaleDateString('en-US', { timeZone: 'UTC'})}</StatHelpText>
+                    <StatHelpText>{today}</StatHelpText>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1033,16 +1092,40 @@ export default function Home({ user }) {
             </HStack>
             <Box overflowX="auto" h="full" w="full" overflow="auto" rounded="lg">
               {featureFlag ? (
-                <Chart
-                  chartType="LineChart"
-                  width="100%"
-                  height="400px"
-                  data={
-                    [["Date", "Value"], 
-                    ...accountValues.accountvalues.map(({ date, accountvalue }) => [new Date(date).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit' }), accountvalue]),
-                  ]}
-                  options={colorMode === 'light' ? lineOptions : lineOptionsDark}
-                />
+                <div className="chart-container">
+                  {!avtimeloading ? (
+                  <>
+                  <Chart
+                    chartType="LineChart"
+                    width="100%"
+                    height="400px"
+                    data={
+                      [["Date", "Value"], 
+                      ...accountValues.accountvalues.map(({ date, accountvalue }) => [new Date(date).toLocaleDateString('en-US', setDateFormat()), accountvalue]),
+                    ]}
+                    options={colorMode === 'light' ? lineOptions : lineOptionsDark}
+                  />
+                  <div className="select-bar">
+                    <Select variant='flushed' size="sm" defaultValue='Day' value={filter_av_time} onChange={(e) => setFilterAvDate(e.target.value)}>
+                      <option value="Day">Day</option>
+                      <option value="Week">Week</option>
+                      <option value="Month">Month</option>
+                      <option value="Year">Year</option>  
+                    </Select>
+                  </div>
+                  </>
+                  ) : (
+                  <Center>
+                    <Spinner
+                        thickness='4px'
+                        speed='0.65s'
+                        emptyColor='gray.200'
+                        color='blue.500'
+                        size='xl'
+                    />
+                  </Center>
+                  )}
+                </div>
               ) : (
                 <div style={{ position: 'relative' }} overflow="auto">
                   <Chart

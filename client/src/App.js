@@ -1,5 +1,7 @@
 import React, { useEffect, Fragment, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import moment from 'moment'; 
+import 'moment-timezone';
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,10 +14,11 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades, getTradesPage, getUserFromSession, expiredLogout, getTradesStats, getPreferences, getAccountValues } from "./store/auth";
+import { me, getTrades, getJournalEntries, getTradesPage, getUserFromSession, expiredLogout, getTradesStats, getPreferences, getAccountValues } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
+import Journal from "./components/Journal";
 import Signup from "./components/Signup";
 import LogTrade from "./components/LogTrade";
 import Navbar from "./components/Navbar";
@@ -77,6 +80,14 @@ export default function App() {
     }
   }
 
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
+  const today = returnInTZ(new Date().toISOString());
+
   
   useEffect(() => {
     async function getUserTrades(){
@@ -85,8 +96,13 @@ export default function App() {
         if (window.location.pathname === "/home" || window.location.pathname === "/"){
           await dispatch(getTradesStats());
           await dispatch(getPreferences());
-          await dispatch(getAccountValues());
-        }else{
+          const filters = {};
+          filters.date = today
+          await dispatch(getAccountValues({ filters }));
+        }else if (window.location.pathname === "/journal"){
+          const date = today
+          await dispatch(getJournalEntries({ date })); 
+        } else{
           const filters = {};
           filters.page = 1;
           filters.numrows = 100;
@@ -123,6 +139,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/home"/>} />
               <Route path="/home" element={<Home user={user}/>} />
               <Route path="/PnlCalendar" element={<PnlCalendar user={user}/>} />
+              <Route path="/journal" element={<Journal user={user}/>} />
               <Route path="/login" element={<Navigate to="/"/>} />
               <Route path="/resetpassword" element={<Navigate to="/"/>} />
               <Route path="/signup" element={<Navigate to="/"/>} />
@@ -135,6 +152,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/login" />} />
               <Route path="/home" element={<Navigate to="/login" />} />
               <Route path="/PnlCalendar" element={<Navigate to="/login" />} />
+              <Route path="/journal" element={<Navigate to="/login" />} />
               <Route path="/profile" element={<Navigate to="/login"/>} />
               <Route path="/logTrade" element={<Navigate to="/login"/>} />
               <Route path='/summary' element={<Navigate to="/login"/>} />

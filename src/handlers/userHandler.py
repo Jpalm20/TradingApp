@@ -114,7 +114,8 @@ def validateUser(requestBody):
                     "street_address": response[0][0]['street_address'],
                     "city": response[0][0]['city'],
                     "state": response[0][0]['state'],
-                    "country": response[0][0]['country']
+                    "country": response[0][0]['country'],
+                    "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
                 }
         else:
             return {
@@ -161,7 +162,8 @@ def getExistingUser(user_id):
             "street_address": response[0][0]['street_address'],
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
-            "country": response[0][0]['country']
+            "country": response[0][0]['country'],
+            "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
         }
     else:
         return {
@@ -210,7 +212,8 @@ def getUserFromSession(auth_token):
             "street_address": response[0][0]['street_address'],
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
-            "country": response[0][0]['country']
+            "country": response[0][0]['country'],
+            "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
         }
     else:
         return {
@@ -235,6 +238,7 @@ def editExistingUser(user_id,requestBody):
             "city": response[0][0]['city'],
             "state": response[0][0]['state'],
             "country": response[0][0]['country'],
+            "created_at" : response[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S"),
             "result": "User Edited Successfully"
         }
     else:
@@ -683,10 +687,9 @@ def resetPassword(requestBody):
     
     
 def setAccountValue(user_id,requestBody):
-    if('accountvalue' not in requestBody):
-        return {
-            "result": "Must Include an Account Value"
-        }, 400
+    response = userValidator.validateSetAccountValue(requestBody)
+    if response != True:
+        return response
     response = user.User.getPreferences(user_id)
     if 'account_value_optin' in response[0][0]:
         if(response[0][0]['account_value_optin'] == 0):
@@ -695,15 +698,15 @@ def setAccountValue(user_id,requestBody):
                 return {
                     "result": response
                 }, 400   
-        response = accountvalue.Accountvalue.getAccountValue(date.today(),user_id)
+        response = accountvalue.Accountvalue.getAccountValue(requestBody['date'],user_id)
         if(len(response[0]) != 0 and 'accountvalue_id' in response[0][0]):
-            response = accountvalue.Accountvalue.updateAccountValue(response[0][0]['accountvalue_id'],requestBody['accountvalue'])
+            response = accountvalue.Accountvalue.updateAccountValue(response[0][0]['user_id'],response[0][0]['date'],requestBody['accountvalue'])
             if response[0]:
                 return {
                     "result": response
                 }, 400
         else:
-            newAccountValueEntry = accountvalue.Accountvalue(None,user_id,requestBody['accountvalue'],date.today())
+            newAccountValueEntry = accountvalue.Accountvalue(None,user_id,requestBody['accountvalue'],requestBody['date'])
             response = accountvalue.Accountvalue.addAccountValue(newAccountValueEntry)
             if response[0]:
                 return {
@@ -718,28 +721,55 @@ def setAccountValue(user_id,requestBody):
         }, 400
         
 
-def getAccountValue(user_id):
+def getAccountValue(user_id,filters):
+    response = userValidator.validateGetAccountValue(filters)
+    if response != True:
+        return response
     response = user.User.getPreferences(user_id)
     if 'account_value_optin' in response[0][0]:
         if(response[0][0]['account_value_optin'] == 0):
-            date_range = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+            date_range = [datetime.strptime(filters['date'], '%Y-%m-%d').date() - timedelta(days=i) for i in range(6, -1, -1)]
             result = [{'accountvalue': 0, 'date': date.strftime('%Y-%m-%d')} for date in date_range]
             return {
                 "accountvalues": result
             }
         else:
-            response = accountvalue.Accountvalue.getAccountValues(user_id)
-            if len(response[0]) != 0 and "accountvalue" in response[0][0]:
-                data = {row['date'] : row['accountvalue'] for row in response[0]}
-                date_range = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
-                result = [{'accountvalue': data.get(date, 0), 'date': date.strftime('%Y-%m-%d')} for date in date_range]
-                return {
-                    "accountvalues": result
-                }
+            response = accountvalue.Accountvalue.getAccountValue(filters['date'],user_id)
+            if(len(response[0]) == 0 or 'accountvalue_id' not in response[0][0]):
+                response = accountvalue.Accountvalue.insertFutureDay(user_id,filters['date'])
+                if response[0]:
+                    return {
+                        "result": response
+                    }, 400
+            if 'time_frame' in filters:
+                tfdaterange = userTransformer.transformAVtf(filters['date'],filters['time_frame'])
+                # Next is to get values from DB
+                response = accountvalue.Accountvalue.getAccountValuesTF(user_id,tfdaterange)
+                # Then check if all 7 got returned otherwise set to 0
+                if len(response[0]) != 0 and "accountvalue" in response[0][0]:
+                    data = {row['date'] : row['accountvalue'] for row in response[0]}
+                    result = [{'accountvalue': data.get(date, 0), 'date': date.strftime('%Y-%m-%d')} for date in tfdaterange]
+                    # format and return 7 values in response
+                    return {
+                        "accountvalues": result
+                    }
+                else:
+                    return {
+                        "result": response
+                    }, 400
             else:
-                return {
-                    "result": response
-                }, 400
+                response = accountvalue.Accountvalue.getAccountValues(user_id,datetime.strptime(filters['date'], '%Y-%m-%d').date())
+                if len(response[0]) != 0 and "accountvalue" in response[0][0]:
+                    data = {row['date'] : row['accountvalue'] for row in response[0]}
+                    date_range = [datetime.strptime(filters['date'], '%Y-%m-%d').date() - timedelta(days=i) for i in range(6, -1, -1)]
+                    result = [{'accountvalue': data.get(date, 0), 'date': date.strftime('%Y-%m-%d')} for date in date_range]
+                    return {
+                        "accountvalues": result
+                    }
+                else:
+                    return {
+                        "result": response
+                    }, 400
     else:
         return {
             "result": response

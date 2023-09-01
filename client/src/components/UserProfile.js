@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/profile.css';
 import { FiSettings } from "react-icons/fi";
+import moment from 'moment'; 
+import 'moment-timezone';
 import {
   Flex,
   Text,
@@ -87,7 +89,6 @@ export default function UserProfile({ user }) {
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
   const [settingsPopUp, setSettingsPopUp] = useState(false);
-
   
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -97,11 +98,15 @@ export default function UserProfile({ user }) {
 
   const { colorMode, toggleColorMode } = useColorMode();
 
-
-
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
+
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
 
 
   const evaluateSuccess = () => {
@@ -364,6 +369,7 @@ export default function UserProfile({ user }) {
               </div>
                 <CardBody>
                   <Stack divider={<StackDivider />} spacing='3'>
+                    {user.first_name !== "" && user.last_name !== "" ? (
                     <Box>
                       <Heading size='xs' textTransform='uppercase'>
                         Full Name
@@ -372,6 +378,9 @@ export default function UserProfile({ user }) {
                         {user.first_name} {user.last_name}
                       </Text>
                     </Box>
+                    ) : (
+                      null
+                    )}
                     <Box>
                       <Heading size='xs' textTransform='uppercase'>
                         Email Address
@@ -380,6 +389,7 @@ export default function UserProfile({ user }) {
                         {user.email}
                       </Text>
                     </Box>
+                    {user.birthday !== "" ? (
                     <Box>
                       <Heading size='xs' textTransform='uppercase'>
                         Birthday
@@ -388,12 +398,27 @@ export default function UserProfile({ user }) {
                         {user.birthday}&nbsp;&nbsp;
                       </Text>
                     </Box>
+                    ) : (
+                      null
+                    )}
+                    {user.street_address !== "" && user.city !== "" && user.state !== "" && user.country !== "" ? (
                     <Box>
                       <Heading size='xs' textTransform='uppercase'>
                         Address
                       </Heading>
                       <Text pt='2' fontSize='sm'>
                         {user.street_address}, {user.city}, {user.state}, {user.country}
+                      </Text>
+                    </Box>
+                    ) : (
+                      null  
+                    )}
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase'>
+                        Member Since
+                      </Heading>
+                      <Text pt='2' fontSize='sm'>
+                        {returnInTZ(user.created_at)}
                       </Text>
                     </Box>
                   </Stack>

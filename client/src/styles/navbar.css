@@ -34,7 +34,7 @@
     font-family: 'Open Sans', sans-serif;
 }
   
-  @media (max-width: 575px) {
+  @media (max-width: 515px) {
     .username {
       display: none;
     }
@@ -48,7 +48,7 @@
     font-family: 'Open Sans', sans-serif;
 }
   
-  @media (max-width: 450px) {
+  @media (max-width: 515px) {
     .usernamedark {
       display: none;
     }
@@ -59,7 +59,6 @@
     font-size: x-large;
     color: white;
     font-family: 'Open Sans', sans-serif;
-    padding-left: 10px;
     padding-right: 5px;
   }
 
@@ -68,7 +67,6 @@
     font-size: x-large;
     color: white;
     font-family: 'Open Sans', sans-serif;
-    padding-left: 10px;
     padding-right: 5px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -79,7 +77,6 @@
     font-size: x-large;
     color: rgb(27, 27, 27);
     font-family: 'Open Sans', sans-serif;
-    padding-left: 10px;
     padding-right: 5px;
   }
 
@@ -88,7 +85,6 @@
     font-size: x-large;
     color: rgb(27, 27, 27);
     font-family: 'Open Sans', sans-serif;
-    padding-left: 10px;
     padding-right: 5px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -104,6 +100,34 @@
   
   @media (max-width: 375px) {
     .my-trading-tracker {
+      display: none;
+    }
+  }
+
+  @media (max-width: 375px) {
+    .my-trading-trackerdark {
+      display: none;
+    }
+  }
+
+  .logo {
+    margin-left: 10px;
+    padding: 2px;
+    border-radius: 'full';
+    max-width: 50px;
+    max-height: 50px;
+  }
+
+  .logo-alone {
+    margin-left: 10px;
+    padding: 2px;
+    border-radius: 'full';
+    max-width: 50px;
+    max-height: 50px;
+  }
+
+  @media (max-width: 600px) {
+    .logo {
       display: none;
     }
   }

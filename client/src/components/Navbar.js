@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues, getJournalEntries } from '../store/auth'
 import '../styles/navbar.css';
+import moment from 'moment'; 
+import 'moment-timezone';
 import { 
   Flex, 
   Heading, 
@@ -16,6 +18,7 @@ import {
   useToast,
   Select,
   useColorMode,
+  Image,
   Switch,
   Textarea,
   AlertDialog,
@@ -35,7 +38,7 @@ import {
 import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
 import { useSelector, useDispatch } from "react-redux";
-
+import logo from '../logo/mttlogo512.png';
 
 const PAGE_NAME = [
   {page:"/home", text: "Home"}, 
@@ -74,6 +77,12 @@ export default function Navbar({ user }) {
 
   const { colorMode, toggleColorMode } = useColorMode();
 
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
   useEffect(() => {
     evaluateSuccess();
   }, [success]); 
@@ -105,12 +114,20 @@ export default function Navbar({ user }) {
     navigate("/");
     await dispatch(getTradesStats());
     await dispatch(getPreferences());
-    await dispatch(getAccountValues());
+    const filters = {};
+    filters.date = returnInTZ(today.toISOString());
+    await dispatch(getAccountValues({ filters }));
   }
 
   const handlePnlCalendar = async (e) => {
     navigate("/PnlCalendar");
     await dispatch(getPnlByYear({ year }));
+  }
+
+  const handleJournal = async (e) => {
+    navigate("/journal");
+    const date = returnInTZ(today.toISOString());
+    await dispatch(getJournalEntries({ date })); 
   }
 
   const handleTrades = async (e) => {
@@ -176,17 +193,30 @@ export default function Navbar({ user }) {
     <Flex justify="space-between" bg={colorMode === 'light' ? "blue.500" : "blue.200"} >
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <HStack >
-        <Heading class={colorMode === 'light' ? 'my-trading-tracker' : 'my-trading-trackerdark'} m={2} size='lg' onClick={(e) => handleHome(e.target.value)}>
+        <Image
+          class='logo'
+          src={logo}
+          alt='Error'
+          onClick={(e) => handleHome(e.target.value)}
+        />
+        <Heading class={colorMode === 'light' ? 'my-trading-tracker' : 'my-trading-trackerdark'} onClick={(e) => handleHome(e.target.value)}>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
         {displayPageName()}
         </HStack>
       ) : (
-        <Heading class={colorMode === 'light' ? 'my-trading-tracker-alone' : 'my-trading-tracker-alonedark'} m={2} size='lg'>
+        <HStack >
+        <Image
+          class='logo-alone'
+          src={logo}
+          alt='Error'
+        />
+        <Heading class={colorMode === 'light' ? 'my-trading-tracker-alone' : 'my-trading-tracker-alonedark'}>
           My&#8203;Trading&#8203;Tracker
           <Icon as={RiStockFill}></Icon>
         </Heading>
+        </HStack>
       )}
       {((user && Object.keys(user).length > 2) && !(trade && Object.keys(trade).length > 2)) ? (
         <><Spacer /><Center >
@@ -200,6 +230,9 @@ export default function Navbar({ user }) {
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value)}>
               Calendar
+            </Button>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleJournal(e.target.value)}>
+              Journal
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
               Provide Feedback
@@ -294,9 +327,13 @@ export default function Navbar({ user }) {
         <Divider orientation="vertical" colorScheme="gray"/>
         <span>
         <HStack>
+        {user.first_name !== "" ? (
         <Text class={colorMode === 'light' ? "username" : "usernamedark"}>
           {user.first_name}
         </Text>
+        ) : (
+          null
+        )}
         <Link as={RouterLink} to="/profile">
           <Avatar size="sm" m={2} />
         </Link>
