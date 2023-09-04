@@ -117,9 +117,11 @@ export default function Summary({ user }) {
   const [nextPageEnable, setNextPageEnable] = useState(false);
 
   useEffect(() => {
-    setPage(parseInt(trades.page));
-    setTotalCount(parseInt(trades.count));
-    setNumRows(parseInt(trades.numrows));
+    if (hasTrades) {
+      setPage(parseInt(trades.page));
+      setTotalCount(parseInt(trades.count));
+      setNumRows(parseInt(trades.numrows));
+    }
   }, [trades]); 
 
   const [trade_id, setTradeID] = useState(null);
@@ -1312,7 +1314,7 @@ export default function Summary({ user }) {
                     placeholder={trade.expiry}
                     onFocus={(e) => (e.target.type = "date")}
                     onBlur={(e) => (e.target.type = "text")}
-                    max={maxDate}
+                    max="3900-12-31"
                     min="1900-01-01"
                     onChange={(e) => setExpiry(e.target.value)}
                 />

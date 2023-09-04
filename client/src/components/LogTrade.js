@@ -391,7 +391,7 @@ export default function LogTrade({ user }) {
                 </FormHelperText>
                 <Input
                     type="date"
-                    max={maxDate}
+                    max="3900-12-31"
                     min="1900-01-01"
                     onChange={(e) => setExpiry(e.target.value)}
                 />

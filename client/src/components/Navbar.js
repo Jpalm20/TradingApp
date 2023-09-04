@@ -48,6 +48,7 @@ const PAGE_NAME = [
   {page:"/logTrade", text: "None"},
   {page:"/profile", text: "User Profile"},
   {page:"/summary", text: "Trade Summary"},
+  {page:"/journal", text: "Journal"},
 ]
 
 
