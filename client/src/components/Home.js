@@ -462,6 +462,7 @@ export default function Home({ user }) {
       },
     },
     vAxis: {
+      minValue: 0,
       textStyle: {
         color: '#636363',
         bold: true,
@@ -583,6 +584,7 @@ export default function Home({ user }) {
       },
     },
     vAxis: {
+      minValue: 0,
       textStyle: {
         color: '#dfdfdf', 
         bold: true,
