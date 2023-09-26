@@ -102,7 +102,9 @@ export default function App() {
         }else if (window.location.pathname === "/journal"){
           const date = today
           await dispatch(getJournalEntries({ date })); 
-        } else{
+        }else if (window.location.pathname === "/profile"){
+          await dispatch(getPreferences());
+        }else{
           const filters = {};
           filters.page = 1;
           filters.numrows = 100;

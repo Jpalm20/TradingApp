@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
-//import { Editor } from 'ckeditor5-custom-build/build/ckeditor';
 import { Editor } from 'ckeditor5-custom-build-light/build/ckeditor';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import { getJournalEntries, clearJournalEntry, postJournalEntry} from '../store/auth'

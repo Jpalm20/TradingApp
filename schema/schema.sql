@@ -106,3 +106,10 @@ CREATE TABLE `Journalentry` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `journalentry_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+
+-- 09-14-2023
+
+ALTER TABLE user ADD COLUMN email_optin BOOLEAN DEFAULT TRUE;
+
+UPDATE user SET email_optin = true;

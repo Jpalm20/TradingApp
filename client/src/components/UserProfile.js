@@ -45,7 +45,7 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking } from '../store/auth';
+import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
@@ -211,6 +211,10 @@ export default function UserProfile({ user }) {
     await dispatch(toggleAvTracking());
   }
 
+  const handleToggleEmailOptin = async (e) => {
+    await dispatch(toggleEmailOptin());
+  }
+
   const handleLogout = async () => {
     setSelectPage(true);
     selectUpdateInfo(false);
@@ -353,6 +357,11 @@ export default function UserProfile({ user }) {
                       <FormLabel display="flex" alignItems="center">
                         <Text>Balance Tracking {hasPreferences && preferences.account_value_optin === 1 ? 'On' : 'Off'}</Text>
                         <Switch marginLeft={3} isChecked={hasPreferences && preferences.account_value_optin === 1 ? true : false} onChange={handleToggleAvTracking}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
+                        <Text>Email Alerts {hasPreferences && preferences.email_optin === 1 ? 'On' : 'Off'}</Text>
+                        <Switch marginLeft={3} isChecked={hasPreferences && preferences.email_optin === 1 ? true : false} onChange={handleToggleEmailOptin}/>
                       </FormLabel>
                     </SimpleGrid>
                     </AlertDialogBody>

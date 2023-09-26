@@ -131,6 +131,11 @@ export default function Navbar({ user }) {
     await dispatch(getJournalEntries({ date })); 
   }
 
+  const handleProfile = async (e) => {
+    navigate("/profile");
+    await dispatch(getPreferences()); 
+  }
+
   const handleTrades = async (e) => {
     navigate("/summary");
     const filters = {};
@@ -335,9 +340,7 @@ export default function Navbar({ user }) {
         ) : (
           null
         )}
-        <Link as={RouterLink} to="/profile">
-          <Avatar size="sm" m={2} />
-        </Link>
+        <Avatar size="sm" m={2} onClick={(e) => handleProfile(e.target.value)}/>
         </HStack>
         </span>
         </Center>

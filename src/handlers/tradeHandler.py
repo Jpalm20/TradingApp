@@ -4,7 +4,9 @@ from unittest import result
 from datetime import date, datetime, timedelta
 import csv
 from flask import make_response
+import logging
 
+logger = logging.getLogger(__name__)
 
 
 script_dir = os.path.dirname( __file__ )
@@ -28,8 +30,10 @@ sys.path.append( mymodule_dir )
 import tradeTransformer
 
 def logTrade(user_id, requestBody):
+    logger.info("Entering Log Trade Handler: " + "(user_id: {}, request: {})".format(str(user_id), str(requestBody)))
     response = tradeValidator.validateNewTrade(requestBody)
     if response != True:
+        logger.warning("Leaving Log Trade Handler: " + str(response))
         return response
     requestTransformed = tradeTransformer.transformNewTrade(requestBody)
     newTrade = trade.Trade(None,user_id,requestTransformed['trade_type'],requestTransformed['security_type'],
@@ -38,6 +42,7 @@ def logTrade(user_id, requestBody):
                         requestTransformed['percent_wl'],requestTransformed['comments'])
     response = trade.Trade.addTrade(newTrade)
     if response[0]:
+        logger.warning("Leaving Log Trade Handler: " + str(response))
         return {
             "result": response
         }, 400
@@ -46,15 +51,17 @@ def logTrade(user_id, requestBody):
             if (datetime.strptime(requestTransformed['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                 fdresponse = accountvalue.Accountvalue.insertFutureDay(user_id,requestTransformed['trade_date'])
                 if fdresponse[0]:
+                    logger.warning("Leaving Log Trade Handler: " + str(fdresponse))
                     return {
                     "result": fdresponse
                 }, 400
             avresponse = accountvalue.Accountvalue.handleAddTrade(response[1])
             if avresponse[0]:
+                logger.warning("Leaving Log Trade Handler: " + str(avresponse))
                 return {
                     "result": avresponse
                 }, 400
-        return {
+        response = {
             "trade_id": response[1],
             "user_id": newTrade.userID,
             "trade_type": newTrade.tradeType,
@@ -71,11 +78,14 @@ def logTrade(user_id, requestBody):
             "comments": newTrade.comment,
             "result": "Trade Logged Successfully"
         }
+        logger.info("Leaving Log Trade Handler: " + str(response))
+        return response
         
 def getExistingTrade(trade_id):
+    logger.info("Entering Get Trade Handler: " + "(trade_id: {})".format(str(trade_id)))
     response = trade.Trade.getTrade(trade_id)
     if 'trade_id' in response[0][0]:
-        return {
+        response = {
             "trade_id": response[0][0]['trade_id'],
             "user_id": response[0][0]['user_id'],
             "trade_type": response[0][0]['trade_type'],
@@ -91,17 +101,22 @@ def getExistingTrade(trade_id):
             "percent_wl": response[0][0]['percent_wl'],
             "comments": response[0][0]['comments']
         }
+        logger.info("Leaving Get Trade  Handler: " + str(response))
+        return response
     else:
+        logger.warning("Leaving Get Trade  Handler: " + str(response))
         return {
             "result": response
         }, 400
     
 
 def searchUserTicker(user_id, filter=None):
+    logger.info("Entering Search User Ticker Handler: " + "(user_id: {}, filter: {})".format(str(user_id), str(filter)))
     if filter:
         filterBody = filter.to_dict()
         eval, response = tradeValidator.validateSearchTicker(filterBody)
         if eval == False:
+            logger.warning("Leaving Search User Ticker Handler: " + str(response))
             return {
                 "result": response
             }, 400
@@ -109,19 +124,23 @@ def searchUserTicker(user_id, filter=None):
     else:
         response = trade.Trade.getUserTicker(user_id)
     if response[0] or response[0] == []:
+        logger.info("Leaving Search User Ticker Handler: " + str(response[0]))
         return {
             "tickers": response[0]
         }
     else:
+        logger.warning("Leaving Search User Ticker Handler: " + str(response))
         return {
             "result": response
         }, 400
 
 
 def editExistingTrade(trade_id,requestBody):
+    logger.info("Entering Edit Trade Handler: " + "(trade_id: {}, request: {})".format(str(trade_id), str(requestBody)))
     og_trade_info = getExistingTrade(trade_id)
     response = tradeValidator.validateEditTrade(requestBody)
     if response != True:
+        logger.warning("Leaving Edit Trade Handler: " + str(response))
         return response
     requestTransformed = tradeTransformer.transformEditTrade(requestBody)
     response = trade.Trade.updateTrade(trade_id,requestTransformed)
@@ -131,6 +150,7 @@ def editExistingTrade(trade_id,requestBody):
             pnl_diff = float(requestBody['pnl']) - float(og_trade_info['pnl'])
             avresponse = accountvalue.Accountvalue.handlePnlUpdate(pnl_diff,trade_id)
             if avresponse[0]:
+                logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
                 return {
                     "result": avresponse
                 }, 400
@@ -138,11 +158,13 @@ def editExistingTrade(trade_id,requestBody):
             if (datetime.strptime(og_trade_info['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                 fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],og_trade_info['trade_date'])
                 if fdresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(fdresponse))
                     return {
-                    "result": fdresponse
-                }, 400
+                        "result": fdresponse
+                    }, 400
             avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
             if avresponse[0]:
+                logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
                 return {
                     "result": avresponse
                 }, 400
@@ -151,14 +173,16 @@ def editExistingTrade(trade_id,requestBody):
             if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                 fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
                 if fdresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(fdresponse))
                     return {
-                    "result": fdresponse
-                }, 400
+                        "result": fdresponse
+                    }, 400
             if (requestBody['trade_date'] < og_trade_info['trade_date']):
                 first_date = requestBody['trade_date']
                 second_date = og_trade_info['trade_date']
                 avresponse = accountvalue.Accountvalue.handleDateUpdateAdd(first_date,second_date,trade_id)
                 if avresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
                     return {
                         "result": avresponse
                     }, 400
@@ -167,6 +191,7 @@ def editExistingTrade(trade_id,requestBody):
                 first_date = og_trade_info['trade_date']
                 avresponse = accountvalue.Accountvalue.handleDateUpdateSub(first_date,second_date,trade_id)
                 if avresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
                     return {
                         "result": avresponse
                     }, 400
@@ -174,17 +199,19 @@ def editExistingTrade(trade_id,requestBody):
             if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                 fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
                 if fdresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(fdresponse))
                     return {
-                    "result": fdresponse
-                }, 400
+                        "result": fdresponse
+                    }, 400
             avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
             if avresponse[0]:
+                logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
                 return {
                     "result": avresponse
                 }, 400
         
     if 'trade_id' in response[0][0]:
-        return {
+        response = {
             "trade_id": response[0][0]['trade_id'],
             "user_id": response[0][0]['user_id'],
             "trade_type": response[0][0]['trade_type'],
@@ -201,80 +228,105 @@ def editExistingTrade(trade_id,requestBody):
             "comments": response[0][0]['comments'],
             "result": "Trade Edited Successfully"
         }
+        logger.info("Leaving Edit Trade Handler: " + str(response))
+        return response
     else:
+        logger.warning("Leaving Edit Trade Handler: " + str(response))
         return {
             "result": response
         }, 400
 
 def deleteExistingTrade(trade_id):
+    logger.info("Entering Delete Trade Handler: " + "(trade_id: {})".format(str(trade_id)))
     trade_info = getExistingTrade(trade_id)
     if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
         avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
         if avresponse[0]:
+            logger.warning("Leaving Delete Trade Handler: " + str(avresponse))
             return {
                 "result": avresponse
             }, 400
     response = trade.Trade.deleteTrade(trade_id)
     if response[0]:
+        logger.warning("Leaving Delete Trade Handler: " + str(response))
         return {
             "result": response
         }, 400
     else:
+        response = "Trade Successfully Deleted"
+        logger.info("Leaving Delete Trade Handler: " + response)
         return {
-            "result": "Trade Successfully Deleted"
+            "result": response
         }
         
 def deleteTrades(requestBody):
+    logger.info("Entering Delete Trades Handler: " + "(request: {})".format(str(requestBody)))
     for trade_id in requestBody:
         trade_info = getExistingTrade(trade_id)
         if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
             avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
             if avresponse[0]:
+                logger.warning("Leaving Delete Trades Handler: " + str(avresponse))
                 return {
                     "result": avresponse
                 }, 400
     response = trade.Trade.deleteTradesByID(requestBody)
     if response[0]:
+        logger.warning("Leaving Delete Trades Handler: " + str(response))
         return {
             "result": response
         }, 400
     else:
         if len(requestBody) == 1:
+            response = "Trade Successfully Deleted"
+            logger.info("Leaving Delete Trades Handler: " + response)
             return {
-                "result": "Trade Successfully Deleted"
+                "result": response
             }
         elif len(requestBody) > 1:
+            response = "Trades Successfully Deleted"
+            logger.info("Leaving Delete Trades Handler: " + response)
             return {
-                "result": "Trades Successfully Deleted"
+                "result": response
             }
 
 def importCsv(file, user_id):
+    logger.info("Entering Import CSV Handler: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))
     if not tradeValidator.validateCsv(file):
+        response = "Invalid CSV file. Missing required Headers"
+        logger.warning("Leaving Import CSV Handler: " + response)
         return {
-            "result": "Invalid CSV file. Missing required Headers"
+            "result": response
         }, 400
     eval,result = tradeTransformer.processCsv(user_id, file)
     if eval:
         eval, response = trade.Trade.addTrades(result)
         if not eval:
+            logger.warning("Leaving Import CSV Handler: " + str(response))
             return {
                 "result": response
             }, 400
         else:
-            return {
+            response = {
                 "result": "Trades Imported Successfully", 
                 "trades": result
             } 
+            logger.info("Leaving Import CSV Handler: " + str(response))
+            return response
     else:
+        logger.warning("Leaving Import CSV Handler: " + str(result))
         return {
             "result": result
         }, 400   
         
 
 def exportCsv(requestBody):
+    logger.info("Entering Export CSV Handler: " + "(request: {})".format(str(requestBody)))
     if not tradeValidator.validateExportTrades(requestBody):
+        response = "Error Generating CSV"
+        logger.warning("Leaving Export CSV Handler: " + response)
         return {
-            "result": "Error Generating CSV"
+            "result": response
         }, 400
     trades = requestBody['exported_trades']
     table_data = [list(trades[0].keys())]  # Header row
@@ -290,6 +342,7 @@ def exportCsv(requestBody):
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=trades.csv'
     response.headers['Content-Type'] = 'text/csv'
+    logger.info("Leaving Export CSV Handler: " + str(response))
     return response
 
         

@@ -1,5 +1,8 @@
 import utils
 from datetime import date, datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Accountvalue:
     
@@ -11,56 +14,71 @@ class Accountvalue:
   
     
     def getAccountValue(date,user_id):
-            
+        
+        logger.info("Entering Get Account Value Model Function: " + "(user_id: {}, date: {})".format(str(user_id),str(date)))
         Query = """SELECT * FROM Accountvalue WHERE date = %s AND user_id = %s"""
         Args = (date,user_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Get Account Value Model Function: " + str(response))
         return response
     
     def getAccountValues(user_id,start_date):
             
+        logger.info("Entering Get Account Values Model Function: " + "(user_id: {}, start_date: {})".format(str(user_id),str(start_date)))
         Query = """SELECT accountvalue, date FROM Accountvalue WHERE date >= %s AND date <= %s AND user_id = %s ORDER BY date DESC"""
         Args = (start_date-timedelta(days=7),start_date,user_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Get Account Values Model Function: " + str(response))
         return response
     
     def getAccountValuesTF(user_id,dates):
             
+        logger.info("Entering Get Account Values Time Frame Model Function: " + "(user_id: {}, dates: {})".format(str(user_id),str(dates)))
         Query = """SELECT accountvalue, date FROM Accountvalue WHERE user_id = %s and date in (%s, %s, %s, %s, %s, %s, %s) ORDER BY date DESC"""
         Args = (user_id,) + tuple([date.strftime('%Y-%m-%d') for date in dates])
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Get Account Values Time Frame Model Function: " + str(response))
         return response
     
     def accountValueJob():
             
+        logger.info("Entering accountValueJob Model Function: ")
         Query = """CALL CopyAccountValue()"""
         Args = ()
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving accountValueJob Model Function: " + str(response))
         return response
     
     def addAccountValue(accountvalueInfo):
             
+        logger.info("Entering Add Account Value Model Function: " + "(accountvalue_info: {})".format(str(accountvalueInfo)))
         Query = """INSERT INTO Accountvalue VALUES (null,%s,%s,%s)"""
         Args = (accountvalueInfo.userID,accountvalueInfo.accountvalue,accountvalueInfo.date)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Add Account Value Model Function: " + str(response))
         return response
     
     def updateAccountValue(user_id,date,accountvalue):
             
+        logger.info("Entering Update Account Value Model Function: " + "(user_id: {}, date: {}, accountvalue: {})".format(str(user_id),str(date),str(accountvalue)))
         Query = """UPDATE Accountvalue SET accountvalue = %s WHERE user_id = %s and date >= %s"""
         Args = (accountvalue,user_id,date)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Update Account Value Model Function: " + str(response))
         return response
     
     def deleteAccountValue(accountvalue_id):
         
+        logger.info("Entering Delete Account Value Model Function: " + "(accountvalue_id: {})".format(str(accountvalue_id)))
         Query = """DELETE FROM Accountvalue WHERE accountvalue_id = %s"""
         Args = (accountvalue_id,)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Delete Account Value Model Function: " + str(response))
         return response
     
     def insertFutureDay(user_id, date):
             
+        logger.info("Entering Insert Future Day Model Function: " + "(user_id: {}, date: {})".format(str(user_id),str(date)))
         Query = """INSERT IGNORE INTO Accountvalue (user_id, date, accountvalue)
                     SELECT %s,%s,prev.accountvalue
                     FROM Accountvalue AS your_new_value
@@ -74,10 +92,12 @@ class Accountvalue:
                 """
         Args = (user_id,date,date,user_id,user_id,date,user_id,date)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Insert Future Day Model Function: " + str(response))
         return response
     
     def handleAddTrade(trade_id):
         
+        logger.info("Entering Handle Add Trade Model Function: " + "(trade_id: {})".format(str(trade_id)))
         Query = """UPDATE Accountvalue
                     SET accountvalue = accountvalue + (
                         SELECT pnl
@@ -98,10 +118,12 @@ class Accountvalue:
                 """
         Args = (trade_id,trade_id,trade_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Handle Add Trade Model Function: " + str(response))
         return response
     
     def handleDeleteTrade(trade_id):
         
+        logger.info("Entering Handle Delete Trade Model Function: " + "(trade_id: {})".format(str(trade_id)))
         Query = """UPDATE Accountvalue
                     SET accountvalue = accountvalue - (
                         SELECT pnl
@@ -122,10 +144,12 @@ class Accountvalue:
                 """
         Args = (trade_id,trade_id,trade_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Handle Delete Trade Model Function: " + str(response))
         return response
     
     def handlePnlUpdate(pnl_diff,trade_id):
         
+        logger.info("Entering Handle PnL Update Model Function: " + "(trade_id: {}, pnl_diff: {})".format(str(trade_id),str(pnl_diff)))
         Query = """UPDATE Accountvalue
                     SET accountvalue = accountvalue + %s
                     WHERE date >= (
@@ -142,10 +166,12 @@ class Accountvalue:
                 """
         Args = (pnl_diff,trade_id,trade_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Handle Delete Trade Model Function: " + str(response))
         return response
     
     def handleDateUpdateAdd(first_date,second_date,trade_id):
             
+        logger.info("Entering Handle Date Update Add Model Function: " + "(trade_id: {}, first_date: {}, second_date: {})".format(str(trade_id),str(first_date),str(second_date)))
         Query = """UPDATE Accountvalue
                     SET accountvalue = accountvalue + (
                         SELECT pnl
@@ -162,10 +188,12 @@ class Accountvalue:
                 """
         Args = (trade_id,first_date,second_date,trade_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Handle Date Update Add Model Function: " + str(response))
         return response
     
     def handleDateUpdateSub(first_date,second_date,trade_id):
             
+        logger.info("Entering Handle Date Update Subtract Model Function: " + "(trade_id: {}, first_date: {}, second_date: {})".format(str(trade_id),str(first_date),str(second_date)))
         Query = """UPDATE Accountvalue
                     SET accountvalue = accountvalue - (
                         SELECT pnl
@@ -182,4 +210,5 @@ class Accountvalue:
                 """
         Args = (trade_id,first_date,second_date,trade_id)
         response = utils.execute_db(Query,Args)
+        logger.info("Leaving Handle Date Update Subtract Model Function: " + str(response))
         return response
