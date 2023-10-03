@@ -219,7 +219,7 @@ export default function UserProfile({ user }) {
     setSelectPage(true);
     selectUpdateInfo(false);
     await dispatch(logout());
-    navigate("/");
+    navigate("/login");
   };
 
   const handleDeleteButton = (e) => {

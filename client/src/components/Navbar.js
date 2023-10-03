@@ -35,8 +35,9 @@ import {
   Spacer, 
   Icon,
   HStack} from "@chakra-ui/react";
-import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation, parsePath} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
+import { BsSun, BsMoon } from "react-icons/bs";
 import { useSelector, useDispatch } from "react-redux";
 import logo from '../logo/mttlogo512.png';
 
@@ -194,6 +195,14 @@ export default function Navbar({ user }) {
     setDescription("");
     setSummary("");
   }
+
+  const handleGotoLogin = (e) => {
+    navigate("/login");
+  };
+
+  const handleGotoSignup = (e) => {
+    navigate("/signup");
+  };
   
   return (
     <Flex justify="space-between" bg={colorMode === 'light' ? "blue.500" : "blue.200"} >
@@ -243,6 +252,9 @@ export default function Navbar({ user }) {
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
               Provide Feedback
             </Button>
+            <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleColorMode}>
+              <Icon as={colorMode === 'light' ? BsSun : BsMoon}></Icon>
+            </button>
             {reportBugFlag}
               <AlertDialog
               motionPreset='slideInBottom'
@@ -332,7 +344,7 @@ export default function Navbar({ user }) {
         </span>
         <Divider orientation="vertical" colorScheme="gray"/>
         <span>
-        <HStack>
+        <HStack paddingRight={2}>
         {user.first_name !== "" ? (
         <Text class={colorMode === 'light' ? "username" : "usernamedark"}>
           {user.first_name}
@@ -340,12 +352,33 @@ export default function Navbar({ user }) {
         ) : (
           null
         )}
-        <Avatar size="sm" m={2} onClick={(e) => handleProfile(e.target.value)}/>
+        <Avatar  size="sm" m={2} onClick={(e) => handleProfile(e.target.value)}/>
         </HStack>
         </span>
         </Center>
         </>
-      ) : null}
+      ) : (
+        <ButtonGroup gap='2' padding={4} flexWrap='wrap'>
+          {location.pathname === "/" ? (
+            <>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleGotoLogin(e.target.value)}>
+              Sign In
+            </Button>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleGotoSignup(e.target.value)}>
+              Sign Up
+            </Button>
+            <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleColorMode}>
+              <Icon as={colorMode === 'light' ? BsSun : BsMoon}></Icon>
+            </button>
+            </>
+          ) : (
+            <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleColorMode}>
+              <Icon as={colorMode === 'light' ? BsSun : BsMoon}></Icon>
+            </button>
+          )}
+        </ButtonGroup>
+      )
+      }
     </Flex>
   );
 }

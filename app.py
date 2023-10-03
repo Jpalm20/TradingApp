@@ -67,7 +67,7 @@ def validate_user():
     
 @app.route('/user/preferences',methods = ['GET'])
 def get_user_preferences():
-    logger.info("Entering User Preferences - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering User Preferences - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -184,7 +184,7 @@ def toggle_email_optin_flag():
 
 @app.route('/user/getUserFromSession',methods= ['GET'])
 def user_from_session():
-    logger.info("Entering Get User From Session - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Get User From Session - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -216,7 +216,7 @@ def user_from_session():
 
 @app.route('/user/trades',methods = ['GET'])
 def user_trades():
-    logger.info("Entering User Trades - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering User Trades - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -261,7 +261,7 @@ def user_trades():
 
 @app.route('/user/trades/stats',methods = ['GET'])
 def user_trades_stats():
-    logger.info("Entering User Trade Stats - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering User Trade Stats - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -306,7 +306,10 @@ def user_trades_stats():
         
 @app.route('/user/accountValue',methods = ['GET', 'POST'])
 def user_account_value():
-    logger.info("Entering User Account Value - " + str(request.method) + ": " + str(request.json))
+    if request.method == 'POST':
+        logger.info("Entering User Account Value - " + str(request.method) + ": " + str(request.json))
+    if request.method == 'GET':
+        logger.info("Entering User Account Value - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -394,7 +397,7 @@ def account_value_job():
         
 @app.route('/user/trades/page',methods = ['GET'])
 def user_trades_page():
-    logger.info("Entering User Trade Pagination - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering User Trade Pagination - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -440,7 +443,7 @@ def user_trades_page():
 
 @app.route('/trade/searchTicker',methods = ['GET'])
 def search_user_ticker():
-    logger.info("Entering Search User Ticker - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Search User Ticker - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -486,7 +489,7 @@ def search_user_ticker():
 
 @app.route('/user/pnlbyYear/<int:date_year>',methods = ['GET'])
 def pnl_year(date_year):
-    logger.info("Entering PnL by Year - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering PnL by Year - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -720,7 +723,10 @@ def logout_session():
 
 @app.route('/user',methods = ['GET','POST','DELETE'])
 def existing_user():
-    logger.info("Entering Existing User - " + str(request.method) + ": " + str(request.json))
+    if request.method == 'GET':
+        logger.info("Entering Existing User - " + str(request.method))
+    if request.method == 'POST' or request.method == 'DELETE':
+        logger.info("Entering Existing User - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -767,7 +773,10 @@ def existing_user():
 
 @app.route('/trade/<int:trade_id>',methods = ['GET','POST','DELETE'])
 def existing_trade(trade_id):
-    logger.info("Entering Existing Trade - " + str(request.method) + ": " + str(request.json))
+    if request.method == 'GET':
+        logger.info("Entering Existing Trade - " + str(request.method))
+    if request.method == 'POST' or request.method == 'DELETE':
+        logger.info("Entering Existing Trade - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -918,7 +927,10 @@ def reset_password():
 
 @app.route('/journal/<string:date>',methods = ['GET','POST','DELETE'])
 def existing_journalentry(date):
-    logger.info("Entering Existing Journal Entry - " + str(request.method) + ": " + str(request.json))
+    if request.method == 'POST' or request.method == 'DELETE':
+        logger.info("Entering Existing Journal Entry - " + str(request.method) + ": " + str(request.json))
+    if request.method == 'GET':
+        logger.info("Entering Existing Journal Entry - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
