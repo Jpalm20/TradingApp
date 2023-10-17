@@ -95,7 +95,7 @@ ALTER TABLE user ADD COLUMN created_at DATETIME DEFAULT (UTC_TIMESTAMP);
 UPDATE user SET created_at = UTC_TIMESTAMP();
 
 
--- 08-15-2023
+-- 08-15-2023 (1.0.6)
 
 CREATE TABLE `Journalentry` (
   `journalentry_id` int NOT NULL AUTO_INCREMENT,
@@ -108,7 +108,7 @@ CREATE TABLE `Journalentry` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
 
--- 09-14-2023
+-- 09-14-2023 (1.0.7)
 
 ALTER TABLE user ADD COLUMN email_optin BOOLEAN DEFAULT TRUE;
 

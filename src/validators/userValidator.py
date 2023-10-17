@@ -52,13 +52,14 @@ def validateEditUser(request):
         return {
             "result": response
         }, 403
-    response = user.User.getUserbyEmail(request['email'])
-    if response[0] and 'email' in response[0][0]:
-        response = "A User with this Email Already Exist, Try Updating with a Different Email"
-        logger.warning("Leaving Validate Edit User Validator: " + response)
-        return {
-            "result": response
-        }, 403
+    if 'email' in request:
+        response = user.User.getUserbyEmail(request['email'])
+        if response[0] and 'email' in response[0][0]:
+            response = "A User with this Email Already Exist, Try Updating with a Different Email"
+            logger.warning("Leaving Validate Edit User Validator: " + response)
+            return {
+                "result": response
+            }, 403
     logger.info("Leaving Validate Edit User Validator: ")
     return True
 

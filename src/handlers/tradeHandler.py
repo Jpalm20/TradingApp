@@ -238,6 +238,7 @@ def editExistingTrade(trade_id,requestBody):
 
 def deleteExistingTrade(trade_id):
     logger.info("Entering Delete Trade Handler: " + "(trade_id: {})".format(str(trade_id)))
+    #add call to validator here to verify each provided trade_id is under the same user_id as who called the API
     trade_info = getExistingTrade(trade_id)
     if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
         avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
@@ -253,17 +254,22 @@ def deleteExistingTrade(trade_id):
             "result": response
         }, 400
     else:
-        response = "Trade Successfully Deleted"
-        logger.info("Leaving Delete Trade Handler: " + response)
-        return {
-            "result": response
+        response = {
+            "result": "Trade Successfully Deleted",
+            "user_id": trade_info['user_id']
         }
+        logger.info("Leaving Delete Trade Handler: " + str(response))
+        return response
         
 def deleteTrades(requestBody):
     logger.info("Entering Delete Trades Handler: " + "(request: {})".format(str(requestBody)))
+    #add call to validator here to verify each provided trade_id is under the same user_id as who called the API
+    user_id = None
     for trade_id in requestBody:
         trade_info = getExistingTrade(trade_id)
         if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
+            if user_id is None:
+                user_id = trade_info['user_id']
             avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
             if avresponse[0]:
                 logger.warning("Leaving Delete Trades Handler: " + str(avresponse))
@@ -278,17 +284,19 @@ def deleteTrades(requestBody):
         }, 400
     else:
         if len(requestBody) == 1:
-            response = "Trade Successfully Deleted"
-            logger.info("Leaving Delete Trades Handler: " + response)
-            return {
-                "result": response
+            response = {
+                "result": "Trade Successfully Deleted",
+                "user_id": user_id
             }
+            logger.info("Leaving Delete Trades Handler: " + str(response))
+            return response
         elif len(requestBody) > 1:
-            response = "Trades Successfully Deleted"
-            logger.info("Leaving Delete Trades Handler: " + response)
-            return {
-                "result": response
+            response = {
+                "result": "Trades Successfully Deleted",
+                "user_id": user_id
             }
+            logger.info("Leaving Delete Trades Handler: " + str(response))
+            return response
 
 def importCsv(file, user_id):
     logger.info("Entering Import CSV Handler: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))

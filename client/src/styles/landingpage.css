@@ -48,7 +48,7 @@
 
   .footertext {
     display: block;
-    font-size: large;
+    font-size: medium;
     color: white;
     height: 100%;
     font-family: 'Open Sans', sans-serif;
@@ -59,7 +59,7 @@
 
   .footertextdark {
     display: block;
-    font-size: large;
+    font-size: medium;
     color: rgb(27, 27, 27);
     height: 100%;
     font-family: 'Open Sans', sans-serif;

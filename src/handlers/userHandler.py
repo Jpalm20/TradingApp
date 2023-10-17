@@ -850,7 +850,9 @@ def setAccountValue(user_id,requestBody):
         response = "Account Value Set Successfully"
         logger.info("Leaving Set Account Value Handler: " + response)
         return {
-            "result": response
+            "result": response,
+            "accountvalue": requestBody['accountvalue'],
+            "date": requestBody['date']
         }
     else:
         logger.warning("Leaving Set Account Value Handler: " + str(response))

@@ -95,11 +95,12 @@ def deleteJournalEntry(user_id, date):
                 "result": response
             }, 400
         else:
-            response = "Journal Entry Successfully Deleted"
-            logger.info("Leaving Delete Journal Entry Handler: " + response)
-            return {
-                "result": response
+            response = {
+                "date": date,
+                "result": "Journal Entry Successfully Deleted"
             }
+            logger.info("Leaving Delete Journal Entry Handler: " + str(response))
+            return response
     else:
         response = "Error: Journal Entry Does Not Exist for Given User and Date Combination"
         logger.warning("Leaving Delete Journal Entry Handler: " + response)
