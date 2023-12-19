@@ -15,11 +15,11 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 def execute_db(query,args):
     logger.info("Entering Execute Database Query Util: " + "(query: {}, args: {})".format(str(query),str(args)))
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                        port=3306,
-                                        database='TradingApp',
-                                        user='jp',
-                                        password='Jpalmieri20!')
+        connection = mysql.connector.connect(host=DB_HOST,
+                                        port=DB_PORT,
+                                        database=DB_NAME,
+                                        user=DB_USERNAME,
+                                        password=DB_PASSWORD)
 
         cursor = connection.cursor(dictionary=True)
         cursor.execute(query,args)

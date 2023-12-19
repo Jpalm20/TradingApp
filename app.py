@@ -1,6 +1,6 @@
 from ftplib import error_reply
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask import request
 from flask_cors import CORS
 import redis
@@ -51,8 +51,7 @@ app.config['SMTP_PASSWORD'] = os.environ.get('SMTP_PASSWORD')
 
 
 @app.route('/')
-def hello_geek():
-    logger.info("Health Check")
+def index():
     return 'Health Check'
 
 
@@ -1316,4 +1315,5 @@ def existing_journalentry(date):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
