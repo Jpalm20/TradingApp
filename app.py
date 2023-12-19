@@ -51,7 +51,8 @@ app.config['SMTP_PASSWORD'] = os.environ.get('SMTP_PASSWORD')
 
 
 @app.route('/')
-def index():
+def hello_geek():
+    logger.info("Health Check")
     return 'Health Check'
 
 
