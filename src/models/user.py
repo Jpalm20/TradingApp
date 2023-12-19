@@ -1,4 +1,4 @@
-import models.utils as utils
+import utils as utils
 import logging
 
 logger = logging.getLogger(__name__)
