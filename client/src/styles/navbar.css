@@ -132,4 +132,24 @@
     }
   }
 
+  .color-mode-comp {
+    color: white;
+    font-size: 25px; 
+    cursor: pointer;
+  }
+
+  .color-mode-comp:hover {
+    color: rgb(199, 199, 199);
+  }
+
+  .color-mode-comp-dark {
+    color: rgb(27, 27, 27);
+    font-size: 25px; 
+    cursor: pointer;
+  }
+
+  .color-mode-comp-dark:hover {
+    color: rgb(97, 97, 97);
+  }
+
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

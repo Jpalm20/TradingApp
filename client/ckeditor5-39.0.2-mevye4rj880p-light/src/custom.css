@@ -1,0 +1,21 @@
+
+
+/* To make CKEditor grow and fill available space in a flex container */
+.ck.ck-editor__main {
+    resize: none !important;
+    flex: 1 !important;
+    display: flex !important;
+    width: 100%;
+}
+
+.ck.ck-editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.ck.ck-content {
+    width: 100%;
+}
+
+

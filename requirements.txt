@@ -7,3 +7,4 @@ flask_jwt_extended
 python-dotenv
 requests
 python-dateutil
+redis

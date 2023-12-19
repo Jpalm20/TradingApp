@@ -2,7 +2,9 @@ import os
 import sys
 from datetime import date, datetime, timedelta
 import calendar
+import logging
 
+logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -15,28 +17,35 @@ JIRA_PROJECT_ID = os.environ.get('JIRA_PROJECT_ID')
 
 
 def transformNewUser(request):
+    logger.info("Entering Transform New User Transformer: " + "(request: {})".format(str(request)))
     hashPass = hashPassword(request['password'])
     request['password'] = hashPass
+    logger.info("Leaving Transform New User Transformer: " + "(request: {})".format(str(request)))
     return request
 
 def hashPassword(password):
+    logger.info("Entering Hash Password: " + "(password: {})".format(str(password)))
     hashPass = hashlib.sha256(password.encode()).hexdigest()
+    logger.info("Leaving Hash Password: ")
     return hashPass
 
 def transformEditUser(request):
+    logger.info("Entering Transform Edit User Transformer: " + "(request: {})".format(str(request)))
     transformedRequest = {}
     for key in request:
         if request[key] != "":
             transformedRequest[key] = request[key]
+    logger.info("Leaving Transform Edit User Transformer: " + "(request: {})".format(str(request)))
     return transformedRequest
 
 def transformReportBug(request, email):
+    logger.info("Entering Transform Bug Report Transformer: " + "(email: {}, request: {})".format(str(email),str(request)))
     issueType = ''
     if (request['requestType'] == 'Bug Report'):
         issueType = 'Bug'
     elif (request['requestType'] == 'Feature Request'):
         issueType= 'Story'
-    return {
+    response = {
         "fields": {
             "project":
             { 
@@ -49,8 +58,11 @@ def transformReportBug(request, email):
             }
         }
     }
+    logger.info("Leaving Transform Bug Report Transformer: " + str(response))
+    return response
 
 def transformDateRange(date_range):
+    logger.info("Entering Transform Date Range Transformer: " + "(date_range: {})".format(str(date_range)))
     query = "trade_date >= "
     if date_range == "Year":
         query += "DATE_ADD(NOW(), INTERVAL -1 YEAR)"
@@ -60,9 +72,11 @@ def transformDateRange(date_range):
         query += "DATE_ADD(NOW(), INTERVAL -1 WEEK)"
     elif date_range == "Day":
         query += "DATE_ADD(NOW(), INTERVAL -1 DAY)"
+    logger.info("Leaving Transform Date Range Transformer: " + str(query))
     return query
 
 def transformAVtf(today_date,time_frame):
+    logger.info("Entering Transform Account Value Timeframe Transformer: " + "(today_date: {}, time_frame: {})".format(str(today_date),str(time_frame)))
     last_dates = []
     if time_frame == 'Day':
         last_dates = [datetime.strptime(today_date, '%Y-%m-%d').date() - timedelta(days=i) for i in range(6, -1, -1)]
@@ -97,4 +111,5 @@ def transformAVtf(today_date,time_frame):
             last_day = date(year, 12, 31)
             last_dates.append(last_day)
         last_dates.reverse()
+    logger.info("Leaving Transform Account Value Timeframe Transformer: " + str(last_dates))
     return last_dates

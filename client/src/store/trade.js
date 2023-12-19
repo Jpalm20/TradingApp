@@ -45,6 +45,7 @@ export const create = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token)
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -68,6 +69,7 @@ export const getTrade = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -92,6 +94,7 @@ export const searchTicker = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -116,6 +119,7 @@ export const deleteTrade = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -141,6 +145,7 @@ export const importCsv = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -167,6 +172,7 @@ export const exportCsv = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -203,6 +209,7 @@ export const update = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {

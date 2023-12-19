@@ -32,7 +32,7 @@ connection = mysql.connector.connect(host=DB_HOST,
 cursor = connection.cursor(dictionary=True)
 
 # Query distinct email addresses from user table
-cursor.execute("SELECT DISTINCT email FROM user")
+cursor.execute("SELECT DISTINCT email FROM user where email_optin = 1")
 result = cursor.fetchall()
 
 email_addresses = result

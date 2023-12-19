@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
+import { Editor } from 'ckeditor5-custom-build-light/build/ckeditor';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
 import { getJournalEntries, clearJournalEntry, postJournalEntry} from '../store/auth'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import '../styles/summary.css';
@@ -171,6 +173,7 @@ export default function Journal({ user }) {
 
   const handleNextPage = () => {
     if(nextPageEnable){
+      setEntry('');
       setIsEdit(false);
       setNextPageClick(true);
       setSelectedDate(moment(selected_date).add(1, 'days').format('YYYY-MM-DD'));
@@ -179,6 +182,7 @@ export default function Journal({ user }) {
 
   const handleBackPage = () => {
     if(backPageEnable){
+      setEntry('');
       setIsEdit(false);
       setBackPageClick(true);
       setSelectedDate(moment(selected_date).add(-1, 'days').format('YYYY-MM-DD'));
@@ -241,8 +245,8 @@ export default function Journal({ user }) {
 
 
   const handleCancel = () => {
+    setEntry('');
     setIsEdit(false);
-    setEntry("");
   };
 
   const handleSave = async () => {
@@ -281,62 +285,19 @@ export default function Journal({ user }) {
 
   const handleEntryDisplay = () => {
     let content = [];
-    if(hasEntries){
-      if(isEdit){
-        content.push(
-          <div class='paper-content'>
-            <Textarea  
-              variant='filled'
-              value={entryy}
-              type='text' 
-              onChange={(e) => setEntry(e.target.value)}
-              flex="1" 
-              resize="none"
-            />
-          </div>
-        );
-      }else{
-        content.push(
-          <div class='paper-content'>
-            <Textarea  
-              flex="1" 
-              resize="none"
-              isReadOnly='true'
-              variant='unstyled'
-              value={journalentries.entries.find(entry => entry.date === selected_date)?.entrytext || ''}
-              type='text' 
-            />
-          </div>
-        );
-      }
-    }else{
-      if(isEdit){
-        content.push(
-          <div class='paper-content'>
-            <Textarea  
-              variant='filled'
-              value={entryy}
-              type='text' 
-              onChange={(e) => setEntry(e.target.value)}
-              flex="1" 
-              resize="none"
-            />
-          </div>
-        );
-      }else{
-        content.push(
-          <div class='paper-content'>
-            <Textarea  
-              isReadOnly='true'
-              variant='unstyled'
-              type='text' 
-              flex="1" 
-              resize="none"
-            />
-          </div>
-        );
-      }
-    }
+    content.push(
+      <div class={`paper-content ${colorMode === 'light' ? 'paper-content-light' : 'paper-content-dark'}`}>
+        <CKEditor
+          editor={Editor}
+          data={hasEntries && !isEdit ? (journalentries.entries.find(entry => entry.date === selected_date)?.entrytext || entryy) : entryy}
+          disabled={!isEdit}
+          onChange={(event, editor) => {
+            const data = editor.getData();
+            setEntry(data);
+          }}
+        />
+      </div>
+    );
     return content
   };
 

@@ -4,8 +4,11 @@ import csv
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
 from collections import defaultdict
+import logging
+from werkzeug.datastructures import FileStorage
 
 
+logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
@@ -18,6 +21,7 @@ sys.path.append( mymodule_dir )
 import tradeValidator
 
 def transformNewTrade(request):
+    logger.info("Entering Transform New Trade Transformer: " + "(request: {})".format(str(request)))
     if request['security_type'] == "Shares":
         request['expiry'] = None
         request['strike'] = None
@@ -33,9 +37,11 @@ def transformNewTrade(request):
         request['percent_wl'] = None
     if 'buy_value' in request and request['buy_value'] == "":
         request['buy_value'] = None
+    logger.info("Leaving Transform New Trade Transformer: " + "(transformed_request: {})".format(str(request)))
     return request
 
 def transformEditTrade(request):
+    logger.info("Entering Transform Edit Trade Transformer: " + "(request: {})".format(str(request)))
     transformedRequest = {}
     for key in request:
         if request[key] != "":
@@ -43,17 +49,25 @@ def transformEditTrade(request):
     if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
         transformedRequest['expiry'] = None
         transformedRequest['strike'] = None
+    logger.info("Leaving Transform Edit Trade Transformer: " + "(transformed_request: {})".format(str(transformedRequest)))
     return transformedRequest
 
 def processCsv(user_id, file):
+    logger.info("Entering Process CSV Transformer: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))
     ## algorithm
     trades = []
     buy_trades = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
     sell_trades = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
 
+    if isinstance(file, FileStorage):
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
 
-    file.stream.seek(0)
-    csv_string = file.stream.read().decode("utf-8-sig")
+    #file.stream.seek(0)
+    #csv_string = file.stream.read().decode("utf-8-sig")
     reader = csv.DictReader(csv_string.splitlines())
     rows = list(reader)
     sorted_rows = sorted(rows, key=lambda row: (row['execution_time'], row['side']))
@@ -63,7 +77,9 @@ def processCsv(user_id, file):
             continue
 
         if row['quantity'] == '' or row['security_type'] == '' or row['ticker_name'] == '' or row['execution_time'] == '' or row['side'] == '' or row['cost_basis'] == '':
-            return False, "Empty fields exist in .csv please resolve"
+            response = "Empty fields exist in .csv please resolve"
+            logger.warning("Leaving Process CSV Transformer: " + response)
+            return False, response
         if int(row['quantity']) < 0:
             quantity = int(row['quantity']) * -1
         else:
@@ -72,7 +88,9 @@ def processCsv(user_id, file):
         if row['security_type'].upper() == "PUT" or row['security_type'].upper() == "CALL":
             security_type = "Options"
             if 'expiry' not in row or 'strike' not in row or row['expiry'] == '' or row['strike'] == '' :
-                return False, "Upload Failed, Options Trades must include Expiration and Strike Price"
+                response = "Upload Failed, Options Trades must include Expiration and Strike Price"
+                logger.warning("Leaving Process CSV Transformer: " + response)
+                return False, response
             expiry = row['expiry']
             strike = row['strike']
             cost_basis = float(row['cost_basis']) * 100  # cost_basis is per-share for options
@@ -131,9 +149,13 @@ def processCsv(user_id, file):
             #Need to check if options or not then proceed
             if security_type == 'Options':
                 if not buy_trades[ticker_name][row['security_type']][expiry][strike] or buy_trades[ticker_name][row['security_type']][expiry][strike]['quantity'] == 0:
-                    return False, "No contracts remaining for " + str(ticker_name) + " " + str(expiry) + " " + str(strike) + " " + str(row['security_type'].upper()) + " but reporting another SELL Order"
+                    response = "No contracts remaining for " + str(ticker_name) + " " + str(expiry) + " " + str(strike) + " " + str(row['security_type'].upper()) + " but reporting another SELL Order"
+                    logger.warning("Leaving Process CSV Transformer: " + response)
+                    return False, response
                 elif quantity > buy_trades[ticker_name][row['security_type']][expiry][strike]['quantity']:
-                    return False, "Not enough contracts remaining for " + str(ticker_name) + " " + str(expiry) + " " + str(strike) + " " + str(row['security_type'].upper())
+                    response = "Not enough contracts remaining for " + str(ticker_name) + " " + str(expiry) + " " + str(strike) + " " + str(row['security_type'].upper())
+                    logger.warning("Leaving Process CSV Transformer: " + response)
+                    return False, response
                 if sell_trades[ticker_name][row['security_type']][expiry][strike]:
                     #Need a comparison of execution time
                     if sell_trades[ticker_name][row['security_type']][expiry][strike]['execution_time'] < execution_time:
@@ -150,9 +172,13 @@ def processCsv(user_id, file):
                     }
             else:
                 if not buy_trades[ticker_name][row['security_type']] or buy_trades[ticker_name][row['security_type']]['quantity'] == 0:
-                    return False, "No shares remaining for " + str(ticker_name) + " but reporting another SELL Order"
+                    response = "No shares remaining for " + str(ticker_name) + " but reporting another SELL Order"
+                    logger.warning("Leaving Process CSV Transformer: " + response)
+                    return False, response
                 elif quantity > buy_trades[ticker_name][row['security_type']]['quantity']:
-                    return False, "Not enough shares remaining for " + str(ticker_name)
+                    response = "Not enough shares remaining for " + str(ticker_name)
+                    logger.warning("Leaving Process CSV Transformer: " + response)
+                    return False, response
                 if sell_trades[ticker_name][row['security_type']]:
                     #Need a comparison of execution time
                     if sell_trades[ticker_name][row['security_type']]['execution_time'] < execution_time:
@@ -213,6 +239,7 @@ def processCsv(user_id, file):
                     buy_trades[ticker_name][row['security_type']][expiry][strike] = {}
                     sell_trades[ticker_name][row['security_type']][expiry][strike] = {}
                 else:
+                    logger.warning("Leaving Process CSV Transformer: " + str(response))
                     return False, response
         else:
             if 'quantity' in buy_trades[ticker_name][row['security_type']] and 'quantity' in sell_trades[ticker_name][row['security_type']] and buy_trades[ticker_name][row['security_type']]['quantity'] == sell_trades[ticker_name][row['security_type']]['quantity']:
@@ -240,7 +267,8 @@ def processCsv(user_id, file):
                     buy_trades[ticker_name][row['security_type']] = {}
                     sell_trades[ticker_name][row['security_type']] = {}
                 else:
+                    logger.warning("Leaving Process CSV Transformer: " + str(response))
                     return False, response
         
-        
+    logger.info("Leaving Process CSV Transformer: " + str(trades))
     return True, trades

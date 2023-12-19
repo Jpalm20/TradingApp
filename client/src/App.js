@@ -26,6 +26,7 @@ import UserProfile from "./components/UserProfile";
 import Summary from "./components/Summary";
 import ResetPass from "./components/ResetPass";
 import { TOKEN } from './store/auth';
+import LandingPage from "./components/LandingPage";
 
 
 export default function App() {
@@ -102,7 +103,9 @@ export default function App() {
         }else if (window.location.pathname === "/journal"){
           const date = today
           await dispatch(getJournalEntries({ date })); 
-        } else{
+        }else if (window.location.pathname === "/profile"){
+          await dispatch(getPreferences());
+        }else{
           const filters = {};
           filters.page = 1;
           filters.numrows = 100;
@@ -149,7 +152,7 @@ export default function App() {
             </>
           ) : (
             <>
-              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/home" element={<Navigate to="/login" />} />
               <Route path="/PnlCalendar" element={<Navigate to="/login" />} />
               <Route path="/journal" element={<Navigate to="/login" />} />
