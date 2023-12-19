@@ -74,7 +74,7 @@ def registerUser(requestBody):
     requestTransformed = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
                         requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
-                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None)
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None)
     response = user.User.addUser(newUser)
     if response[0]:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -606,9 +606,9 @@ def getUserTradesPage(user_id,filters):
         numrows = filters['numrows']
         filterBody = filters.to_dict()
         del filterBody['page'], filterBody['numrows']
-        count = user.User.getTotalTrades(user_id,filterBody)[0][0]['COUNT(*)']
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        count = user.User.getTotalTrades(user_id,filterBody)[0][0]['COUNT(*)']
         offset = (int(page)-1)*int(numrows)
         response = user.User.getUserTradesPage(user_id,int(numrows),offset,filterBody)
     if len(response[0]) != 0 and "trade_id" in response[0][0]:

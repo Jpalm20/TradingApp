@@ -15,11 +15,11 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 def execute_db(query,args):
     logger.info("Entering Execute Database Query Util: " + "(query: {}, args: {})".format(str(query),str(args)))
     try:
-        connection = mysql.connector.connect(host=DB_HOST,
-                                        port=DB_PORT,
-                                        database=DB_NAME,
-                                        user=DB_USERNAME,
-                                        password=DB_PASSWORD)
+        connection = mysql.connector.connect(host='localhost',
+                                        port=3306,
+                                        database='TradingApp',
+                                        user='jp',
+                                        password='Jpalmieri20!')
 
         cursor = connection.cursor(dictionary=True)
         cursor.execute(query,args)
@@ -52,15 +52,15 @@ def add_filters_to_query_sring(query,filters):
     queryString = query
     if filters:
         queryString += " AND "
-    conditions = []
-    for key, value in filters.items():
-        if key == 'date_range':
-            continue
-        if value:
-            conditions.append(f"{key}='{value}'")
-    if 'date_range' in filters: 
-        conditions.append(filters['date_range'])
-    queryString += " AND ".join(conditions)
+        conditions = []
+        for key, value in filters.items():
+            if key == 'date_range':
+                continue
+            if value:
+                conditions.append(f"{key}='{value}'")
+        if 'date_range' in filters: 
+            conditions.append(filters['date_range'])
+        queryString += " AND ".join(conditions)
     logger.info("Leaving Add Filters to Query String Util: " + str(queryString))
     return queryString
 

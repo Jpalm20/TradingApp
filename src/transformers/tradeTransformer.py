@@ -5,6 +5,8 @@ from datetime import date, datetime, timedelta
 from dateutil.parser import parse
 from collections import defaultdict
 import logging
+from werkzeug.datastructures import FileStorage
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +59,15 @@ def processCsv(user_id, file):
     buy_trades = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
     sell_trades = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
 
+    if isinstance(file, FileStorage):
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
 
-    file.stream.seek(0)
-    csv_string = file.stream.read().decode("utf-8-sig")
+    #file.stream.seek(0)
+    #csv_string = file.stream.read().decode("utf-8-sig")
     reader = csv.DictReader(csv_string.splitlines())
     rows = list(reader)
     sorted_rows = sorted(rows, key=lambda row: (row['execution_time'], row['side']))

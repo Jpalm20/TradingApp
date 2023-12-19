@@ -3,6 +3,8 @@ import sys
 from datetime import date, datetime, timedelta
 import csv
 import logging
+from werkzeug.datastructures import FileStorage
+
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +93,13 @@ def validateEditTrade(request):
 
 def validateCsv(file):
     logger.info("Entering Validate CSV Validator: " + "(file: {})".format(str(file)))
-    csv_string = file.stream.read().decode("utf-8-sig")
+    #csv_string = file.stream.read().decode("utf-8-sig")
+    if isinstance(file, FileStorage):
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
     reader = csv.DictReader(csv_string.splitlines())
     headers = next(reader, None) 
     required_headers = ["security_type", "ticker_name", "execution_time", "side", "quantity", "cost_basis"]
@@ -145,7 +153,7 @@ def validateExportTrades(request):
         return False
 
     trades = request['exported_trades']
-    if trades is None:
+    if trades is None or not trades:
         logger.warning("Leaving Validate Export Trades Validator: ")
         return False
     

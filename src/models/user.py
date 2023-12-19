@@ -1,11 +1,11 @@
-import utils
+import models.utils as utils
 import logging
 
 logger = logging.getLogger(__name__)
 
 class User:
     
-    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin):
+    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin):
         self.userID = userID
         self.firstName = firstName
         self.lastName = lastName
@@ -17,6 +17,7 @@ class User:
         self.state = state
         self.country = country
         self.accountValueOptin = accountValueOptin
+        self.emailOptin = emailOptin
     
     def getUserbyID(userID):
         
@@ -36,22 +37,22 @@ class User:
         logger.info("Leaving Get User Preferences Model Function: " + str(response))
         return response  
     
-    def getTotalTrades(userID,filters):
+    def getTotalTrades(userID,filters=None):
         
         logger.info("Entering Get Total User Trades Count Model Function: " + "(user_id: {}, filters: {})".format(str(userID),str(filters)))
         Query = """SELECT COUNT(*) FROM Trade WHERE user_id = %s"""
             
         if filters:
             Query += " AND "
-        conditions = []
-        for key, value in filters.items():
-            if key == 'date_range':
-                continue
-            if value:
-                conditions.append(f"{key}='{value}'")
-        if 'date_range' in filters: 
-            conditions.append(filters['date_range'])
-        Query += " AND ".join(conditions)
+            conditions = []
+            for key, value in filters.items():
+                if key == 'date_range':
+                    continue
+                if value:
+                    conditions.append(f"{key}='{value}'")
+            if 'date_range' in filters: 
+                conditions.append(filters['date_range'])
+            Query += " AND ".join(conditions)
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Total User Trades Count Model Function: " + str(response))
@@ -84,21 +85,21 @@ class User:
         logger.info("Leaving Get User Trades Model Function: " + str(response))
         return response  
     
-    def getUserTradesFilter(userID,filters):
+    def getUserTradesFilter(userID,filters=None):
         
         logger.info("Entering Get User Trades with Filters Model Function: " + "(user_id: {}, filters: {})".format(str(userID),str(filters)))
         Query = """SELECT * FROM Trade WHERE user_id = %s"""
         if filters:
             Query += " AND "
-        conditions = []
-        for key, value in filters.items():
-            if key == 'date_range':
-                continue
-            if value:
-                conditions.append(f"{key}='{value}'")
-        if 'date_range' in filters: 
-            conditions.append(filters['date_range'])
-        Query += " AND ".join(conditions)
+            conditions = []
+            for key, value in filters.items():
+                if key == 'date_range':
+                    continue
+                if value:
+                    conditions.append(f"{key}='{value}'")
+            if 'date_range' in filters: 
+                conditions.append(filters['date_range'])
+            Query += " AND ".join(conditions)
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Trades with Filters Model Function: " + str(response))
@@ -162,21 +163,21 @@ class User:
         logger.info("Leaving Get User Trades Stats with Filters Model Function: " + str(response))
         return response 
     
-    def getUserTradesPage(userID,limit,offset,filters):
+    def getUserTradesPage(userID,limit,offset,filters=None):
         
         logger.info("Entering Get User Trades Page Model Function: " + "(user_id: {}, limit: {}, offset: {}, filters: {})".format(str(userID),str(limit),str(offset),str(filters)))
         Query = """SELECT * FROM Trade WHERE user_id = %s"""
         if filters:
             Query += " AND "
-        conditions = []
-        for key, value in filters.items():
-            if key == 'date_range':
-                continue
-            if value:
-                conditions.append(f"{key}='{value}'")
-        if 'date_range' in filters: 
-            conditions.append(filters['date_range'])
-        Query += " AND ".join(conditions)
+            conditions = []
+            for key, value in filters.items():
+                if key == 'date_range':
+                    continue
+                if value:
+                    conditions.append(f"{key}='{value}'")
+            if 'date_range' in filters: 
+                conditions.append(filters['date_range'])
+            Query += " AND ".join(conditions)
         Query += " LIMIT %s OFFSET %s"
         Args = (userID,limit,offset)
         response = utils.execute_db(Query,Args)
@@ -192,17 +193,17 @@ class User:
         logger.info("Leaving Get User PnL by Year Model Function: " + str(response))
         return response  
     
-    def getUserPnLbyYearFilter(userID,year,filters):
+    def getUserPnLbyYearFilter(userID,year,filters=None):
         
         logger.info("Entering Get User PnL by Year with Filters Model Function: " + "(user_id: {}, year: {}, filters: {})".format(str(userID),str(year),str(filters)))
         Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM Trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
         if filters:
             Query += " AND "
-        conditions = []
-        for key, value in filters.items():
-            if value:
-                conditions.append(f"{key}='{value}'")
-        Query += " AND ".join(conditions)
+            conditions = []
+            for key, value in filters.items():
+                if value:
+                    conditions.append(f"{key}='{value}'")
+            Query += " AND ".join(conditions)
         Query += " GROUP BY trade_date ORDER BY trade_date ASC;"
         Args = (userID,year)
         response = utils.execute_db(Query,Args)
@@ -212,7 +213,7 @@ class User:
     def addUser(newUser):
 
         logger.info("Entering Add User Model Function: " + "(new_user: {})".format(str(newUser)))
-        Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT)"""
+        Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)"""
         Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)
@@ -280,49 +281,5 @@ class User:
         return response 
  
  
-#--------Tests--------# 
 
-#Testing addUser       
-#testUser = User(None,"Jon","Palmiery","08-30-2020","palmierijon@gmail.com","password","11 Danand Lane","Patterson","NY","USA",None)
-#response = User.addUser(testUser)
-
-#Testing updateUser
-#testUserID = 4;
-#testUpdateUserInfo = {
-#    "last_name": "Palmieri",
-#    "password": "testestest20"
-#}
-#response = User.updateUser(testUserID,testUpdateUserInfo)
-
-#Testing deleteUser
-#testUserID = 4
-#response = User.deleteUser(testUserID)
-
-#Testing getUserbyID
-#testUserID = 2
-#response = User.getUser(testUserID)
-
-#Test getUserbyEmail
-#testUserEmail = "testemail@gmail.com"   
-#response = User.getUserbyEmail(testUserEmail)
-
-#Testing getUserTrades
-#testUserID = 77
-#response = User.getUserTrades(testUserID)
-
-#Testing getUserTradesFilter
-#testUserID = 71
-#testFilters = {
-#   "ticker_name": "SPY",
-#   "trade_type": "Swing Trade",
-#   "security_type": "Options"
-#}
-#response = User.getUserTradesFilter(testUserID,testFilters)
-
-#Testing getUserTradesbyYear
-#testUserID = 77
-#testYear = 2022
-#response = User.getUserTrades(testUserID,testYear)
-
-#print(response)
     
