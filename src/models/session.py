@@ -16,7 +16,7 @@ class Session:
     def getSession(token):
             
         logger.info("Entering Get Session Model Function: " + "(token: {})".format(str(token)))
-        Query = """SELECT session_id, expiration FROM Session WHERE token = %s"""
+        Query = """SELECT session_id, expiration FROM session WHERE token = %s"""
         Args = (token,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Session Model Function: " + str(response))
@@ -25,7 +25,7 @@ class Session:
     def addSession(tokenInfo):
         
         logger.info("Entering Add Session Model Function: " + "(token_info: {})".format(str(tokenInfo)))
-        Query = """INSERT INTO Session VALUES (null,%s,%s,%s)"""
+        Query = """INSERT INTO session VALUES (null,%s,%s,%s)"""
         Args = (tokenInfo.userID,tokenInfo.token,tokenInfo.expiration)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Add Session Model Function: " + str(response))
@@ -34,7 +34,7 @@ class Session:
     def refreshExpiration(sessionID):
         
         logger.info("Entering Refresh Expiration Model Function: " + "(session_id: {})".format(str(sessionID)))
-        Query = """UPDATE Session SET expiration = %s WHERE session_id = %s"""
+        Query = """UPDATE session SET expiration = %s WHERE session_id = %s"""
         Args = (datetime.now()+timedelta(hours=24),sessionID)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Refresh Expiration Model Function: " + str(response))
@@ -43,7 +43,7 @@ class Session:
     def deleteUserSessions(userID):
         
         logger.info("Entering Delete User Session Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """DELETE FROM Session WHERE user_id = %s"""
+        Query = """DELETE FROM session WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete User Session Model Function: " + str(response))
@@ -52,7 +52,7 @@ class Session:
     def expireSession(token):
         
         logger.info("Entering Expire Session Model Function: " + "(token: {})".format(str(token)))
-        Query = """UPDATE Session SET expiration = %s WHERE token = %s"""
+        Query = """UPDATE session SET expiration = %s WHERE token = %s"""
         Args = (datetime.now(),token)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Expire Session Model Function: " + str(response))
@@ -61,7 +61,7 @@ class Session:
     def getUserFromSession(token):
             
         logger.info("Entering Get User from Session Model Function: " + "(token: {})".format(str(token)))
-        Query = """SELECT user_id FROM Session WHERE token = %s"""
+        Query = """SELECT user_id FROM session WHERE token = %s"""
         Args = (token,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User from Session Model Function: " + str(response))
@@ -70,7 +70,7 @@ class Session:
     def getEmailFromSession(token):
             
         logger.info("Entering Get Email from Session Model Function: " + "(token: {})".format(str(token)))
-        Query = """SELECT u.email FROM User u JOIN Session s on s.user_id = u.user_id where s.token = %s"""
+        Query = """SELECT u.email FROM user u JOIN session s on s.user_id = u.user_id where s.token = %s"""
         Args = (token,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Email from Session Model Function: " + str(response))
