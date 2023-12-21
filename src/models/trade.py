@@ -24,7 +24,7 @@ class Trade:
     def getTrade(tradeID):
         
         logger.info("Entering Get Trade Model Function: " + "(trade_id: {})".format(str(tradeID)))
-        Query = """SELECT * FROM Trade WHERE trade_id = %s"""
+        Query = """SELECT * FROM trade WHERE trade_id = %s"""
         Args = (tradeID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Trade Model Function: " + str(response))
@@ -33,7 +33,7 @@ class Trade:
     def addTrade(newTrade):
         
         logger.info("Entering Add Trade Model Function: " + "(new_trade: {})".format(str(newTrade)))
-        Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        Query = """INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
         Args = (newTrade.userID,newTrade.tradeType,newTrade.securityType,newTrade.tickerName,newTrade.tradeDate,
                             newTrade.expiry,newTrade.strike,newTrade.value,newTrade.numOfShares,newTrade.rr,
                             newTrade.pnl,newTrade.percentwl,newTrade.comment)
@@ -45,7 +45,7 @@ class Trade:
         
         logger.info("Entering Add Trades Model Function: " + "(new_trades: {})".format(str(newTrades)))
         for newTrade in newTrades:
-            Query = """INSERT INTO Trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+            Query = """INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
             Args = (newTrade['user_id'],newTrade['trade_type'],newTrade['security_type'],newTrade['ticker_name'],newTrade['trade_date'],
                             newTrade['expiry'],newTrade['strike'],newTrade['buy_value'],newTrade['units'],newTrade['rr'],
                             newTrade['pnl'],newTrade['percent_wl'],newTrade['comments'])
@@ -63,7 +63,7 @@ class Trade:
         
         for key,value in changes.items():
 
-            Query = """UPDATE Trade SET {} = %s WHERE trade_id = %s""".format(key)
+            Query = """UPDATE trade SET {} = %s WHERE trade_id = %s""".format(key)
             Args = (value,tradeID)
             response = response + '\n' + str(utils.execute_db(Query,Args)[0])
         
@@ -73,7 +73,7 @@ class Trade:
     def deleteTrade(tradeID):
 
         logger.info("Entering Delete Trade Model Function: " + "(trade_id: {})".format(str(tradeID)))
-        Query = """DELETE FROM Trade WHERE trade_id = %s"""
+        Query = """DELETE FROM trade WHERE trade_id = %s"""
         Args = (tradeID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete Trade Model Function: " + str(response))
@@ -82,7 +82,7 @@ class Trade:
     def deleteTradesByID(tradeIDs):
     
         logger.info("Entering Delete Trades by ID Model Function: " + "(trade_ids: {})".format(str(tradeIDs)))
-        Query = f"DELETE FROM Trade WHERE trade_id in ({', '.join(str(tid) for tid in tradeIDs)})"
+        Query = f"DELETE FROM trade WHERE trade_id in ({', '.join(str(tid) for tid in tradeIDs)})"
         Args = ()
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete Trades by ID Model Function: " + str(response))
@@ -91,7 +91,7 @@ class Trade:
     def deleteUserTrades(userID):
     
         logger.info("Entering Delete User Trades Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """DELETE FROM Trade WHERE user_id = %s"""
+        Query = """DELETE FROM trade WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete User Trades Model Function: " + str(response))
@@ -101,13 +101,13 @@ class Trade:
         
         logger.info("Entering Get User Ticker Model Function: " + "(user_id: {}, ticker: {})".format(str(userID),str(ticker)))
         if (ticker == '' or ticker is None):
-            Query = """SELECT distinct ticker_name FROM Trade WHERE user_id = %s"""
+            Query = """SELECT distinct ticker_name FROM trade WHERE user_id = %s"""
             Args = (userID,)
             response = utils.execute_db(Query,Args)
             logger.info("Leaving Get User Ticker Model Function: " + str(response))
             return response
         else:
-            Query = """SELECT distinct ticker_name FROM Trade WHERE user_id = %s and ticker_name like %s """
+            Query = """SELECT distinct ticker_name FROM trade WHERE user_id = %s and ticker_name like %s """
             parameter = f"{ticker}%"
             Args = (userID,parameter)
             response = utils.execute_db(Query,Args)

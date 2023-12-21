@@ -22,7 +22,7 @@ class User:
     def getUserbyID(userID):
         
         logger.info("Entering Get User by ID Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """SELECT * FROM User WHERE user_id = %s"""
+        Query = """SELECT * FROM user WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User by ID Model Function: " + str(response))
@@ -31,7 +31,7 @@ class User:
     def getPreferences(userID):
         
         logger.info("Entering Get User Preferences Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """SELECT account_value_optin, email_optin FROM User WHERE user_id = %s"""
+        Query = """SELECT account_value_optin, email_optin FROM user WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Preferences Model Function: " + str(response))
@@ -40,7 +40,7 @@ class User:
     def getTotalTrades(userID,filters=None):
         
         logger.info("Entering Get Total User Trades Count Model Function: " + "(user_id: {}, filters: {})".format(str(userID),str(filters)))
-        Query = """SELECT COUNT(*) FROM Trade WHERE user_id = %s"""
+        Query = """SELECT COUNT(*) FROM trade WHERE user_id = %s"""
             
         if filters:
             Query += " AND "
@@ -61,7 +61,7 @@ class User:
     def getUserbyEmail(userEmail):
         
         logger.info("Entering Get User by Email Model Function: " + "(user_id: {})".format(str(userEmail)))
-        Query = """SELECT * FROM User WHERE email = %s"""
+        Query = """SELECT * FROM user WHERE email = %s"""
         Args = (userEmail,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User by Email Model Function: " + str(response))
@@ -70,7 +70,7 @@ class User:
     def getUserBySessionToken(token):
         
         logger.info("Entering Get User by Session Token Model Function: " + "(token: {})".format(str(token)))
-        Query = """SELECT * from User u JOIN Session s ON s.user_id = u.user_id WHERE s.token = %s"""
+        Query = """SELECT * from user u JOIN session s ON s.user_id = u.user_id WHERE s.token = %s"""
         Args = (token,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User by Session Token Model Function: " + str(response))
@@ -79,7 +79,7 @@ class User:
     def getUserTrades(userID):
         
         logger.info("Entering Get User Trades Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """SELECT * FROM Trade WHERE user_id = %s"""
+        Query = """SELECT * FROM trade WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Trades Model Function: " + str(response))
@@ -88,7 +88,7 @@ class User:
     def getUserTradesFilter(userID,filters=None):
         
         logger.info("Entering Get User Trades with Filters Model Function: " + "(user_id: {}, filters: {})".format(str(userID),str(filters)))
-        Query = """SELECT * FROM Trade WHERE user_id = %s"""
+        Query = """SELECT * FROM trade WHERE user_id = %s"""
         if filters:
             Query += " AND "
             conditions = []
@@ -166,7 +166,7 @@ class User:
     def getUserTradesPage(userID,limit,offset,filters=None):
         
         logger.info("Entering Get User Trades Page Model Function: " + "(user_id: {}, limit: {}, offset: {}, filters: {})".format(str(userID),str(limit),str(offset),str(filters)))
-        Query = """SELECT * FROM Trade WHERE user_id = %s"""
+        Query = """SELECT * FROM trade WHERE user_id = %s"""
         if filters:
             Query += " AND "
             conditions = []
@@ -187,7 +187,7 @@ class User:
     def getUserPnLbyYear(userID,year):
             
         logger.info("Entering Get User PnL by Year Model Function: " + "(user_id: {}, year: {})".format(str(userID),str(year)))
-        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM Trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s GROUP BY trade_date ORDER BY trade_date ASC;"""
+        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s GROUP BY trade_date ORDER BY trade_date ASC;"""
         Args = (userID,year)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User PnL by Year Model Function: " + str(response))
@@ -196,7 +196,7 @@ class User:
     def getUserPnLbyYearFilter(userID,year,filters=None):
         
         logger.info("Entering Get User PnL by Year with Filters Model Function: " + "(user_id: {}, year: {}, filters: {})".format(str(userID),str(year),str(filters)))
-        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM Trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
+        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
         if filters:
             Query += " AND "
             conditions = []
@@ -213,7 +213,7 @@ class User:
     def addUser(newUser):
 
         logger.info("Entering Add User Model Function: " + "(new_user: {})".format(str(newUser)))
-        Query = """INSERT INTO User VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)"""
+        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)"""
         Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)
@@ -228,7 +228,7 @@ class User:
             
         for key,value in changes.items():
 
-            Query = """UPDATE User SET {} = %s WHERE user_id = %s""".format(key)
+            Query = """UPDATE user SET {} = %s WHERE user_id = %s""".format(key)
             Args = (value,userID)
             response = utils.execute_db(Query,Args)
         
@@ -238,7 +238,7 @@ class User:
     def deleteUser(userID):
         
         logger.info("Entering Delete User Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """DELETE FROM User WHERE user_id = %s"""
+        Query = """DELETE FROM user WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete User Model Function: " + str(response))
@@ -247,7 +247,7 @@ class User:
     def updatePass(userID, newPass):
         
         logger.info("Entering Update Password Model Function: " + "(user_id: {}, new_pass: {})".format(str(userID),str(newPass)))
-        Query = """UPDATE User SET password = %s WHERE user_id = %s"""
+        Query = """UPDATE user SET password = %s WHERE user_id = %s"""
         Args = (newPass,userID)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Update Password Model Function: " + str(response))
@@ -256,7 +256,7 @@ class User:
     def accountValueFeatureOptin(userID):
         
         logger.info("Entering Acount Value Feature Optin Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """UPDATE User SET account_value_optin = 1 WHERE user_id = %s"""
+        Query = """UPDATE user SET account_value_optin = 1 WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Acount Value Feature Flag Model Function: " + str(response))
@@ -265,7 +265,7 @@ class User:
     def toggleAccountValueFeatureOptin(userID):
         
         logger.info("Entering Toggle Acount Value Feature Flag Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """UPDATE User SET account_value_optin = NOT account_value_optin WHERE user_id = %s"""
+        Query = """UPDATE user SET account_value_optin = NOT account_value_optin WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Toggle Acount Value Feature Flag Model Function: " + str(response))
@@ -274,7 +274,7 @@ class User:
     def toggleEmailOptIn(userID):
         
         logger.info("Entering Toggle Email Alerts Feature Flag Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """UPDATE User SET email_optin = NOT email_optin WHERE user_id = %s"""
+        Query = """UPDATE user SET email_optin = NOT email_optin WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Toggle Email Alerts Feature Flag Model Function: " + str(response))

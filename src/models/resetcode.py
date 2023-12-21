@@ -16,7 +16,7 @@ class Resetcode:
     def getResetCode(code,user_id):
             
         logger.info("Entering Get Reset Code Model Function: " + "(code: {}, user_id: {})".format(str(code),str(user_id)))
-        Query = """SELECT resetcode_id, expiration FROM Resetcode WHERE code = %s AND user_id = %s"""
+        Query = """SELECT resetcode_id, expiration FROM resetcode WHERE code = %s AND user_id = %s"""
         Args = (code,user_id)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Reset Code Model Function: " + str(response))
@@ -25,7 +25,7 @@ class Resetcode:
     def addResetCode(resetcodeInfo):
             
         logger.info("Entering Add Reset Code Model Function: " + "(resetcode_info: {})".format(str(resetcodeInfo)))
-        Query = """INSERT INTO Resetcode VALUES (null,%s,%s,%s)"""
+        Query = """INSERT INTO resetcode VALUES (null,%s,%s,%s)"""
         Args = (resetcodeInfo.userID,resetcodeInfo.code,resetcodeInfo.expiration)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Add Reset Code Model Function: " + str(response))
@@ -34,7 +34,7 @@ class Resetcode:
     def deleteResetCode(resetcode_id):
         
         logger.info("Entering Delete Reset Code Model Function: " + "(resetcode_id: {})".format(str(resetcode_id)))
-        Query = """DELETE FROM Resetcode WHERE resetcode_id = %s"""
+        Query = """DELETE FROM resetcode WHERE resetcode_id = %s"""
         Args = (resetcode_id,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete Reset Code Model Function: " + str(response))
