@@ -17,6 +17,8 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 import logging
+from urllib.parse import urlparse
+
 
 app = Flask(__name__)
 CORS(app)
@@ -25,7 +27,8 @@ REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 
 if 'REDIS_PASSWORD' in os.environ:
-    redis_client = redis.from_url(os.environ.get('REDIS_TLS_URL'))
+    url = urlparse(os.environ.get('REDIS_URL'))
+    redis_client = redis.Redis(host=url.hostname, port=url.port, password=url.password, ssl=True, ssl_cert_reqs=None, decode_responses=True)
 else:
     redis_client = redis.Redis(
         host=REDIS_HOST,
