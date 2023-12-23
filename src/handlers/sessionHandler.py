@@ -69,7 +69,7 @@ def getEmailFromToken(auth_token):
     logger.info("Entering Get Email From Token Handler: " + "(auth_token: {})".format(str(auth_token)))
     response = session.Session.getEmailFromSession(auth_token)
     if 'email' in response[0][0]:
-        logger.info("Leaving Get Email From Token Handler: " + + "(email: {})".format(str(response[0][0]['email'])))
+        logger.info("Leaving Get Email From Token Handler: " + "(email: {})".format(str(response[0][0]['email'])))
         return True, response[0][0]['email']
     else:
         response = "No Email Associated with this Session"

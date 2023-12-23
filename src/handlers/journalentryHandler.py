@@ -25,7 +25,7 @@ def getJournalEntries(user_id, date):
         return response
     date_object = datetime.strptime(date, '%Y-%m-%d')
     first_day = date_object.replace(day=1)
-    next_month = first_day.replace(month=first_day.month + 1)
+    next_month = 1 if first_day.month == 12 else first_day.month + 1
     last_day = next_month - timedelta(days=1)
     response = journalentry.Journalentry.getEntriesForMonth(user_id, first_day, last_day)
     if len(response[0]) != 0 and "date" in response[0][0]:
