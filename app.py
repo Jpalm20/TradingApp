@@ -27,7 +27,7 @@ REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 
 if 'REDIS_PASSWORD' in os.environ:
-    url = urlparse(os.environ.get('REDIS_URL'))
+    url = urlparse(os.environ.get('REDIS_TLS_URL'))
     redis_client = redis.Redis(host=url.hostname, port=url.port, password=url.password, ssl=True, ssl_cert_reqs=None, decode_responses=True)
 else:
     redis_client = redis.Redis(
