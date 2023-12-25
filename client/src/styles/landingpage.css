@@ -1,0 +1,220 @@
+  .profileheader {
+    color: rgb(99, 99, 99);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 5px;
+    font-size: xx-large;
+    width: 50%;
+    text-align: center;
+  }
+
+  .profileheaderdark {
+    color: rgb(223, 223, 223);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 5px;
+    font-size: xx-large;
+    width: 50%;
+    text-align: center;
+  }
+
+  .headertext {
+    color: rgb(99, 99, 99);
+    width: 50%;
+  }
+
+  .headertextdark {
+    color: rgb(223, 223, 223);
+    width: 50%;
+  }
+
+  .footer {
+    display: flex;
+    font-size: large;
+    color: white;
+    height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    padding: 30px;
+    padding-left: 20px;
+  }
+
+  .footerdark {
+    display: flex;
+    font-size: large;
+    color: rgb(27, 27, 27);
+    height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    padding: 30px;
+    padding-left: 20px;
+  }
+
+  .footertext {
+    display: block;
+    font-size: medium;
+    color: white;
+    height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 5px;
+  }
+
+  .footertextdark {
+    display: block;
+    font-size: medium;
+    color: rgb(27, 27, 27);
+    height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 5px;
+  }
+
+  .footerlist {
+    display: block;
+    font-size: medium;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    padding: 5px;
+    padding-left: 15px;
+  }
+
+  .footerlistdark {
+    display: block;
+    font-size: medium;
+    color: rgb(27, 27, 27);
+    font-family: 'Open Sans', sans-serif;
+    padding: 5px;
+    padding-left: 15px;
+  }
+
+  @media (max-width: 850px) {
+    .profileheader {
+      font-size: x-large;
+    }
+
+    .profileheaderdark {
+      font-size: x-large;
+    }
+
+    .headertext {
+      font-size: small;
+    }
+
+    .headertextdark {
+      font-size: small;
+    }
+
+    .footer {
+      font-size: medium;
+    }
+
+    .footerdark {
+      font-size: medium;
+    }
+
+    .footertext {
+      font-size: small;
+    }
+
+    .footertextdark {
+      font-size: small;
+    }
+
+    .footerlist {
+      font-size: small;
+    }
+
+    .footerlistdark {
+      font-size: small;
+    }
+
+  }
+
+  @media (max-width: 550px) {
+    .profileheader {
+      font-size: large;
+    }
+
+    .profileheaderdark {
+      font-size: large;
+    }
+
+    .headertext {
+      font-size: x-small;
+    }
+
+    .headertextdark {
+      font-size: x-small;
+    }
+
+    .footer {
+      font-size: x-small;
+    }
+
+    .footerdark {
+      font-size: x-small;
+    }
+
+    .footertext {
+      font-size: x-small;
+    }
+
+    .footertextdark {
+      font-size: x-small;
+    }
+
+    .footerlist {
+      font-size: x-small;
+    }
+
+    .footerlistdark {
+      font-size: x-small;
+    }
+
+
+  }
+
+  @media (max-width: 450px) {
+    .profileheader {
+      font-size: medium;
+    }
+
+    .profileheaderdark {
+      font-size: medium;
+    }
+
+    .headertext {
+      font-size: xx-small;
+    }
+
+    .headertextdark {
+      font-size: xx-small;
+    }
+
+    .footer {
+      font-size: xx-small;
+    }
+
+    .footerdark {
+      font-size: xx-small;
+    }
+
+    .footertext {
+      font-size: xx-small;
+    }
+
+    .footertextdark {
+      font-size: xx-small;
+    }
+
+    .footerlist {
+      font-size: xx-small;
+    }
+
+    .footerlistdark {
+      font-size: xx-small;
+    }
+
+
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

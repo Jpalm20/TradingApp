@@ -29,6 +29,7 @@ export const me = createAsyncThunk("auth/me", async () => {
         Authorization: "Bearer " + token,
       },
     });
+    console.log(res);
     return res.data;
   }
 });
@@ -50,6 +51,7 @@ export const register = createAsyncThunk(
         country
       });
       //dispatch(me());
+      console.log(res);
       return res.data
     } catch (error) {
       console.error(error);
@@ -69,6 +71,7 @@ export const authenticate = createAsyncThunk(
       });
       await window.localStorage.setItem(TOKEN, res.data.token);
       //dispatch(me());
+      console.log(res);
       return res.data
     } catch (error) {
       console.error(error);
@@ -99,6 +102,7 @@ export const update = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -121,6 +125,7 @@ export const getPreferences = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -145,6 +150,7 @@ export const getAccountValues = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -167,6 +173,7 @@ export const getTrades = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -191,6 +198,7 @@ export const getTradesFiltered = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -213,6 +221,7 @@ export const getTradesStats = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -237,6 +246,7 @@ export const getTradesStatsFiltered = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -261,6 +271,7 @@ export const getTradesPage = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -285,6 +296,7 @@ export const getTradesOfDateFiltered = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -308,6 +320,7 @@ export const getPnlByYear = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -332,6 +345,7 @@ export const getPnlByYearFiltered = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -354,6 +368,7 @@ export const deleteUser = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -378,6 +393,32 @@ export const toggleAvTracking = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+export const toggleEmailOptin = createAsyncThunk(
+  "auth/toggleEmailOptin",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.post(API_URL + `user/preferences/toggleeoi`,{  
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -406,6 +447,7 @@ export const changePassword = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -433,6 +475,7 @@ export const setAccountValue = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -453,6 +496,7 @@ export const generateResetCode = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
     } catch (error) {
       console.error(error);
@@ -473,6 +517,7 @@ export const confirmResetCode = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
     } catch (error) {
       console.error(error);
@@ -495,6 +540,7 @@ export const resetPassword = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
     } catch (error) {
       console.error(error);
@@ -523,6 +569,7 @@ export const reportBug = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -549,6 +596,7 @@ export const logout = createAsyncThunk(
         await window.localStorage.removeItem(TOKEN);
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -575,6 +623,7 @@ export const getUserFromSession = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -598,6 +647,7 @@ export const getJournalEntries = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -623,6 +673,7 @@ export const postJournalEntry = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -646,6 +697,7 @@ export const clearJournalEntry = createAsyncThunk(
         });
         //await window.localStorage.setItem(TOKEN, res.data.token);
         //dispatch(me());
+        console.log(res);
         return res.data
       }
     } catch (error) {
@@ -695,6 +747,23 @@ const authSlice = createSlice({
       state.success = false;
     },
     [toggleAvTracking.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [toggleEmailOptin.fulfilled]: (state, action) => {
+      state.preferences = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [toggleEmailOptin.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [toggleEmailOptin.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;
