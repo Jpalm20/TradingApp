@@ -84,7 +84,7 @@ def logTrade(user_id, requestBody):
 def getExistingTrade(trade_id):
     logger.info("Entering Get Trade Handler: " + "(trade_id: {})".format(str(trade_id)))
     response = trade.Trade.getTrade(trade_id)
-    if 'trade_id' in response[0][0]:
+    if response[0] and response[0][0] and 'trade_id' in response[0][0]:
         response = {
             "trade_id": response[0][0]['trade_id'],
             "user_id": response[0][0]['user_id'],
@@ -113,7 +113,10 @@ def getExistingTrade(trade_id):
 def searchUserTicker(user_id, filter=None):
     logger.info("Entering Search User Ticker Handler: " + "(user_id: {}, filter: {})".format(str(user_id), str(filter)))
     if filter:
-        filterBody = filter.to_dict()
+        if isinstance(filter, dict):
+            filterBody = filter  # 'filter' is already a dictionary
+        else:
+            filterBody = filter.to_dict() 
         eval, response = tradeValidator.validateSearchTicker(filterBody)
         if eval == False:
             logger.warning("Leaving Search User Ticker Handler: " + str(response))
@@ -138,6 +141,12 @@ def searchUserTicker(user_id, filter=None):
 def editExistingTrade(trade_id,requestBody):
     logger.info("Entering Edit Trade Handler: " + "(trade_id: {}, request: {})".format(str(trade_id), str(requestBody)))
     og_trade_info = getExistingTrade(trade_id)
+    if len(og_trade_info) == 2 and og_trade_info[1] and og_trade_info[1] == 400:
+        formatted_string = "trade_id: {} does not exist".format(trade_id)
+        logger.warning("Leaving Delete Trade Handler: " + formatted_string)
+        return {
+            "result": formatted_string
+        }, 400
     response = tradeValidator.validateEditTrade(requestBody)
     if response != True:
         logger.warning("Leaving Edit Trade Handler: " + str(response))
@@ -247,6 +256,12 @@ def deleteExistingTrade(trade_id):
             return {
                 "result": avresponse
             }, 400
+    if len(trade_info) == 2 and trade_info[1] and trade_info[1] == 400:
+        formatted_string = "trade_id: {} does not exist".format(trade_id)
+        logger.warning("Leaving Delete Trade Handler: " + formatted_string)
+        return {
+            "result": formatted_string
+        }, 400
     response = trade.Trade.deleteTrade(trade_id)
     if response[0]:
         logger.warning("Leaving Delete Trade Handler: " + str(response))
@@ -276,6 +291,12 @@ def deleteTrades(requestBody):
                 return {
                     "result": avresponse
                 }, 400
+        if len(trade_info) == 2 and trade_info[1] and trade_info[1] == 400:
+            formatted_string = "trade_id: {} does not exist".format(trade_id)
+            logger.warning("Leaving Delete Trades Handler: " + formatted_string)
+            return {
+                "result": formatted_string
+            }, 400
     response = trade.Trade.deleteTradesByID(requestBody)
     if response[0]:
         logger.warning("Leaving Delete Trades Handler: " + str(response))

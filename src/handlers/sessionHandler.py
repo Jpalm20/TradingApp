@@ -39,16 +39,19 @@ def logoutSession(auth_token):
     logger.info("Entering Logout Session Handler: " + "(auth_token: {})".format(str(auth_token)))
     response = session.Session.expireSession(auth_token)
     responseSession = session.Session.getSession(auth_token)
-    if 'expiration' in responseSession[0][0] and responseSession[0][0]['expiration'] <= datetime.now()+timedelta(seconds=1):
+    if responseSession[0] and responseSession[0][0] and 'expiration' in responseSession[0][0] and responseSession[0][0]['expiration'] <= datetime.now()+timedelta(seconds=1):
         response = {
             "result": "User Logged Out"
         }
         logger.info("Leaving Logout Session Handler: " + str(response))
         return response
     else:
+        expiration = str(responseSession)
+        if responseSession[0] and responseSession[0][0] and 'expiration' in responseSession[0][0]:
+            expiration = str(responseSession[0][0]['expiration'])
         response = {
             "result": "There was an issue expiring this Session, User not Logged Out",
-            "expiration": str(responseSession[0][0]['expiration']),
+            "expiration": expiration,
             "now" : str(datetime.now())
         }
         logger.warning("Leaving Logout Session Handler: " + str(response))
@@ -57,7 +60,7 @@ def logoutSession(auth_token):
 def getUserFromToken(auth_token):
     logger.info("Entering Get User From Token Handler: " + "(auth_token: {})".format(str(auth_token)))
     response = session.Session.getUserFromSession(auth_token)
-    if 'user_id' in response[0][0]:
+    if response[0] and response[0][0] and 'user_id' in response[0][0]:
         logger.info("Leaving Get User From Token Handler: " + "(user_id: {})".format(str(response[0][0]['user_id'])))
         return True, response[0][0]['user_id']
     else:
@@ -68,7 +71,7 @@ def getUserFromToken(auth_token):
 def getEmailFromToken(auth_token):
     logger.info("Entering Get Email From Token Handler: " + "(auth_token: {})".format(str(auth_token)))
     response = session.Session.getEmailFromSession(auth_token)
-    if 'email' in response[0][0]:
+    if response[0] and response[0][0] and 'email' in response[0][0]:
         logger.info("Leaving Get Email From Token Handler: " + "(email: {})".format(str(response[0][0]['email'])))
         return True, response[0][0]['email']
     else:
