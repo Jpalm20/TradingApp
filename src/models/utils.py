@@ -14,6 +14,7 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 
 def execute_db(query,args):
     logger.info("Entering Execute Database Query Util: " + "(query: {}, args: {})".format(str(query),str(args)))
+    connection = None
     try:
         connection = mysql.connector.connect(host=DB_HOST,
                                         port=DB_PORT,
@@ -32,7 +33,7 @@ def execute_db(query,args):
     except mysql.connector.Error as error:
         response = "Failed: {}".format(error)
     finally:
-        if connection.is_connected():
+        if connection is not None and connection.is_connected():
                 connection.close()
     logger.info("Leaving Execute Database Query Util: " + str(response))
     return response
