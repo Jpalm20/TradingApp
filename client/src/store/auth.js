@@ -86,11 +86,12 @@ export const update = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { first_name, last_name, email, street_address, city, state, country } = formInfo;
+        const { first_name, last_name, email, birthday, street_address, city, state, country } = formInfo;
         const res = await axios.post(API_URL + `user`, {
           first_name,
           last_name,
           email,
+          birthday,
           street_address,
           city,
           state,

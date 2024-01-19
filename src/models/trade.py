@@ -59,13 +59,15 @@ class Trade:
     def updateTrade(tradeID,changes):
         
         logger.info("Entering Update Trade Model Function: " + "(trade_id: {}, changes: {})".format(str(tradeID),str(changes)))
-        response = ""
-        
+        updates = []
         for key,value in changes.items():
-
-            Query = """UPDATE trade SET {} = %s WHERE trade_id = %s""".format(key)
-            Args = (value,tradeID)
-            response = response + '\n' + str(utils.execute_db(Query,Args)[0])
+            if value:
+                updates.append(f"{key}='{value}'")
+        updates = ", ".join(updates)
+        Query = """UPDATE trade SET {} WHERE trade_id = %s""".format(updates)
+        Query += ';'
+        Args = (tradeID,)
+        response = utils.execute_db(Query,Args)
         
         logger.info("Leaving Update Trade Model Function: " + str(response))
         return response

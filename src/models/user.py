@@ -224,13 +224,15 @@ class User:
     def updateUser(userID,changes):
         
         logger.info("Entering Update User Model Function: " + "(user_id: {}, changes: {})".format(str(userID),str(changes)))
-        response = ""
-            
+        updates = []
         for key,value in changes.items():
-
-            Query = """UPDATE user SET {} = %s WHERE user_id = %s""".format(key)
-            Args = (value,userID)
-            response = utils.execute_db(Query,Args)
+            if value:
+                updates.append(f"{key}='{value}'")
+        updates = ", ".join(updates)
+        Query = """UPDATE user SET {} WHERE user_id = %s""".format(updates)
+        Query += ';'
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
         
         logger.info("Leaving Update User Model Function: " + str(response))
         return response
