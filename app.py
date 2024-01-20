@@ -1051,7 +1051,15 @@ def existing_trade(trade_id):
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 if request.method == 'DELETE':
-                    response = tradeHandler.deleteExistingTrade(trade_id)
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Existing Trade: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    response = tradeHandler.deleteExistingTrade(user_id,trade_id)
                     if 'result' in response and response['result'] == "Trade Successfully Deleted":
                         #delete all affected keys, too costly to update them
                         user_id = response['user_id']
@@ -1101,7 +1109,15 @@ def delete_trades():
             eval,message = sessionHandler.validateToken(auth_token)
             if eval:
                 if request.method == 'DELETE':
-                    response = tradeHandler.deleteTrades(request.json)
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Delete Trades: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    response = tradeHandler.deleteTrades(user_id,request.json)
                     if 'result' in response and (response['result'] == "Trade Successfully Deleted" or response['result'] == "Trades Successfully Deleted"):
                         #delete all affected keys, too costly to update them
                         #TODO: get user_id from handler function and return to use here

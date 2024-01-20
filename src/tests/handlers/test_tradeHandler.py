@@ -338,29 +338,27 @@ class TestTradeHandler(unittest.TestCase):
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
         trade_id = response[0][0]['trade_id']
-        
-        # 1 fail on validation (Does Not Exist Yet)
-        
-        # 2 good path updating account value
-        response = deleteExistingTrade(trade_id)
+                
+        # 1 good path updating account value
+        response = deleteExistingTrade(user_id,trade_id)
         self.assertEqual(response['result'], "Trade Successfully Deleted")
         self.assertEqual(response['user_id'], user_id)
         
-        # 3 good path not updating account value
+        # 2 good path not updating account value
         response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Shares","SPY","","",410,400,1,"1:3",100,25,"deleteexistingtradetradehandlerunittest"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
         trade_id = response[0][0]['trade_id']
         
-        response = deleteExistingTrade(trade_id)
+        response = deleteExistingTrade(user_id,trade_id)
         self.assertEqual(response['result'], "Trade Successfully Deleted")
         self.assertEqual(response['user_id'], user_id)
         
-        # 4 fail on trade_id not found
-        response = deleteExistingTrade(trade_id)
+        # 3 fail on validation (Does Not Exist Yet)
+        response = deleteExistingTrade(user_id,trade_id)
         self.assertEqual(response[0]['result'], "trade_id: {} does not exist".format(trade_id))
 
-        # 5 fail on handleDeleteTrade (TODO)
+        # 4 fail on handleDeleteTrade (TODO)
         
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
@@ -381,30 +379,29 @@ class TestTradeHandler(unittest.TestCase):
         response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
         trade_ids = [trade['trade_id'] for trade in response[0]]
         
-        # 1 fail on validation (Does Not Exist Yet)
         
-        # 2 good path deleting > 1 trade
-        response = deleteTrades(trade_ids)
+        # 1 good path deleting > 1 trade
+        response = deleteTrades(user_id,trade_ids)
         self.assertEqual(response['result'], "Trades Successfully Deleted")
         self.assertEqual(response['user_id'], user_id)
 
-        # 3 good path deleteing 1 trade
+        # 2 good path deleteing 1 trade
         response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Shares","SPY","","",410,400,1,"1:3",100,25,"deleteexistingtradestradehandlerunittest"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
         trade_ids = [trade['trade_id'] for trade in response[0]]
         
-        response = deleteTrades(trade_ids)
+        response = deleteTrades(user_id,trade_ids)
         self.assertEqual(response['result'], "Trade Successfully Deleted")
         self.assertEqual(response['user_id'], user_id)
         
-        # fail on trade_id not found
-        response = deleteTrades(trade_ids)
+        # 3 fail on validation (Does Not Exist Yet)
+        response = deleteTrades(user_id,trade_ids)
         self.assertEqual(response[0]['result'], "trade_id: {} does not exist".format(trade_ids[0]))
 
-        # 5 fail on deleteTradesByID (TODO)
+        # 4 fail on deleteTradesByID (TODO)
         
-        # 6 fail on handleDeleteTrade (TODO)
+        # 5 fail on handleDeleteTrade (TODO)
         
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))

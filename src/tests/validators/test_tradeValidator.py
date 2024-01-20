@@ -535,7 +535,37 @@ class TestTradeValidator(unittest.TestCase):
         response = validateSearchTicker(filter)
         self.assertEqual(response[0], False)
         self.assertEqual(response[1], "Please include ticker_name only for filtering parameters")
+        
     
+    def test_validate_delete_trades(self):
+        #setup queries
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatedeletetradestradevalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("validatedeletetradestradevalidatorunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"validatedeletetradestradevalidatorunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_id = response[0][0]['trade_id']
+        
+        # 1 good path, pass
+        response = validateDeleteTrades(user_id,[trade_id])
+        self.assertEqual(response, True)
+        
+        # 2 bad path fail on user id not matching
+        response = validateDeleteTrades(0,[trade_id])
+        self.assertEqual(response[0]['result'], "trade_id: {} does not belong to this user_id".format(trade_id))
+        self.assertEqual(response[1], 400)
+        
+        # 3 bad path fail on trade not existing
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+                
+        response = validateDeleteTrades(user_id,[trade_id])
+        self.assertEqual(response[0]['result'], "trade_id: {} does not exist".format(trade_id))
+        self.assertEqual(response[1], 400)
+    
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
         
     #def tearDown(self):
         #self.transaction.rollback()

@@ -14,6 +14,11 @@ mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import trade
 
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'handlers',)
+sys.path.append( mymodule_dir )
+import tradeHandler
+
 def validateNewTrade(request):
     logger.info("Entering Validate New Trade Validator: " + "(request: {})".format(str(request)))
     if (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
@@ -178,3 +183,22 @@ def validateSearchTicker(filter):
     logger.warning("Leaving Validate Search Ticker Validator: " + response)
     return True, response
 
+
+def validateDeleteTrades(user_id,trade_ids):
+    for trade_id in trade_ids:
+        trade_info = tradeHandler.getExistingTrade(trade_id)
+        #possible move logic in here that validates if trade_id exists as well, yes should move logic first, check each trade exists then confirm same user_id
+        if len(trade_info) == 2 and trade_info[1] and trade_info[1] == 400:
+            formatted_string = "trade_id: {} does not exist".format(trade_id)
+            logger.warning("Leaving Validate Delete Trades Validator: " + formatted_string)
+            return {
+                "result": formatted_string
+            }, 400
+        #validate that trade(s) belongs to user
+        if user_id != trade_info['user_id']:
+            formatted_string = "trade_id: {} does not belong to this user_id".format(trade_id)
+            logger.warning("Leaving Validate Delete Trades Validator: " + formatted_string)
+            return {
+                "result": formatted_string
+            }, 400
+    return True
