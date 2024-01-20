@@ -163,7 +163,7 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response[0]['result'], "Shares require no Strike Price or Expiry, Try Again")
         
         # 2 good path not updating any account value logic
@@ -182,7 +182,7 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response['trade_id'], trade_id)
         self.assertEqual(response['ticker_name'], "AMD")
         
@@ -202,7 +202,7 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response['trade_id'], trade_id)
         self.assertEqual(response['pnl'], 50.0)
         
@@ -230,7 +230,7 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response['trade_id'], trade_id)
         self.assertEqual(response['pnl'], 50.0)
         
@@ -254,7 +254,7 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response['trade_id'], trade_id)
         self.assertEqual(response['trade_date'], "2023-02-01")
         
@@ -274,7 +274,7 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response['trade_id'], trade_id)
         self.assertEqual(response['trade_date'], "2022-12-01")
         
@@ -306,19 +306,30 @@ class TestTradeHandler(unittest.TestCase):
             "comments": ""
         }
         
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response['trade_id'], trade_id)
         self.assertEqual(response['trade_date'], "2023-01-01")
         # 6b fail updating trade date - trade_date was null originally, need to set all days with pnl fully as normal, fail on insertFutureDay (TODO)
 
         # 6c fail updating trade date - trade_date was null originally, need to set all days with pnl fully as normal, fail on handleAddTrade (TODO)
         
-        # 7 fail on not found trade_id (doesnt exist)
+        # 7 fail on not found trade_id, fail on validator pt 2(doesnt exist)
         response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
         requestBody = {
-            "ticker_name": "AMD"
+            "trade_type": "",
+            "security_type": "",
+            "ticker_name": "AMD",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
         }
-        response = editExistingTrade(trade_id,requestBody)
+        response = editExistingTrade(user_id,trade_id,requestBody)
         self.assertEqual(response[0]['result'], "trade_id: {} does not exist".format(trade_id))
         
         

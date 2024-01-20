@@ -61,8 +61,8 @@ def validateNewTrade(request):
     logger.info("Leaving Validate New Trade Validator: ")
     return True
 
-def validateEditTrade(request):
-    logger.info("Entering Validate Edit Trade Validator: " + "(request: {})".format(str(request)))
+def validateEditTrade(user_id,trade_id,request):
+    logger.info("Entering Validate Edit Trade Validator: " + "(user_id: {}, trade_id: {}, request: {})".format(str(user_id),str(trade_id),str(request)))
     if (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
         response = "Options require Strike Price and Expiry, Try Again"
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
@@ -92,6 +92,21 @@ def validateEditTrade(request):
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
         return {
             "result": response
+        }, 400
+    trade_info = tradeHandler.getExistingTrade(trade_id)
+    #possible move logic in here that validates if trade_id exists as well, yes should move logic first, check each trade exists then confirm same user_id
+    if len(trade_info) == 2 and trade_info[1] and trade_info[1] == 400:
+        formatted_string = "trade_id: {} does not exist".format(trade_id)
+        logger.warning("Leaving Validate Edit Trade Validator: " + formatted_string)
+        return {
+            "result": formatted_string
+        }, 400
+    #validate that trade(s) belongs to user
+    if user_id != trade_info['user_id']:
+        formatted_string = "trade_id: {} does not belong to this user_id".format(trade_id)
+        logger.warning("Leaving Validate Edit Trade Validator: " + formatted_string)
+        return {
+            "result": formatted_string
         }, 400
     logger.info("Leaving Validate Edit Trade Validator: ")
     return True
@@ -185,6 +200,7 @@ def validateSearchTicker(filter):
 
 
 def validateDeleteTrades(user_id,trade_ids):
+    logger.info("Entering Validate Delete Trades Validator: " + "(user_id: {}, trade_id(s) {})".format(str(user_id),str(trade_ids)))
     for trade_id in trade_ids:
         trade_info = tradeHandler.getExistingTrade(trade_id)
         #possible move logic in here that validates if trade_id exists as well, yes should move logic first, check each trade exists then confirm same user_id
@@ -201,4 +217,5 @@ def validateDeleteTrades(user_id,trade_ids):
             return {
                 "result": formatted_string
             }, 400
+    logger.info("Leaving Validate Delete Trades Validator: ")
     return True

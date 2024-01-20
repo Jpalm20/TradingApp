@@ -138,16 +138,10 @@ def searchUserTicker(user_id, filter=None):
         }, 400
 
 
-def editExistingTrade(trade_id,requestBody):
+def editExistingTrade(user_id,trade_id,requestBody):
     logger.info("Entering Edit Trade Handler: " + "(trade_id: {}, request: {})".format(str(trade_id), str(requestBody)))
     og_trade_info = getExistingTrade(trade_id)
-    if len(og_trade_info) == 2 and og_trade_info[1] and og_trade_info[1] == 400:
-        formatted_string = "trade_id: {} does not exist".format(trade_id)
-        logger.warning("Leaving Delete Trade Handler: " + formatted_string)
-        return {
-            "result": formatted_string
-        }, 400
-    response = tradeValidator.validateEditTrade(requestBody)
+    response = tradeValidator.validateEditTrade(user_id,trade_id,requestBody)
     if response != True:
         logger.warning("Leaving Edit Trade Handler: " + str(response))
         return response

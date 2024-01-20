@@ -1028,7 +1028,15 @@ def existing_trade(trade_id):
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 elif request.method == 'POST':
-                    response = tradeHandler.editExistingTrade(trade_id,request.json)
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Existing Trade: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    response = tradeHandler.editExistingTrade(user_id,trade_id,request.json)
                     if 'trade_id' in response:
                         #delete all affected keys, too costly to update them
                         user_id = response['user_id']
