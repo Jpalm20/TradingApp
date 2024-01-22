@@ -72,7 +72,6 @@ export default function UserProfile({ user }) {
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [birthday, setBirthday] = useState("");
-  console.log(birthday);
   const [email, setEmail] = useState("");
   const [street_address, setStreetAddress] = useState("");
   const [city, setCity] = useState("");

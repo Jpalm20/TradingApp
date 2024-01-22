@@ -21,6 +21,7 @@ import {
   TableCaption,
   TableContainer,
   Center,
+  Divider,
   UnorderedList,
   ListItem,
   Spinner,
@@ -111,7 +112,8 @@ export default function Summary({ user }) {
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [numRows, setNumRows] = useState(0);
-  const pageStartOffset = (page !== 0) ? ((page*numRows)-99) : 0;
+  const [num_results, setNumResults] = useState(100);
+  const pageStartOffset = (page !== 0) ? ((page*numRows)-(numRows-1)) : 0;
   const pageEndOffset = totalCount < (page*numRows) ? totalCount : (page*numRows);
   const [backPageEnable, setBackPageEnable] = useState(false);
   const [nextPageEnable, setNextPageEnable] = useState(false);
@@ -211,7 +213,7 @@ export default function Summary({ user }) {
 
   useEffect(() => {
     evaluatePage();
-  }, [page,totalCount]);
+  }, [page,totalCount,num_results,numRows]);
 
   const evaluateSuccess = () => {
     if(success === true && trade && trade.result === "Trade Edited Successfully"){
@@ -418,7 +420,7 @@ export default function Summary({ user }) {
       filters.ticker_name = filter_ticker_name;
     }
     filters.page = 1;
-    filters.numrows = 100;
+    filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
     dispatch(
       reset()      
@@ -466,7 +468,7 @@ export default function Summary({ user }) {
       filters.ticker_name = filter_ticker_name;
     }
     filters.page = 1;
-    filters.numrows = 100;
+    filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
     dispatch(
       reset()      
@@ -505,7 +507,7 @@ export default function Summary({ user }) {
         filters.ticker_name = filter_ticker_name;
       }
       filters.page = page+1;
-      filters.numrows = 100;
+      filters.numrows = num_results;
       await dispatch(getTradesPage({ filters }));  
       setSelectedRow([]);
     }
@@ -524,10 +526,29 @@ export default function Summary({ user }) {
         filters.ticker_name = filter_ticker_name;
       }
       filters.page = page-1;
-      filters.numrows = 100;
+      filters.numrows = num_results;
       await dispatch(getTradesPage({ filters }));  
       setSelectedRow([]);
     }
+  }
+
+  const handleChangeNumResults = async (e) => {
+    const new_num_results = e.target.value;
+    setNumResults(new_num_results);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.page = 1;
+    filters.numrows = new_num_results;
+    await dispatch(getTradesPage({ filters }));  
+    setSelectedRow([]);
   }
 
   const handleInputTickerFIlterClick = (event) => {
@@ -683,7 +704,7 @@ export default function Summary({ user }) {
       filters.ticker_name = filter_ticker_name;
     }
     filters.page = 1;
-    filters.numrows = 100;
+    filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));  
     setSelectedRow([]);
     setFilters(filters);
@@ -700,7 +721,7 @@ export default function Summary({ user }) {
     setSelectedTickerValue('');
     const filters = {};
     filters.page = 1;
-    filters.numrows = 100;
+    filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
     setFilters({});
     setSelectedRow([]);
@@ -775,7 +796,7 @@ export default function Summary({ user }) {
       filters.ticker_name = filter_ticker_name;
     }
     filters.page = 1;
-    filters.numrows = 100;
+    filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
     setSelectedFile(null);
   };
@@ -1082,6 +1103,17 @@ export default function Summary({ user }) {
               <Text class='pagenumbers'>
                 {pageStartOffset}-{pageEndOffset} of {totalCount}
               </Text>
+              <Divider orientation="vertical" colorScheme="gray"/>
+              <Text class='numresults'>
+                No. of Rows:
+              </Text>
+              <Select maxW={75} variant='filled' size="sm" defaultValue='100' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option> 
+              </Select>
             </HStack>
             {hasTrades ? (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
