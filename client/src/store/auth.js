@@ -429,6 +429,31 @@ export const toggleEmailOptin = createAsyncThunk(
   }
 );
 
+export const toggleFeatureFlags = createAsyncThunk(
+  "auth/toggleFeatureFlags",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { flags } = formInfo;
+        const res = await axios.post(API_URL + `user/preferences/toggleff`,
+        flags,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 
 export const changePassword = createAsyncThunk(
   "auth/changePassword",
@@ -765,6 +790,23 @@ const authSlice = createSlice({
       state.success = false;
     },
     [toggleEmailOptin.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [toggleFeatureFlags.fulfilled]: (state, action) => {
+      state.preferences = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [toggleFeatureFlags.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [toggleFeatureFlags.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;

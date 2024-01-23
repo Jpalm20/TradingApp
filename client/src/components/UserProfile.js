@@ -45,7 +45,7 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin } from '../store/auth';
+import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, toggleFeatureFlags } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
@@ -208,11 +208,23 @@ export default function UserProfile({ user }) {
   };
 
   const handleToggleAvTracking = async (e) => {
-    await dispatch(toggleAvTracking());
+    //await dispatch(toggleAvTracking());
+    const flags = ["account_value_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
   }
 
   const handleToggleEmailOptin = async (e) => {
-    await dispatch(toggleEmailOptin());
+    //await dispatch(toggleEmailOptin());
+    const flags = ["email_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
   }
 
   const handleLogout = async () => {

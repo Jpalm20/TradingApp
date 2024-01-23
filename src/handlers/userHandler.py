@@ -263,6 +263,42 @@ def toggleEmailOptInHandler(user_id):
         }, 400
         
     
+def toggleFeatureFlagsHandler(user_id,requestBody):
+    logger.info("Entering Toggle Feature Flags Handler: " + "(user_id: {})".format(str(user_id)))
+    response = userValidator.validateToggleFeatureFlags(requestBody)
+    if response != True:
+        logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+        return response
+    for ff in requestBody:
+        if ff == 'email_optin':
+            response = user.User.toggleEmailOptIn(user_id) 
+            if response[0]:
+                logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400   
+        if ff == 'account_value_optin':
+            response = user.User.toggleAccountValueFeatureOptin(user_id) 
+            if response[0]:
+                logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400   
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        response = {
+            "account_value_optin": response[0][0]['account_value_optin'],
+            "email_optin": response[0][0]['email_optin']
+        }
+        logger.info("Leaving Toggle Feature Flags Handler: " + str(response))
+        return response
+    else:
+        logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+        return {
+            "result": response
+        }, 400
+        
+    
 def getUserFromSession(auth_token):
     logger.info("Entering Get User From Session Handler: " + "(auth_token: {})".format(str(auth_token)))
     response = user.User.getUserBySessionToken(auth_token)

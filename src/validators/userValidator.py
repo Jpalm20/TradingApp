@@ -159,3 +159,16 @@ def validateGetAccountValue(request):
         }, 400
     logger.info("Leaving Validate Get Account Value Validator: ")
     return True
+
+def validateToggleFeatureFlags(request):
+    logger.info("Entering Validate Toggle Feature Flags Validator: " + "(request: {})".format(str(request)))
+    valid_featureflags = ['email_optin','account_value_optin']
+    for ff in request:
+        if(ff not in valid_featureflags):
+            response = "Please provide only valid feature flags in your request"
+            logger.warning("Leaving Validate Toggle Feature Flags Validator: " + response)
+            return {
+                "result": response
+            }, 400
+    logger.info("Leaving Validate Toggle Feature Flags Validator: ")
+    return True
