@@ -20,7 +20,7 @@ class TestTradeTransformer(unittest.TestCase):
         request = {
             "trade_type": "Day Trade",
             "security_type": "Shares",
-            "ticker_name": "QQQ",
+            "ticker_name": "qqq",
             "trade_date": "",
             "expiry": "",
             "strike": "",
@@ -33,6 +33,7 @@ class TestTradeTransformer(unittest.TestCase):
         }
         transformedRequest = transformNewTrade(request)
         self.assertEqual(transformedRequest['security_type'], 'Shares')
+        self.assertEqual(transformedRequest['ticker_name'], 'QQQ')
         self.assertEqual(transformedRequest['expiry'], None)
         self.assertEqual(transformedRequest['strike'], None)
         self.assertEqual(transformedRequest['trade_date'], None)
@@ -46,7 +47,7 @@ class TestTradeTransformer(unittest.TestCase):
         request = {
             "trade_type": "",
             "security_type": "Shares",
-            "ticker_name": "",
+            "ticker_name": "spy",
             "trade_date": "2023-08-03",
             "expiry": "",
             "strike": "",
@@ -58,9 +59,10 @@ class TestTradeTransformer(unittest.TestCase):
             "comments": ""
         }
         transformedRequest = transformEditTrade(request)
-        self.assertEqual(len(transformedRequest), 4)
+        self.assertEqual(len(transformedRequest), 5)
         self.assertEqual(transformedRequest['security_type'], 'Shares')
         self.assertEqual(transformedRequest['trade_date'], '2023-08-03')
+        self.assertEqual(transformedRequest['ticker_name'], 'SPY')
         self.assertEqual(transformedRequest['expiry'], None)
         self.assertEqual(transformedRequest['strike'], None)
 

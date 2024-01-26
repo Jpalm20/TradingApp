@@ -21,7 +21,19 @@ import tradeHandler
 
 def validateNewTrade(request):
     logger.info("Entering Validate New Trade Validator: " + "(request: {})".format(str(request)))
-    if (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
+    if request['trade_type'] not in ["Day Trade", "Swing Trade"]:
+        response = "Trade Type must be 'Day Trade' or 'Swing Trade', Try Again"
+        logger.warning("Leaving Validate New Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    elif request['security_type'] not in ["Shares", "Options"]:
+        response = "Security Type is either 'Shares' or 'Options', Try Again"
+        logger.warning("Leaving Validate New Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    elif (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
         response = "Options require Strike Price and Expiry, Try Again"
         logger.warning("Leaving Validate New Trade Validator: " + response)
         return {
@@ -29,12 +41,6 @@ def validateNewTrade(request):
         }, 400
     elif (request['security_type'] == "Shares") and (('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != "")):
         response = "Shares require no Strike Price or Expiry, Try Again"
-        logger.warning("Leaving Validate New Trade Validator: " + response)
-        return {
-            "result": response
-        }, 400
-    elif (request['security_type'] != "Shares" and request['security_type'] != "Options"):
-        response = "Security Type is either Shares or Options, Try Again"
         logger.warning("Leaving Validate New Trade Validator: " + response)
         return {
             "result": response
@@ -63,7 +69,19 @@ def validateNewTrade(request):
 
 def validateEditTrade(user_id,trade_id,request):
     logger.info("Entering Validate Edit Trade Validator: " + "(user_id: {}, trade_id: {}, request: {})".format(str(user_id),str(trade_id),str(request)))
-    if (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
+    if request['trade_type'] != '' and request['trade_type'] not in ["Day Trade", "Swing Trade"]:
+        response = "Trade Type must be 'Day Trade' or 'Swing Trade', Try Again"
+        logger.warning("Leaving Validate Edit Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    elif request['security_type'] != '' and request['security_type'] not in ["Shares", "Options"]:
+        response = "Security Type is either 'Shares' or 'Options', Try Again"
+        logger.warning("Leaving Validate Edit Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    elif (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
         response = "Options require Strike Price and Expiry, Try Again"
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
         return {

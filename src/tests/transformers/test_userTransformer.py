@@ -13,19 +13,23 @@ class TestUserTransformer(unittest.TestCase):
 
     def test_transform_new_user(self):
         request = {
-            "first_name": "Test",
-            "last_name": "Test",
+            "first_name": "test",
+            "last_name": "test",
             "birthday": "2023-01-01",
             "email": "transformnewuserunittest@gmail.com",
             "password": "password",
             "street_address": "10 Brewster Lane",
-            "city": "New Jersey",
-            "state": "NJ",
-            "country": "US"
+            "city": "new Jersey",
+            "state": "nj",
+            "country": "united states"
         }
         transformedRequest = transformNewUser(request)
         self.assertNotEqual(transformedRequest['password'], 'password')
         self.assertEqual(transformedRequest['first_name'], 'Test')
+        self.assertEqual(transformedRequest['last_name'], 'Test')
+        self.assertEqual(transformedRequest['city'], 'New Jersey')
+        self.assertEqual(transformedRequest['state'], 'NJ')
+        self.assertEqual(transformedRequest['country'], 'United States')
 
 
     def test_hash_password(self):
@@ -37,19 +41,24 @@ class TestUserTransformer(unittest.TestCase):
         
     def test_transform_edit_user(self):
         request = {
-            "first_name": "",
-            "last_name": "",
+            "first_name": "test",
+            "last_name": "test",
             "birthday": "2023-01-01",
             "email": "",
             "password": "",
             "street_address": "10 Brewster Lane",
-            "city": "",
-            "state": "",
-            "country": ""
+            "city": "new jersey",
+            "state": "nj",
+            "country": "united states"
         }
         transformedRequest = transformEditUser(request)
         self.assertTrue('password' not in transformedRequest)
         self.assertEqual(transformedRequest['street_address'], '10 Brewster Lane')
+        self.assertEqual(transformedRequest['first_name'], 'Test')
+        self.assertEqual(transformedRequest['last_name'], 'Test')
+        self.assertEqual(transformedRequest['city'], 'New Jersey')
+        self.assertEqual(transformedRequest['state'], 'NJ')
+        self.assertEqual(transformedRequest['country'], 'United States')
 
 
     def test_transform_report_bug(self):

@@ -20,6 +20,16 @@ def transformNewUser(request):
     logger.info("Entering Transform New User Transformer: " + "(request: {})".format(str(request)))
     hashPass = hashPassword(request['password'])
     request['password'] = hashPass
+    if 'first_name' in request and (request['first_name'] != '' or request['first_name'] != None):
+        request['first_name'] = request['first_name'].title()
+    if 'last_name' in request and (request['last_name'] != '' or request['last_name'] != None):
+        request['last_name'] = request['last_name'].title()
+    if 'city' in request and (request['city'] != '' or request['city'] != None):
+        request['city'] = request['city'].title()
+    if 'country' in request and (request['country'] != '' or request['country'] != None):
+        request['country'] = request['country'].title()
+    if 'state' in request and (request['state'] != '' or request['state'] != None):
+        request['state'] = request['state'].upper()
     logger.info("Leaving Transform New User Transformer: " + "(request: {})".format(str(request)))
     return request
 
@@ -33,8 +43,19 @@ def transformEditUser(request):
     logger.info("Entering Transform Edit User Transformer: " + "(request: {})".format(str(request)))
     transformedRequest = {}
     for key in request:
-        if request[key] != "":
-            transformedRequest[key] = request[key]
+        if request[key] != "" and request[key] != None:
+            if key == 'first_name':
+                transformedRequest['first_name'] = request['first_name'].title()
+            elif key == 'last_name':
+                transformedRequest['last_name'] = request['last_name'].title()
+            elif key == 'city':
+                transformedRequest['city'] = request['city'].title()
+            elif key == 'country':
+                transformedRequest['country'] = request['country'].title()
+            elif key == 'state':
+                transformedRequest['state'] = request['state'].upper()
+            else: 
+                transformedRequest[key] = request[key]
     logger.info("Leaving Transform Edit User Transformer: " + "(request: {})".format(str(request)))
     return transformedRequest
 

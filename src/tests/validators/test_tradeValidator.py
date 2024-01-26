@@ -79,7 +79,7 @@ class TestTradeValidator(unittest.TestCase):
             "comments": ""
         }
         response = validateNewTrade(request)
-        self.assertEqual(response[0]['result'], "Security Type is either Shares or Options, Try Again")
+        self.assertEqual(response[0]['result'], "Security Type is either 'Shares' or 'Options', Try Again")
         # 5 fail on ticker name
         request = {
             "trade_type": "Day Trade",
@@ -132,6 +132,40 @@ class TestTradeValidator(unittest.TestCase):
         }
         response = validateNewTrade(request)
         self.assertEqual(response[0]['result'], "Trade Closure Date Can't be in the Future")
+        # 8 fail on invalid trade_type
+        request = {
+            "trade_type": "Day",
+            "security_type": "Shares",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateNewTrade(request)
+        self.assertEqual(response[0]['result'], "Trade Type must be 'Day Trade' or 'Swing Trade', Try Again")
+        # 9 fail on invalid security_type
+        request = {
+            "trade_type": "Day Trade",
+            "security_type": "Share",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateNewTrade(request)
+        self.assertEqual(response[0]['result'], "Security Type is either 'Shares' or 'Options', Try Again")
 
 
     def test_validate_edit_trade(self):
@@ -268,7 +302,42 @@ class TestTradeValidator(unittest.TestCase):
         self.assertEqual(response[0]['result'], "trade_id: {} does not belong to this user_id".format(trade_id))
         self.assertEqual(response[1], 400)
         
-        #8 fail on trade_id doesnt exist
+        # 8 fail on invalid trade_type
+        request = {
+            "trade_type": "Day",
+            "security_type": "Shares",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateEditTrade(user_id,trade_id,request)
+        self.assertEqual(response[0]['result'], "Trade Type must be 'Day Trade' or 'Swing Trade', Try Again")
+        # 9 fail on invalid security_type
+        request = {
+            "trade_type": "Day Trade",
+            "security_type": "Share",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateEditTrade(user_id,trade_id,request)
+        self.assertEqual(response[0]['result'], "Security Type is either 'Shares' or 'Options', Try Again")
+        
+        # 10 fail on trade_id doesnt exist
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         request = {
             "trade_type": "Day Trade",

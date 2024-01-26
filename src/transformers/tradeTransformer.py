@@ -37,6 +37,7 @@ def transformNewTrade(request):
         request['percent_wl'] = None
     if 'buy_value' in request and request['buy_value'] == "":
         request['buy_value'] = None
+    request['ticker_name'] = request['ticker_name'].upper()
     logger.info("Leaving Transform New Trade Transformer: " + "(transformed_request: {})".format(str(request)))
     return request
 
@@ -44,8 +45,10 @@ def transformEditTrade(request):
     logger.info("Entering Transform Edit Trade Transformer: " + "(request: {})".format(str(request)))
     transformedRequest = {}
     for key in request:
-        if request[key] != "":
+        if request[key] != "" and request[key] != None:
             transformedRequest[key] = request[key]
+        if key == 'ticker_name':
+            transformedRequest['ticker_name'] = request['ticker_name'].upper()
     if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
         transformedRequest['expiry'] = None
         transformedRequest['strike'] = None

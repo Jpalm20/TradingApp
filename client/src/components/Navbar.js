@@ -250,7 +250,7 @@ export default function Navbar({ user }) {
               Journal
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
-              Provide Feedback
+              Feedback
             </Button>
             <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleColorMode}>
               <Icon as={colorMode === 'light' ? BsSun : BsMoon}></Icon>
