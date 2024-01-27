@@ -314,12 +314,9 @@ export default function LogTrade({ user }) {
       alignItems="center"
     >
       <Stack
-        flexDir="column"
-        mb="2"
-        justifyContent="center"
-        alignItems="center"
+        class='profilestack'
       >
-        <Heading class={colorMode === 'light' ? "logtradeheader" : "logtradeheaderdark"}>Log Trade</Heading>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Log Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {tradeLoading ? 
             <Stack

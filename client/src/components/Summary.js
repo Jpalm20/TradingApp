@@ -1265,12 +1265,9 @@ export default function Summary({ user }) {
         alignItems="center"
       >
         <Stack
-          flexDir="column"
-          mb="2"
-          justifyContent="center"
-          alignItems="center"
+          class='profilestack'
         >
-        <Heading class={colorMode === 'light' ? "edittradeheader" : "edittradeheaderdark"}>Update Trade</Heading>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
           {tradeLoading ? 
             <Stack

@@ -293,11 +293,8 @@ export default function UserProfile({ user }) {
           justifyContent="center"
           alignItems="center"
         >
-          <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="center"
-            alignItems="center"
+          <Stack 
+            class='profilestack'
           >
           <Avatar class='avatar' />
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Profile Information</Heading>
@@ -648,10 +645,7 @@ export default function UserProfile({ user }) {
           alignItems="center"
         >
           <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="center"
-            alignItems="center"
+            class='profilestack'
           >
           <Avatar class='avatar' />
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Information</Heading>

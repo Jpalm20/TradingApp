@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { register } from "../store/auth";
 import states from "../data/states";
 import '../styles/signup.css';
+import '../styles/landingpage.css';
 
 // import { Link } from "react-router-dom";
 
@@ -171,12 +172,9 @@ export default function Signup() {
       alignItems="center"
     >
       <Stack
-        flexDir="column"
-        mb="2"
-        justifyContent="center"
-        alignItems="center"
+        class='profilestack'
       >
-        <Heading class={colorMode === 'light' ? 'signupheader' : 'loginheaderdark'}>Sign Up</Heading>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Sign Up</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack

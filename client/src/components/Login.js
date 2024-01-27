@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../store/auth";
 import '../styles/login.css';
+import '../styles/landingpage.css';
+import '../styles/profile.css';
 
 // import { Link } from "react-router-dom";
 import {
@@ -126,7 +128,7 @@ export default function Login() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading class={colorMode === 'light' ? 'loginheader' : 'loginheaderdark'} >Welcome</Heading>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'} >Login</Heading>
         <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {authLoading ? 
           <Stack
