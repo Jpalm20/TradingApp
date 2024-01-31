@@ -44,7 +44,7 @@ def generate_code():
     code = ""
     for _ in range(6):
         code += str(random.randint(0, 9))  # Generate a random digit (0-9)
-    logger.info("Leaving Generate Code Util: " + str(code))
+    logger.info("Leaving Generate Code Util: ")
     return code
 
 
@@ -65,4 +65,25 @@ def add_filters_to_query_sring(query,filters):
     logger.info("Leaving Add Filters to Query String Util: " + str(queryString))
     return queryString
 
-        
+
+def censor_log(request):
+    logger.info("Entering Censor Log Util: ")
+
+    # Check if the request is a dictionary
+    if not isinstance(request, dict):
+        logger.info("Invalid data type for censoring. Skipping.")
+        return request
+
+    # Proceed with copying and censoring
+    censoredRequest = request.copy()
+    
+    # List of keys to censor
+    keys_to_censor = ['password', 'curr_pass', 'new_pass_1', 'new_pass_2', 'code']
+    
+    # Censor specified keys
+    for key in keys_to_censor:
+        if key in censoredRequest:
+            censoredRequest[key] = '********'
+
+    logger.info("Leaving Censor Log Util: ")
+    return censoredRequest

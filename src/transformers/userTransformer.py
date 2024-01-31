@@ -11,13 +11,18 @@ mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import user
 
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import utils
+
 import hashlib
 
 JIRA_PROJECT_ID = os.environ.get('JIRA_PROJECT_ID')
 
 
 def transformNewUser(request):
-    logger.info("Entering Transform New User Transformer: " + "(request: {})".format(str(request)))
+    logger.info("Entering Transform New User Transformer: " + "(request: {})".format(str(utils.censor_log(request))))
     hashPass = hashPassword(request['password'])
     request['password'] = hashPass
     if 'first_name' in request and (request['first_name'] != '' or request['first_name'] != None):
@@ -34,7 +39,7 @@ def transformNewUser(request):
     return request
 
 def hashPassword(password):
-    logger.info("Entering Hash Password: " + "(password: {})".format(str(password)))
+    logger.info("Entering Hash Password: (password: ********)")
     hashPass = hashlib.sha256(password.encode()).hexdigest()
     logger.info("Leaving Hash Password: ")
     return hashPass

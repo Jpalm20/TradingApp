@@ -13,6 +13,7 @@ import src.handlers.tradeHandler as tradeHandler
 import src.handlers.sessionHandler as sessionHandler
 import src.handlers.journalentryHandler as journalentryHandler
 import src.models.accountvalue as accountValue
+import src.models.utils as utils
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
@@ -55,7 +56,7 @@ def hello_geek():
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
-    logger.info("Entering Register User - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Register User - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.registerUser(request.json)
@@ -71,7 +72,7 @@ def register_user():
 
 @app.route('/user/login',methods = ['POST'])
 def validate_user():
-    logger.info("Entering Validate User - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Validate User - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.validateUser(request.json)
@@ -897,7 +898,7 @@ def report_bug():
         
 @app.route('/user/changePassword',methods= ['POST'])
 def change_Password():
-    logger.info("Entering Change Password - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Change Password - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -1244,7 +1245,7 @@ def export_csv():
 
 @app.route('/user/generateResetCode',methods = ['POST'])
 def generate_reset_code():
-    logger.info("Entering Generate Reset Code - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Generate Reset Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.generateResetCode(request.json)
@@ -1260,7 +1261,7 @@ def generate_reset_code():
     
 @app.route('/user/confirmResetCode',methods = ['POST'])
 def validate_reset_code():
-    logger.info("Entering Validate Reset Code - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Validate Reset Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.validateResetCode(request.json)
@@ -1276,7 +1277,7 @@ def validate_reset_code():
 
 @app.route('/user/resetPassword',methods = ['POST'])
 def reset_password():
-    logger.info("Entering Reset Password - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Reset Password - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.resetPassword(request.json)

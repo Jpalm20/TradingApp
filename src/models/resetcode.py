@@ -11,11 +11,18 @@ class Resetcode:
         self.userID = userID
         self.code = code
         self.expiration = expiration
-  
+        
+    def to_dict(self):
+        return {
+            'resetcode_id': self.resetcodeID,
+            'user_id': self.userID,
+            'code': self.code,
+            'expiration': self.expiration
+        }
     
     def getResetCode(code,user_id):
             
-        logger.info("Entering Get Reset Code Model Function: " + "(code: {}, user_id: {})".format(str(code),str(user_id)))
+        logger.info("Entering Get Reset Code Model Function: " + "(code: ******, user_id: {})".format(str(user_id)))
         Query = """SELECT resetcode_id, expiration FROM resetcode WHERE code = %s AND user_id = %s"""
         Args = (code,user_id)
         response = utils.execute_db(Query,Args)
@@ -24,7 +31,7 @@ class Resetcode:
     
     def addResetCode(resetcodeInfo):
             
-        logger.info("Entering Add Reset Code Model Function: " + "(resetcode_info: {})".format(str(resetcodeInfo)))
+        logger.info("Entering Add Reset Code Model Function: " + "(resetcode_info: {})".format(str(utils.censor_log(Resetcode.to_dict(resetcodeInfo)))))
         Query = """INSERT INTO resetcode VALUES (null,%s,%s,%s)"""
         Args = (resetcodeInfo.userID,resetcodeInfo.code,resetcodeInfo.expiration)
         response = utils.execute_db(Query,Args)

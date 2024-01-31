@@ -66,7 +66,7 @@ SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 
 
 def registerUser(requestBody):
-    logger.info("Entering Register User Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Register User Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = userValidator.validateNewUser(requestBody)
     if response != True:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -98,7 +98,7 @@ def registerUser(requestBody):
         return response
 
 def validateUser(requestBody):
-    logger.info("Entering Validate User Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Validate User Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = user.User.getUserbyEmail(requestBody['email'])
     if not response[0]:
         response = "No User Found with this Email, Please Use a Different Email or Create an Account"
@@ -139,7 +139,7 @@ def validateUser(requestBody):
             }, 403
             
 def changePassword(user_id, requestBody):
-    logger.info("Entering Change Password Handler: " + "(user_id: {}, request: {})".format(str(user_id),str(requestBody)))
+    logger.info("Entering Change Password Handler: " + "(user_id: {}, request: {})".format(str(user_id),str(utils.censor_log(requestBody))))
     response = userValidator.validateChangePassword(requestBody)
     if response != True:
         logger.warning("Leaving Change Password Handler: " + str(response))
@@ -721,7 +721,7 @@ def getPnLbyYear(user_id, date_year, filters=None):
         return response
     
 def generateResetCode(requestBody):
-    logger.info("Entering Generate Reset Code Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Generate Reset Code Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = user.User.getUserbyEmail(requestBody['email'])
     if not response[0]:
         response = "No Account Found with this Email, Please Use a Valid Email or Create an Account"
@@ -769,7 +769,7 @@ def generateResetCode(requestBody):
             
 
 def validateResetCode(requestBody):
-    logger.info("Entering Validate Reset Code Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Validate Reset Code Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = user.User.getUserbyEmail(requestBody['email'])
     if not response[0]:
         response = "No Account Found with this Email, Please Use a Valid Email or Create an Account"
@@ -806,7 +806,7 @@ def validateResetCode(requestBody):
         
 
 def resetPassword(requestBody):
-    logger.info("Entering Reset Password Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Reset Password Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = userValidator.validateResetPassword(requestBody)
     if response != True:
         logger.warning("Leaving Reset Password Handler: " + str(response))
