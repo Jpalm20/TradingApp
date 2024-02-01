@@ -46,3 +46,12 @@ class Resetcode:
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete Reset Code Model Function: " + str(response))
         return response
+    
+    def expireCodes(user_id):
+        
+        logger.info("Entering Expire Reset Codes Model Function: " + "(user_id: {})".format(str(user_id)))
+        Query = """UPDATE resetcode SET expiration = NOW() WHERE user_id = %s"""
+        Args = (user_id,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Expire Reset Codes Model Function: " + str(response))
+        return response

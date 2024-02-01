@@ -730,6 +730,14 @@ def generateResetCode(requestBody):
             "result": response
         }, 403
     else:
+        #expire all previous reset codes under this user so only one valid code at a tie
+        resetcodeResponse = resetcode.Resetcode.expireCodes(response[0][0]['user_id'])
+        if resetcodeResponse[0]:
+            logger.warning("Leaving Generate Reset Code Handler: " + str(resetcodeResponse))
+            return {
+                "result": str(resetcodeResponse)
+            }, 400
+            
         code = utils.generate_code()
         newResetCode = resetcode.Resetcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15))
         resetcodeResponse = resetcode.Resetcode.addResetCode(newResetCode)

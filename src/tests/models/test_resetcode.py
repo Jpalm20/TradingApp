@@ -65,9 +65,31 @@ class TestResetCode(unittest.TestCase):
         resetcode_id = response[0][0]['resetcode_id']
         response = Resetcode.deleteResetCode(resetcode_id)
         self.assertEqual(response[0], [])
-        response = execute_db("SELECT resetcode_id FROM resetcode WHERE user_id = %s", (resetcode_id,))
+        response = execute_db("SELECT resetcode_id FROM resetcode WHERE user_id = %s", (user_id,))
         self.assertEqual(response[0], [])
         response = execute_db("DELETE FROM user WHERE email = %s", ("deleteresetcodeunittest@gmail.com",))
+        
+    
+    def test_expire_codes(self):
+        
+        ## Need all logic paths tested
+        ## 1. Good Path
+        ## 2. DB Level Failures
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","expirecodesunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("expirecodesunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO resetcode VALUES (null,%s,%s,%s)",(user_id,'expirecodesunittestcode','2023-01-01 00:00:01'))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM resetcode WHERE user_id = %s", (user_id,))
+        self.assertEqual(response[0][0]['code'], "expirecodesunittestcode")
+        resetcode_id = response[0][0]['resetcode_id']
+        response = Resetcode.expireCodes(user_id)
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM resetcode WHERE resetcode_id = %s", (resetcode_id,))
+        self.assertNotEqual(response[0][0]['expiration'], '2023-01-01 00:00:01')
+        response = execute_db("DELETE FROM resetcode WHERE resetcode_id = %s", (resetcode_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
     
     
