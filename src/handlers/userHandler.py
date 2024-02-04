@@ -731,7 +731,7 @@ def generateResetCode(requestBody):
         }, 403
     else:
         #expire all previous reset codes under this user so only one valid code at a tie
-        resetcodeResponse = resetcode.Resetcode.expireCodes(response[0][0]['user_id'])
+        resetcodeResponse = resetcode.Resetcode.expireCodes(response[0][0]['user_id'],datetime.now())
         if resetcodeResponse[0]:
             logger.warning("Leaving Generate Reset Code Handler: " + str(resetcodeResponse))
             return {
@@ -739,7 +739,7 @@ def generateResetCode(requestBody):
             }, 400
             
         code = utils.generate_code()
-        newResetCode = resetcode.Resetcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15))
+        newResetCode = resetcode.Resetcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15),None)
         resetcodeResponse = resetcode.Resetcode.addResetCode(newResetCode)
         if resetcodeResponse[0]:
             logger.warning("Leaving Generate Reset Code Handler: " + str(resetcodeResponse))
@@ -800,6 +800,7 @@ def validateResetCode(requestBody):
                 "result": response
             }, 401
         else:
+            response = resetcode.Resetcode.validateResetCode(response[0][0]['resetcode_id'])
             response = "Reset Code Verified Successfully"
             logger.info("Leaving Validate Reset Code Handler: " + response)
             return {
@@ -826,8 +827,21 @@ def resetPassword(requestBody):
         return {
             "result": response
         }, 403
-    validateCodeResponse = validateResetCode({"code": requestBody['code'], "email": requestBody['email']})
-    if validateCodeResponse['result'] == "Reset Code Verified Successfully":
+    #validateCodeResponse = validateResetCode({"code": requestBody['code'], "email": requestBody['email']})
+    validateCodeResponse = resetcode.Resetcode.getResetCode(requestBody['code'],userResponse[0][0]['user_id'])
+    if not validateCodeResponse[0]:
+        response = "Reset Code Doesn't Exist"
+        logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 401
+    elif validateCodeResponse[0][0] and 'validated' in validateCodeResponse[0][0] and validateCodeResponse[0][0]['validated'] == 1:
+        if 'expiration' in validateCodeResponse[0][0] and validateCodeResponse[0][0]['expiration'] < datetime.now():
+            response = "Reset Code Has Expired"
+            logger.warning("Leaving Validate Reset Code Handler: " + response)
+            return {
+                "result": response
+            }, 401
         hashPass = userTransformer.hashPassword(requestBody['new_pass_1'])
         response = user.User.updatePass(userResponse[0][0]['user_id'],hashPass)
         if response[0]:
@@ -836,14 +850,7 @@ def resetPassword(requestBody):
                 "result": response
             }, 400
         else:
-            response = resetcode.Resetcode.getResetCode(requestBody['code'],userResponse[0][0]['user_id'])
-            if not response[0]:
-                response = "Reset Code Doesn't Exist"
-                logger.warning("Leaving Reset Password Handler: " + response)
-                return {
-                    "result": response
-                }, 401
-            response = resetcode.Resetcode.deleteResetCode(response[0][0]['resetcode_id'])
+            response = resetcode.Resetcode.deleteResetCode(validateCodeResponse[0][0]['resetcode_id'])
             if response[0]:
                 logger.warning("Leaving Reset Password Handler: " + str(response))
                 return {
@@ -854,10 +861,19 @@ def resetPassword(requestBody):
                 logger.info("Leaving Reset Password Handler: " + response)
                 return {
                     "result": response
-                }
-            
+                }    
+    elif validateCodeResponse[0][0] and 'validated' in validateCodeResponse[0][0] and validateCodeResponse[0][0]['validated'] == 0:
+        response = "Reset Code has not been validated yet"
+        logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 401
     else:
-        return validateCodeResponse
+        response = "An Issue Occurred Resetting Password, Please Try Again"
+        logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 403
     
     
 def setAccountValue(user_id,requestBody):
