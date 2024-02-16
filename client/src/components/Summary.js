@@ -126,6 +126,13 @@ export default function Summary({ user }) {
     }
   }, [trades]); 
 
+  useEffect(() => {
+    if (hasTrade) {
+      setRisk(trade.rr.split(":")[0]);
+      setReward(trade.rr.split(":")[1]);
+    }
+  }, [trade]); 
+
   const [trade_id, setTradeID] = useState(null);
 
   const [trade_type, setTradeType] = useState("");
@@ -180,10 +187,18 @@ export default function Summary({ user }) {
   const [reward, setReward] = useState("1");
 
   useEffect(() => {
-    if(risk > 0 && reward > 0){
+    if(risk > 0 && reward > 0 && rr !== format(risk, reward)){
       setRR(format(risk,reward));
     }
   }, [risk, reward]); 
+
+  useEffect(() => {
+    if (rr && rr !== format(risk, reward)) {
+      const [riskValue, rewardValue] = rr.split(':').map(val => parseInt(val));
+      setRisk(riskValue);
+      setReward(rewardValue);
+    }
+  }, [rr]);
 
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -215,9 +230,31 @@ export default function Summary({ user }) {
     evaluatePage();
   }, [page,totalCount,num_results,numRows]);
 
-  const evaluateSuccess = () => {
+  const evaluateSuccess = async () => {
     if(success === true && trade && trade.result === "Trade Edited Successfully"){
-        setToastMessage(trade.result);
+      setEditTrade(false);
+      const filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      filters.page = 1;
+      filters.numrows = num_results;
+      await dispatch(getTradesPage({ filters }));
+      dispatch(
+        reset()      
+      );
+      clearFormStates();
+      setSelectedRow([]);
+      setTradeID(null);
+      setSearchValue('');
+      setIsDropdownOpen(false);
+      setToastMessage(trade.result);
     }
     if(success === true && trade && trade.result === "Trade Successfully Deleted"){
       setToastMessage(trade.result);
@@ -287,10 +324,33 @@ export default function Summary({ user }) {
     setToastErrorMessage(undefined);
   }, [toastErrorMessage, toast]);
 
+  useEffect(() => {
+    const savedUpdateTradeInfo = window.localStorage.getItem('updateTradeInfo');
+    if (savedUpdateTradeInfo) {
+      const updateTradeInfo = JSON.parse(savedUpdateTradeInfo);
+      setTradeType(updateTradeInfo.trade_type || "");
+      setSecurityType(updateTradeInfo.security_type || "");
+      setTickerName(updateTradeInfo.ticker_name || "");
+      setTradeDate(updateTradeInfo.trade_date || "");
+      setExpiry(updateTradeInfo.expiry || "");
+      setStrike(updateTradeInfo.strike || "");
+      setBuyValue(updateTradeInfo.buy_value || "");
+      setUnits(updateTradeInfo.units || "");
+      setRR(updateTradeInfo.rr || "");
+      setPNL(updateTradeInfo.pnl || "");
+      setPercentWL(updateTradeInfo.percent_wl || "");
+      setComments(updateTradeInfo.comments || "");
+      // Clear the saved info after loading it
+      //window.localStorage.removeItem('userInfo');
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
   function clearFormStates() {
     setTradeType("");
     setSecurityType("");
     setTickerName("");
+    setSelectedValue("");
+    setSearchValue("");
     setTradeDate("");
     setExpiry("");
     setStrike("");
@@ -300,6 +360,9 @@ export default function Summary({ user }) {
     setPNL("");
     setPercentWL("");
     setComments("");
+    setRisk(trade.rr.split(":")[0] || "1");
+    setReward(trade.rr.split(":")[1] || "1");
+    window.localStorage.removeItem('updateTradeInfo');
   }
 
   const keysToSkip = ['page', 'numrows'];
@@ -439,6 +502,21 @@ export default function Summary({ user }) {
 
   const handleDoneEdit = async (e) => {
     e.preventDefault();
+    const updateTradeInfo = {
+      trade_id,
+      trade_type,
+      security_type,
+      ticker_name,
+      trade_date,
+      expiry,
+      strike,
+      buy_value,
+      units,
+      rr,
+      pnl,
+      percent_wl,
+      comments
+    };
     await dispatch(
         update({
           trade_id,
@@ -456,28 +534,7 @@ export default function Summary({ user }) {
           comments
         })
       );
-    setEditTrade(false);
-    const filters = {};
-    if(filter_trade_type !== ''){
-      filters.trade_type = filter_trade_type;
-    }
-    if(filter_security_type !== ''){
-      filters.security_type = filter_security_type;
-    }
-    if(filter_ticker_name !== ''){
-      filters.ticker_name = filter_ticker_name;
-    }
-    filters.page = 1;
-    filters.numrows = num_results;
-    await dispatch(getTradesPage({ filters }));
-    dispatch(
-      reset()      
-    );
-    clearFormStates();
-    setSelectedRow([]);
-    setTradeID(null);
-    setSearchValue('');
-    setIsDropdownOpen(false);
+    window.localStorage.setItem('updateTradeInfo', JSON.stringify(updateTradeInfo));
   };
 
   const handleCancel = (e) => {
@@ -492,6 +549,15 @@ export default function Summary({ user }) {
     setIsLoading(false);
     setSearchValue('');
     setIsDropdownOpen(false);
+  }
+
+  const handleClear = (e) => {
+    e.preventDefault();
+    clearFormStates();
+    setIsLoading(false);
+    setSearchValue('');
+    setIsDropdownOpen(false);
+    changeShowOptions(e);
   }
 
   const handleNextPage = async (e) => {
@@ -1299,7 +1365,7 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
                   </FormHelperText>
-                  <Select onChange={(e) => setTradeType(e.target.value)}>
+                  <Select value={trade_type} onChange={(e) => setTradeType(e.target.value)}>
                     <option value="" disabled selected>{trade.trade_type}</option>
                     <option>Swing Trade</option>
                     <option>Day Trade</option>
@@ -1309,7 +1375,7 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select id="optionsSelection" onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value);}}>
+                  <Select id="optionsSelection" value={security_type} onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value);}}>
                     <option value="" disabled selected>{trade.security_type}</option>
                     <option>Options</option>
                     <option>Shares</option>
@@ -1340,6 +1406,7 @@ export default function Summary({ user }) {
                   Expiry (Options Only) *
                 </FormHelperText>
                 <Input
+                    value={expiry}
                     placeholder={trade.expiry}
                     onFocus={(e) => (e.target.type = "date")}
                     onBlur={(e) => (e.target.type = "text")}
@@ -1355,6 +1422,7 @@ export default function Summary({ user }) {
                 </FormHelperText>
                 <InputGroup>
                   <Input
+                    value={strike}
                     type="name"
                     placeholder={trade.strike}
                     onChange={(e) => setStrike(e.target.value)}
@@ -1369,6 +1437,7 @@ export default function Summary({ user }) {
                   Date Trade was Closed *
                 </FormHelperText>
                 <Input
+                    value={trade_date}
                     placeholder={trade.trade_date}
                     onFocus={(e) => (e.target.type = "date")}
                     onBlur={(e) => (e.target.type = "text")}
@@ -1383,6 +1452,7 @@ export default function Summary({ user }) {
                     Average Cost *
                   </FormHelperText>
                   <Input
+                    value={buy_value}
                     type="name"
                     placeholder={trade.buy_value}
                     onChange={(e) => setBuyValue(e.target.value)}
@@ -1394,6 +1464,7 @@ export default function Summary({ user }) {
                     # of Units *
                   </FormHelperText>
                   <Input
+                    value={units}
                     type="name"
                     placeholder={trade.units}
                     onChange={(e) => setUnits(e.target.value)}
@@ -1408,8 +1479,9 @@ export default function Summary({ user }) {
                   </FormHelperText>
                   <HStack>
                   <NumberInput
+                    value={risk}
                     onChange={(stringValue) => setRisk(stringValue)}
-                    defaultValue = {trade.rr.split(":")[0]}
+                    //defaultValue = {trade.rr.split(":")[0]}
                     min={1}
                     max={200}
                     inputMode='text'
@@ -1424,8 +1496,9 @@ export default function Summary({ user }) {
                     :
                   </Text>
                   <NumberInput
+                    value={reward}
                     onChange={(stringValue) => setReward(stringValue)}
-                    defaultValue = {trade.rr.split(":")[1]}
+                    //defaultValue = {trade.rr.split(":")[1]}
                     min={1}
                     max={200}
                     inputMode='text'
@@ -1444,6 +1517,7 @@ export default function Summary({ user }) {
                     PNL *
                   </FormHelperText>
                   <Input
+                    value={pnl}
                     type="name"
                     placeholder={trade.pnl}
                     onChange={(e) => setPNL(e.target.value)}
@@ -1455,6 +1529,7 @@ export default function Summary({ user }) {
                     % Win or Loss *
                   </FormHelperText>
                   <Input
+                    value={percent_wl}
                     type="name"
                     readOnly
                     placeholder={trade.percent_wl}
@@ -1467,9 +1542,8 @@ export default function Summary({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Comments *
                   </FormHelperText>
-                  <Textarea placeholder={trade.comments} onChange={(e) => setComments(e.target.value)}/>
+                  <Textarea value={comments} placeholder={trade.comments} onChange={(e) => setComments(e.target.value)}/>
               </FormControl>
-              <ButtonGroup>
               <Button
                 borderRadius={0}
                 type="submit"
@@ -1478,9 +1552,18 @@ export default function Summary({ user }) {
                 width="full"
                 onClick={handleDoneEdit}
               >
-                Update Trade
+                Update
               </Button>
-
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
               <Button
                 borderRadius={0}
                 type="submit"
@@ -1491,7 +1574,6 @@ export default function Summary({ user }) {
               >
                 Cancel
               </Button>
-              </ButtonGroup>
             </Stack>
           </form>
         }

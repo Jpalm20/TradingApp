@@ -72,8 +72,55 @@ export default function Signup() {
 
   const { colorMode, toggleColorMode } = useColorMode();
 
+  useEffect(() => {
+    const savedUserInfo = window.localStorage.getItem('userInfo');
+    if (savedUserInfo) {
+      const userInfo = JSON.parse(savedUserInfo);
+      setFirstName(userInfo.first_name || "");
+      setLastName(userInfo.last_name || "");
+      setBirthday(userInfo.birthday || "");
+      setEmail(userInfo.email || "");
+      setPassword("");
+      setStreetAddress(userInfo.street_address || "");
+      setCity(userInfo.city || "");
+      setState(userInfo.state || "");
+      setCountry(userInfo.country || "");
+      // Clear the saved info after loading it
+      //window.localStorage.removeItem('userInfo');
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  function clearFormStates() {
+    setFirstName("");
+    setLastName("");
+    setBirthday("");
+    setEmail("");
+    setPassword("");
+    setStreetAddress("");
+    setCity("");
+    setState("");
+    setCountry("");
+    window.localStorage.removeItem('userInfo');
+  }
+
+  const handleClear = (e) => {
+    e.preventDefault();
+    clearFormStates();
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const userInfo = {
+      first_name,
+      last_name,
+      birthday,
+      email,
+      //password,
+      street_address,
+      city,
+      state,
+      country,
+    };
     await dispatch(
       register({
         first_name,
@@ -87,6 +134,7 @@ export default function Signup() {
         country,
       })
     );
+    window.localStorage.setItem('userInfo', JSON.stringify(userInfo));
   };
 
   useEffect(() => {
@@ -207,6 +255,7 @@ export default function Signup() {
                     First Name *
                   </FormHelperText>
                   <Input
+                    value={first_name}
                     type="name"
                     onChange={(e) => setFirstName(e.target.value)}
                   />
@@ -216,6 +265,7 @@ export default function Signup() {
                     Last Name *
                   </FormHelperText>
                   <Input
+                    value={last_name}
                     type="name"
                     onChange={(e) => setLastName(e.target.value)}
                   />
@@ -225,7 +275,7 @@ export default function Signup() {
                 <FormHelperText mb={2} ml={1}>
                   Email *
                 </FormHelperText>
-                <Input type="name" onChange={(e) => setEmail(e.target.value)} />
+                <Input value={email} type="name" onChange={(e) => setEmail(e.target.value)} />
               </FormControl>
               <FormControl>
                 <FormHelperText mb={2} ml={1}>
@@ -272,6 +322,7 @@ export default function Signup() {
                 <InputGroup>
                   <Input
                     type="date"
+                    value={birthday}
                     max={maxDate}
                     min="1900-01-01"
                     onChange={(e) => setBirthday(e.target.value)}
@@ -285,6 +336,7 @@ export default function Signup() {
                     Street Address *
                   </FormHelperText>
                   <Input
+                    value={street_address}
                     type="name"
                     onChange={(e) => setStreetAddress(e.target.value)}
                   />
@@ -295,6 +347,7 @@ export default function Signup() {
                     City *
                   </FormHelperText>
                   <Input
+                    value={city}
                     type="name"
                     onChange={(e) => setCity(e.target.value)}
                   />
@@ -306,7 +359,7 @@ export default function Signup() {
                   <FormHelperText mb={2} ml={1}>
                     State *
                   </FormHelperText>
-                  <Select placeholder='Select State' onChange={(e) => setState(e.target.value)}>
+                  <Select value={state} placeholder='Select State' onChange={(e) => setState(e.target.value)}>
                     {states.map((state) => (<option key={state}>{state}</option>))}
                   </Select>
               </FormControl>
@@ -315,7 +368,7 @@ export default function Signup() {
                   <FormHelperText mb={2} ml={1}>
                     Country *
                   </FormHelperText>
-                  <Select placeholder='Select Country' onChange={(e) => setCountry(e.target.value)}>
+                  <Select value={country} placeholder='Select Country' onChange={(e) => setCountry(e.target.value)}>
                     <option value="Afghanistan">Afghanistan</option>
                     <option value="Albania">Albania</option>
                     <option value="Algeria">Algeria</option>
@@ -569,6 +622,16 @@ export default function Signup() {
               >
                 Create account
               </Button>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
             </Stack>
           </form>
         }
@@ -576,7 +639,7 @@ export default function Signup() {
       </Stack>
       <Box>
         Already have an account?{" "}
-        <Link color="blue.500" href="/login">
+        <Link color="blue.500" href="/login" onClick={() => window.localStorage.removeItem('userInfo')}>
           Log in
         </Link>
       </Box>

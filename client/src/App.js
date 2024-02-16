@@ -54,6 +54,10 @@ export default function App() {
   const hasStats = ((stats && stats.stats && Object.keys(stats.stats).length > 0) ? (true):(false));
   
   if(isRegistered === true && registered === true){
+    const savedUserInfo = window.localStorage.getItem('userInfo');
+    if (savedUserInfo) {
+      window.localStorage.removeItem('userInfo');
+    }
     setToastMessage(info.result);
     setRegistered(false);
   }
