@@ -565,13 +565,21 @@ def getUserTradesStats(user_id,filters=None):
     if len(response[0]) != 0 and "numTrades" in response[0][0]:   
         avgWin = 0
         avgLoss = 0
-        winPercent = 0         
+        winPercent = 0  
+        avgPnL = 0  
+        avgSpST = 0
+        avgCpOT = 0
         if(response[0][0]['numWins'] > 0):
             avgWin = response[0][0]['sumWin']/response[0][0]['numWins']
         if(response[0][0]['numLosses'] > 0):
             avgLoss = response[0][0]['sumLoss']/response[0][0]['numLosses']  
         if(response[0][0]['numTrades'] > 0):
             winPercent = (response[0][0]['numWins']/response[0][0]['numTrades'])*100
+            avgPnL = response[0][0]['totalPNL']/response[0][0]['numTrades']
+        if(response[0][0]['numOT'] > 0):
+            avgCpOT = response[0][0]['sumOptionsUnits']/response[0][0]['numOT']
+        if(response[0][0]['numShT'] > 0):
+            avgSpST = response[0][0]['sumSharesUnits']/response[0][0]['numShT']
         response = {
             "stats": {
                 "num_trades": response[0][0]['numTrades'],
@@ -591,8 +599,11 @@ def getUserTradesStats(user_id,filters=None):
                 "num_shares_loss": response[0][0]['numShTLoss'],
                 "largest_win": response[0][0]['largestWin'],
                 "largest_loss": response[0][0]['largestLoss'],
+                "avg_shares_per_trade": "{:.2f}".format(avgSpST),
+                "avg_options_per_trade": "{:.2f}".format(avgCpOT),
                 "avg_win": "{:.2f}".format(avgWin),
                 "avg_loss": "{:.2f}".format(avgLoss),
+                "avg_pnl": "{:.2f}".format(avgPnL),
                 "total_pnl": response[0][0]['totalPNL'],
                 "win_percent": "{:.2f}".format(winPercent)
             }
@@ -619,8 +630,11 @@ def getUserTradesStats(user_id,filters=None):
                 "num_shares_loss": 0,
                 "largest_win": 0,
                 "largest_loss": 0,
+                "avg_shares_per_trade": "{:.2f}".format(0),
+                "avg_options_per_trade": "{:.2f}".format(0),
                 "avg_win": "{:.2f}".format(0),
                 "avg_loss": "{:.2f}".format(0),
+                "avg_pnl": "{:.2f}".format(0),
                 "total_pnl": 0,
                 "win_percent": "{:.2f}".format(0)
             }
