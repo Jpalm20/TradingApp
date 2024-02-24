@@ -359,6 +359,7 @@ export default function Navbar({ user }) {
                     <option>Home</option>
                     <option>Trade Summary Table</option>
                     <option>PnL Calendar</option>
+                    <option>Journal</option>
                     <option>User Profile</option>
                     <option>Other</option>
                     </Select>
