@@ -13,6 +13,7 @@ import src.handlers.tradeHandler as tradeHandler
 import src.handlers.sessionHandler as sessionHandler
 import src.handlers.journalentryHandler as journalentryHandler
 import src.models.accountvalue as accountValue
+import src.models.utils as utils
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
@@ -54,7 +55,7 @@ def index():
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
-    logger.info("Entering Register User - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Register User - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.registerUser(request.json)
@@ -70,7 +71,7 @@ def register_user():
 
 @app.route('/user/login',methods = ['POST'])
 def validate_user():
-    logger.info("Entering Validate User - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Validate User - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.validateUser(request.json)
@@ -212,6 +213,48 @@ def toggle_email_optin_flag():
     except Exception as e:
         error_message = "An error occurred: " + str(e)
         logger.error("Leaving Toggle Email Alerts: " + error_message)
+        return {
+            "result": error_message
+        }, 400
+        
+
+@app.route('/user/preferences/toggleff',methods = ['POST'])
+def toggle_feature_flags():
+    logger.info("Entering Toggle Feature Flags - " + str(request.method) + ": " + str(request.json))
+    try:
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+            eval,message = sessionHandler.validateToken(auth_token)
+            eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+            if eval and eval2:
+                user_id = message2
+                if request.method == 'POST':
+                    response = userHandler.toggleFeatureFlagsHandler(user_id,request.json)
+                    if 'account_value_optin' in response:
+                        key = f'preferences:{user_id}'
+                        redis_client.setex(key, 14400, json.dumps(response))
+                    logger.info("Leaving Toggle Feature Flags: " + str(response))
+                    return response
+            elif not eval:
+                logger.warning("Leaving Toggle Feature Flags: " + str(message))
+                return {
+                    "result": message
+                }, 401
+            else:
+                logger.warning("Leaving Toggle Feature Flags: " + str(message2))
+                return {
+                    "result": message2
+                }, 401
+        else:
+            response = "Authorization Header is Missing"
+            logger.warning("Leaving Toggle Feature Flags: " + response)
+            return {
+                "result": response
+            }, 401
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        logger.error("Leaving Toggle Feature Flags: " + error_message)
         return {
             "result": error_message
         }, 400
@@ -854,7 +897,7 @@ def report_bug():
         
 @app.route('/user/changePassword',methods= ['POST'])
 def change_Password():
-    logger.info("Entering Change Password - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Change Password - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -925,9 +968,9 @@ def logout_session():
 
 @app.route('/user',methods = ['GET','POST','DELETE'])
 def existing_user():
-    if request.method == 'GET':
+    if request.method == 'GET' or request.method == 'DELETE':
         logger.info("Entering Existing User - " + str(request.method))
-    if request.method == 'POST' or request.method == 'DELETE':
+    if request.method == 'POST':
         logger.info("Entering Existing User - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -1004,9 +1047,9 @@ def existing_user():
 
 @app.route('/trade/<int:trade_id>',methods = ['GET','POST','DELETE'])
 def existing_trade(trade_id):
-    if request.method == 'GET':
+    if request.method == 'GET' or request.method == 'DELETE':
         logger.info("Entering Existing Trade - " + str(request.method))
-    if request.method == 'POST' or request.method == 'DELETE':
+    if request.method == 'POST':
         logger.info("Entering Existing Trade - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -1027,7 +1070,15 @@ def existing_trade(trade_id):
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 elif request.method == 'POST':
-                    response = tradeHandler.editExistingTrade(trade_id,request.json)
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Existing Trade: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    response = tradeHandler.editExistingTrade(user_id,trade_id,request.json)
                     if 'trade_id' in response:
                         #delete all affected keys, too costly to update them
                         user_id = response['user_id']
@@ -1050,7 +1101,15 @@ def existing_trade(trade_id):
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 if request.method == 'DELETE':
-                    response = tradeHandler.deleteExistingTrade(trade_id)
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Existing Trade: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    response = tradeHandler.deleteExistingTrade(user_id,trade_id)
                     if 'result' in response and response['result'] == "Trade Successfully Deleted":
                         #delete all affected keys, too costly to update them
                         user_id = response['user_id']
@@ -1100,7 +1159,15 @@ def delete_trades():
             eval,message = sessionHandler.validateToken(auth_token)
             if eval:
                 if request.method == 'DELETE':
-                    response = tradeHandler.deleteTrades(request.json)
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Delete Trades: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    response = tradeHandler.deleteTrades(user_id,request.json)
                     if 'result' in response and (response['result'] == "Trade Successfully Deleted" or response['result'] == "Trades Successfully Deleted"):
                         #delete all affected keys, too costly to update them
                         #TODO: get user_id from handler function and return to use here
@@ -1177,7 +1244,7 @@ def export_csv():
 
 @app.route('/user/generateResetCode',methods = ['POST'])
 def generate_reset_code():
-    logger.info("Entering Generate Reset Code - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Generate Reset Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.generateResetCode(request.json)
@@ -1193,7 +1260,7 @@ def generate_reset_code():
     
 @app.route('/user/confirmResetCode',methods = ['POST'])
 def validate_reset_code():
-    logger.info("Entering Validate Reset Code - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Validate Reset Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.validateResetCode(request.json)
@@ -1209,7 +1276,7 @@ def validate_reset_code():
 
 @app.route('/user/resetPassword',methods = ['POST'])
 def reset_password():
-    logger.info("Entering Reset Password - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Reset Password - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
             response = userHandler.resetPassword(request.json)
@@ -1225,9 +1292,9 @@ def reset_password():
 
 @app.route('/journal/<string:date>',methods = ['GET','POST','DELETE'])
 def existing_journalentry(date):
-    if request.method == 'POST' or request.method == 'DELETE':
+    if request.method == 'POST':
         logger.info("Entering Existing Journal Entry - " + str(request.method) + ": " + str(request.json))
-    if request.method == 'GET':
+    if request.method == 'GET' or request.method == 'DELETE':
         logger.info("Entering Existing Journal Entry - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -1255,19 +1322,36 @@ def existing_journalentry(date):
                 elif request.method == 'POST':
                     response = journalentryHandler.postJournalEntry(user_id, date, request.json)
                     #check if handler was successful in updating entry
-                    logger.info("Here 1")
                     if 'entry' in response:
-                        #look through user journal entries and if key exists for date, update it
+                        # Parse the date from the response
                         date_obj = datetime.strptime(date, '%Y-%m-%d')
                         year = date_obj.year
                         month = date_obj.month
                         key = f'journalentry:{user_id}:{year}:{month}'
-                        existing_json = json.loads(redis_client.get(key))
+
+                        # Retrieve the existing journal entries
+                        existing_data = redis_client.get(key)
+                        if existing_data:
+                            existing_json = json.loads(existing_data)
+                        else:
+                            existing_json = {"entries": []}  # Initialize if no existing data
+
+                        # Check if an entry for the specific date exists
+                        entry_found = False
                         for item in existing_json.get("entries", []):
                             if item.get("date") == response['date']:
-                                item["entrytext"] = response['entry']
-                                redis_client.setex(key, 3600, json.dumps(existing_json))
-                                break  # Exit the loop after the update
+                                item["entrytext"] = response['entry']  # Update the entry
+                                entry_found = True
+                                break
+
+                        # If the entry does not exist, create a new one
+                        if not entry_found:
+                            new_entry = {"date": response['date'], "entrytext": response['entry']}
+                            existing_json["entries"].append(new_entry)
+
+                        # Save the updated journal entries back to Redis
+                        redis_client.setex(key, 3600, json.dumps(existing_json))
+                        
                     logger.info("Leaving Existing Journal Entry: " + str(response))
                     return response
                 if request.method == 'DELETE':

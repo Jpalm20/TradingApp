@@ -113,3 +113,10 @@ CREATE TABLE `Journalentry` (
 ALTER TABLE user ADD COLUMN email_optin BOOLEAN DEFAULT TRUE;
 
 UPDATE user SET email_optin = true;
+
+
+-- 02-01-2024 (1.0.8)
+
+ALTER TABLE resetcode ADD COLUMN validated BOOLEAN DEFAULT FALSE;
+
+UPDATE resetcode SET validated = false;

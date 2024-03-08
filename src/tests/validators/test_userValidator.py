@@ -285,6 +285,17 @@ class TestUserValidator(unittest.TestCase):
         response = validateSetAccountValue(request)
         self.assertEqual(response[0]['result'], "Invalid date. The 'date' provided is more than one day into the future of the current UTC date.")
         
+    
+    def test_validate_toggle_feature_flags(self):
+        # 1 good path
+        request = ['email_optin','account_value_optin']
+        response = validateToggleFeatureFlags(request)
+        self.assertEqual(response, True)
+        # 2 fail missing fields
+        request = ['email_optin','account_value_optins']
+        response = validateToggleFeatureFlags(request)
+        self.assertEqual(response[0]['result'], "Please provide only valid feature flags in your request")
+    
         
     #def tearDown(self):
         #self.transaction.rollback()

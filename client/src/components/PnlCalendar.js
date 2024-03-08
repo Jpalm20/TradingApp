@@ -339,13 +339,42 @@ export default function PnlCalendar({ user }) {
 
   const getGreenDayPercent = () => {
     let greenDays = 0;
+    let totalTradeDays = 0;
     let totalDays = getDays(calYear, calMonth);
     for (let i = 0; i < totalDays; i++) {
       if(pnlYTD.months[calMonth][calMonth][i] > 0){
         greenDays += 1
       }
+      if(pnlYTD.months[calMonth][calMonth][i] !== 0){
+        totalTradeDays += 1
+      }
     }
-    return ((greenDays/totalDays));
+    if(totalTradeDays > 0){
+      return (greenDays/totalTradeDays);
+    } else {
+      return (0);
+    }
+    
+  };
+
+  const getRedDayPercent = () => {
+    let redDays = 0;
+    let totalTradeDays = 0;
+    let totalDays = getDays(calYear, calMonth);
+    for (let i = 0; i < totalDays; i++) {
+      if(pnlYTD.months[calMonth][calMonth][i] < 0){
+        redDays += 1
+      }
+      if(pnlYTD.months[calMonth][calMonth][i] !== 0){
+        totalTradeDays += 1
+      }
+    }
+    if(totalTradeDays > 0){
+      return (redDays/totalTradeDays);
+    } else {
+      return (0);
+    }
+    
   };
 
   const getWeeklyTotals = () => {
@@ -852,7 +881,7 @@ export default function PnlCalendar({ user }) {
               </HStack>
               
               <HStack spacing={8} overflowX="auto" w='100%'>
-              <Grid overflowX='scroll' templateColumns='repeat(4, 1fr)' gap={6}>
+              <Grid overflowX='scroll' templateColumns='repeat(5, 1fr)' gap={6}>
                 <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
                   <Center fontWeight='bold'>
                   <Stat>
@@ -882,6 +911,14 @@ export default function PnlCalendar({ user }) {
                   <Stat>
                     <StatLabel>% Green Days</StatLabel>
                     <StatNumber>{percent.format(getGreenDayPercent())}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>% Red Days</StatLabel>
+                    <StatNumber>{percent.format(getRedDayPercent())}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>

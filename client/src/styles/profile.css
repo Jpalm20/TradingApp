@@ -1,3 +1,4 @@
+/*
 .profileheader {
     color: rgb(99, 99, 99);
     font-family: 'Open Sans', sans-serif;
@@ -11,9 +12,25 @@
     padding-bottom: 5px;
     font-size: x-large;
   }
+*/
 
   .avatar {
     background-color: rgb(99, 99, 99);
+  }
+
+  .profilestack {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media (max-height: 550px) {
+
+    .profilestack {
+      padding-top: 325px;
+    }
+
   }
 
 

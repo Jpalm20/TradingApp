@@ -31,6 +31,11 @@
     color: rgb(128, 128, 128);
   }
   
+  .numresults {
+    font-family: 'Saira Semi Condensed', sans-serif;
+    font-weight: bold; 
+  }
+  
 
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@700&display=swap');

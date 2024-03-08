@@ -66,7 +66,7 @@ SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 
 
 def registerUser(requestBody):
-    logger.info("Entering Register User Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Register User Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = userValidator.validateNewUser(requestBody)
     if response != True:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -98,7 +98,7 @@ def registerUser(requestBody):
         return response
 
 def validateUser(requestBody):
-    logger.info("Entering Validate User Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Validate User Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = user.User.getUserbyEmail(requestBody['email'])
     if not response[0]:
         response = "No User Found with this Email, Please Use a Different Email or Create an Account"
@@ -139,7 +139,7 @@ def validateUser(requestBody):
             }, 403
             
 def changePassword(user_id, requestBody):
-    logger.info("Entering Change Password Handler: " + "(user_id: {}, request: {})".format(str(user_id),str(requestBody)))
+    logger.info("Entering Change Password Handler: " + "(user_id: {}, request: {})".format(str(user_id),str(utils.censor_log(requestBody))))
     response = userValidator.validateChangePassword(requestBody)
     if response != True:
         logger.warning("Leaving Change Password Handler: " + str(response))
@@ -258,6 +258,42 @@ def toggleEmailOptInHandler(user_id):
         return response
     else:
         logger.warning("Leaving Toggle Email Opt In Handler: " + str(response))
+        return {
+            "result": response
+        }, 400
+        
+    
+def toggleFeatureFlagsHandler(user_id,requestBody):
+    logger.info("Entering Toggle Feature Flags Handler: " + "(user_id: {})".format(str(user_id)))
+    response = userValidator.validateToggleFeatureFlags(requestBody)
+    if response != True:
+        logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+        return response
+    for ff in requestBody:
+        if ff == 'email_optin':
+            response = user.User.toggleEmailOptIn(user_id) 
+            if response[0]:
+                logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400   
+        if ff == 'account_value_optin':
+            response = user.User.toggleAccountValueFeatureOptin(user_id) 
+            if response[0]:
+                logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400   
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        response = {
+            "account_value_optin": response[0][0]['account_value_optin'],
+            "email_optin": response[0][0]['email_optin']
+        }
+        logger.info("Leaving Toggle Feature Flags Handler: " + str(response))
+        return response
+    else:
+        logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
         return {
             "result": response
         }, 400
@@ -529,13 +565,21 @@ def getUserTradesStats(user_id,filters=None):
     if len(response[0]) != 0 and "numTrades" in response[0][0]:   
         avgWin = 0
         avgLoss = 0
-        winPercent = 0         
+        winPercent = 0  
+        avgPnL = 0  
+        avgSpST = 0
+        avgCpOT = 0
         if(response[0][0]['numWins'] > 0):
             avgWin = response[0][0]['sumWin']/response[0][0]['numWins']
         if(response[0][0]['numLosses'] > 0):
             avgLoss = response[0][0]['sumLoss']/response[0][0]['numLosses']  
         if(response[0][0]['numTrades'] > 0):
             winPercent = (response[0][0]['numWins']/response[0][0]['numTrades'])*100
+            avgPnL = response[0][0]['totalPNL']/response[0][0]['numTrades']
+        if(response[0][0]['numOT'] > 0):
+            avgCpOT = response[0][0]['sumOptionsUnits']/response[0][0]['numOT']
+        if(response[0][0]['numShT'] > 0):
+            avgSpST = response[0][0]['sumSharesUnits']/response[0][0]['numShT']
         response = {
             "stats": {
                 "num_trades": response[0][0]['numTrades'],
@@ -555,8 +599,11 @@ def getUserTradesStats(user_id,filters=None):
                 "num_shares_loss": response[0][0]['numShTLoss'],
                 "largest_win": response[0][0]['largestWin'],
                 "largest_loss": response[0][0]['largestLoss'],
+                "avg_shares_per_trade": "{:.2f}".format(avgSpST),
+                "avg_options_per_trade": "{:.2f}".format(avgCpOT),
                 "avg_win": "{:.2f}".format(avgWin),
                 "avg_loss": "{:.2f}".format(avgLoss),
+                "avg_pnl": "{:.2f}".format(avgPnL),
                 "total_pnl": response[0][0]['totalPNL'],
                 "win_percent": "{:.2f}".format(winPercent)
             }
@@ -583,8 +630,11 @@ def getUserTradesStats(user_id,filters=None):
                 "num_shares_loss": 0,
                 "largest_win": 0,
                 "largest_loss": 0,
+                "avg_shares_per_trade": "{:.2f}".format(0),
+                "avg_options_per_trade": "{:.2f}".format(0),
                 "avg_win": "{:.2f}".format(0),
                 "avg_loss": "{:.2f}".format(0),
+                "avg_pnl": "{:.2f}".format(0),
                 "total_pnl": 0,
                 "win_percent": "{:.2f}".format(0)
             }
@@ -685,7 +735,7 @@ def getPnLbyYear(user_id, date_year, filters=None):
         return response
     
 def generateResetCode(requestBody):
-    logger.info("Entering Generate Reset Code Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Generate Reset Code Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = user.User.getUserbyEmail(requestBody['email'])
     if not response[0]:
         response = "No Account Found with this Email, Please Use a Valid Email or Create an Account"
@@ -694,8 +744,16 @@ def generateResetCode(requestBody):
             "result": response
         }, 403
     else:
+        #expire all previous reset codes under this user so only one valid code at a tie
+        resetcodeResponse = resetcode.Resetcode.expireCodes(response[0][0]['user_id'],datetime.now())
+        if resetcodeResponse[0]:
+            logger.warning("Leaving Generate Reset Code Handler: " + str(resetcodeResponse))
+            return {
+                "result": str(resetcodeResponse)
+            }, 400
+            
         code = utils.generate_code()
-        newResetCode = resetcode.Resetcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15))
+        newResetCode = resetcode.Resetcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15),None)
         resetcodeResponse = resetcode.Resetcode.addResetCode(newResetCode)
         if resetcodeResponse[0]:
             logger.warning("Leaving Generate Reset Code Handler: " + str(resetcodeResponse))
@@ -733,7 +791,7 @@ def generateResetCode(requestBody):
             
 
 def validateResetCode(requestBody):
-    logger.info("Entering Validate Reset Code Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Validate Reset Code Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = user.User.getUserbyEmail(requestBody['email'])
     if not response[0]:
         response = "No Account Found with this Email, Please Use a Valid Email or Create an Account"
@@ -756,6 +814,7 @@ def validateResetCode(requestBody):
                 "result": response
             }, 401
         else:
+            response = resetcode.Resetcode.validateResetCode(response[0][0]['resetcode_id'])
             response = "Reset Code Verified Successfully"
             logger.info("Leaving Validate Reset Code Handler: " + response)
             return {
@@ -770,7 +829,7 @@ def validateResetCode(requestBody):
         
 
 def resetPassword(requestBody):
-    logger.info("Entering Reset Password Handler: " + "(request: {})".format(str(requestBody)))
+    logger.info("Entering Reset Password Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
     response = userValidator.validateResetPassword(requestBody)
     if response != True:
         logger.warning("Leaving Reset Password Handler: " + str(response))
@@ -782,8 +841,21 @@ def resetPassword(requestBody):
         return {
             "result": response
         }, 403
-    validateCodeResponse = validateResetCode({"code": requestBody['code'], "email": requestBody['email']})
-    if validateCodeResponse['result'] == "Reset Code Verified Successfully":
+    #validateCodeResponse = validateResetCode({"code": requestBody['code'], "email": requestBody['email']})
+    validateCodeResponse = resetcode.Resetcode.getResetCode(requestBody['code'],userResponse[0][0]['user_id'])
+    if not validateCodeResponse[0]:
+        response = "Reset Code Doesn't Exist"
+        logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 401
+    elif validateCodeResponse[0][0] and 'validated' in validateCodeResponse[0][0] and validateCodeResponse[0][0]['validated'] == 1:
+        if 'expiration' in validateCodeResponse[0][0] and validateCodeResponse[0][0]['expiration'] < datetime.now():
+            response = "Reset Code Has Expired"
+            logger.warning("Leaving Validate Reset Code Handler: " + response)
+            return {
+                "result": response
+            }, 401
         hashPass = userTransformer.hashPassword(requestBody['new_pass_1'])
         response = user.User.updatePass(userResponse[0][0]['user_id'],hashPass)
         if response[0]:
@@ -792,14 +864,7 @@ def resetPassword(requestBody):
                 "result": response
             }, 400
         else:
-            response = resetcode.Resetcode.getResetCode(requestBody['code'],userResponse[0][0]['user_id'])
-            if not response[0]:
-                response = "Reset Code Doesn't Exist"
-                logger.warning("Leaving Reset Password Handler: " + response)
-                return {
-                    "result": response
-                }, 401
-            response = resetcode.Resetcode.deleteResetCode(response[0][0]['resetcode_id'])
+            response = resetcode.Resetcode.deleteResetCode(validateCodeResponse[0][0]['resetcode_id'])
             if response[0]:
                 logger.warning("Leaving Reset Password Handler: " + str(response))
                 return {
@@ -810,10 +875,19 @@ def resetPassword(requestBody):
                 logger.info("Leaving Reset Password Handler: " + response)
                 return {
                     "result": response
-                }
-            
+                }    
+    elif validateCodeResponse[0][0] and 'validated' in validateCodeResponse[0][0] and validateCodeResponse[0][0]['validated'] == 0:
+        response = "Reset Code has not been validated yet"
+        logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 401
     else:
-        return validateCodeResponse
+        response = "An Issue Occurred Resetting Password, Please Try Again"
+        logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 403
     
     
 def setAccountValue(user_id,requestBody):

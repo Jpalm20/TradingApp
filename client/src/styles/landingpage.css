@@ -217,4 +217,48 @@
 
   }
 
+  @media (max-height: 550px) {
+    .profileheader {
+      font-size: large;
+    }
+
+    .profileheaderdark {
+      font-size: large;
+    }
+
+    .headertext {
+      font-size: x-small;
+    }
+
+    .headertextdark {
+      font-size: x-small;
+    }
+
+    .footer {
+      font-size: x-small;
+    }
+
+    .footerdark {
+      font-size: x-small;
+    }
+
+    .footertext {
+      font-size: x-small;
+    }
+
+    .footertextdark {
+      font-size: x-small;
+    }
+
+    .footerlist {
+      font-size: x-small;
+    }
+
+    .footerlistdark {
+      font-size: x-small;
+    }
+
+
+  }
+
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');

@@ -361,7 +361,7 @@ export default function LandingPage() {
                                         Being able to quantify your progress when things get tough is a tool every trader needs.
                                         <br></br>
                                         <br></br>
-                                        *Heres a hint: Click on on of the calendar boxes and youll be able to see all trades closed on that calendar day, as well as some important information about each trade.
+                                        *Heres a hint: Click on top of the calendar boxes and youll be able to see all trades closed on that calendar day, as well as some important information about each trade.
                                         <br></br>
                                         </Text>
                                     </Stack>

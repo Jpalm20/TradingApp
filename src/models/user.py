@@ -124,12 +124,14 @@ class User:
                     (SELECT COUNT(*) FROM trade WHERE user_id = %s and security_type = 'Shares') AS numShT,
                     (SELECT COUNT(*) FROM trade WHERE user_id = %s and security_type = 'Shares' and pnl > 0) AS numShTWin,
                     (SELECT COUNT(*) FROM trade WHERE user_id = %s and security_type = 'Shares' and pnl < 0) AS numShTLoss,
+                    (SELECT SUM(units) FROM trade where user_id = %s and security_type = 'Shares') AS sumSharesUnits,
+                    (SELECT SUM(units) FROM trade where user_id = %s and security_type = 'Options') AS sumOptionsUnits,
                     (SELECT MAX(pnl) FROM trade WHERE user_id = %s) AS largestWin,
                     (SELECT MIN(pnl) FROM trade WHERE user_id = %s) AS largestLoss,
                     (SELECT SUM(pnl) FROM trade WHERE user_id = %s and pnl > 0) AS sumWin,
                     (SELECT SUM(pnl) FROM trade WHERE user_id = %s and pnl < 0) AS sumLoss,
                     (SELECT SUM(pnl) FROM trade WHERE user_id = %s) AS totalPNL;"""
-        Args = (userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,)
+        Args = (userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID,userID)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Trades Stats Model Function: " + str(response))
         return response  
@@ -153,6 +155,8 @@ class User:
                     utils.add_filters_to_query_sring("(SELECT COUNT(*) FROM trade WHERE user_id = " + str(userID),filters) + " and security_type = 'Shares') AS numShT," + \
                     utils.add_filters_to_query_sring("(SELECT COUNT(*) FROM trade WHERE user_id = " + str(userID),filters) + " and security_type = 'Shares' and pnl > 0) AS numShTWin," + \
                     utils.add_filters_to_query_sring( "(SELECT COUNT(*) FROM trade WHERE user_id = " + str(userID),filters) + " and security_type = 'Shares' and pnl < 0) AS numShTLoss," + \
+                    utils.add_filters_to_query_sring("(SELECT SUM(units) FROM trade where user_id = " + str(userID),filters) + " and security_type = 'Shares') AS sumSharesUnits," + \
+                    utils.add_filters_to_query_sring("(SELECT SUM(units) FROM trade where user_id = " + str(userID),filters) + " and security_type = 'Options') AS sumOptionsUnits," + \
                     utils.add_filters_to_query_sring( "(SELECT MAX(pnl) FROM trade WHERE user_id = " + str(userID),filters) + ") AS largestWin," + \
                     utils.add_filters_to_query_sring( "(SELECT MIN(pnl) FROM trade WHERE user_id = " + str(userID),filters) + ") AS largestLoss," + \
                     utils.add_filters_to_query_sring( "(SELECT SUM(pnl) FROM trade WHERE user_id = " + str(userID),filters) + " and pnl > 0) AS sumWin," + \
@@ -224,13 +228,15 @@ class User:
     def updateUser(userID,changes):
         
         logger.info("Entering Update User Model Function: " + "(user_id: {}, changes: {})".format(str(userID),str(changes)))
-        response = ""
-            
+        updates = []
         for key,value in changes.items():
-
-            Query = """UPDATE user SET {} = %s WHERE user_id = %s""".format(key)
-            Args = (value,userID)
-            response = utils.execute_db(Query,Args)
+            if value:
+                updates.append(f"{key}='{value}'")
+        updates = ", ".join(updates)
+        Query = """UPDATE user SET {} WHERE user_id = %s""".format(updates)
+        Query += ';'
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
         
         logger.info("Leaving Update User Model Function: " + str(response))
         return response
