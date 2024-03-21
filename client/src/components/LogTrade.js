@@ -93,14 +93,30 @@ export default function LogTrade({ user }) {
   }, [success]); 
 
   useEffect(() => {
-    if(risk > 0 && reward > 0){
+    if(risk > 0 && reward > 0 && rr !== format(risk, reward)){
       setRR(format(risk,reward));
     }
   }, [risk, reward]); 
 
-  const evaluateSuccess = () => {
+  useEffect(() => {
+    if (rr && rr !== format(risk, reward)) {
+      const [riskValue, rewardValue] = rr.split(':').map(val => parseInt(val));
+      setRisk(riskValue);
+      setReward(rewardValue);
+    }
+  }, [rr]);
+
+  const evaluateSuccess = async () => {
     if(success === true && trade.result === "Trade Logged Successfully"){
-        setToastMessage(trade.result);
+      clearFormStates();
+      const filters = {};
+      filters.page = 1;
+      filters.numrows = 100;
+      await dispatch(getTradesPage({ filters }));
+      setSearchValue('');
+      setSelectedValue('');
+      setIsDropdownOpen(false);
+      setToastMessage(trade.result);
     }
   }
 
@@ -140,10 +156,33 @@ export default function LogTrade({ user }) {
     setToastErrorMessage(undefined);
   }, [toastErrorMessage, toast]);
 
+  useEffect(() => {
+    const savedTradeInfo = window.localStorage.getItem('tradeInfo');
+    if (savedTradeInfo) {
+      const tradeInfo = JSON.parse(savedTradeInfo);
+      setTradeType(tradeInfo.trade_type || "");
+      setSecurityType(tradeInfo.security_type || "");
+      setTickerName(tradeInfo.ticker_name || "");
+      setTradeDate(tradeInfo.trade_date || "");
+      setExpiry(tradeInfo.expiry || "");
+      setStrike(tradeInfo.strike || "");
+      setBuyValue(tradeInfo.buy_value || "");
+      setUnits(tradeInfo.units || "");
+      setRR(tradeInfo.rr || "1:1");
+      setPNL(tradeInfo.pnl || "");
+      setPercentWL(tradeInfo.percent_wl || "");
+      setComments(tradeInfo.comments || "");
+      // Clear the saved info after loading it
+      //window.localStorage.removeItem('userInfo');
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
   function clearFormStates() {
     setTradeType("");
     setSecurityType("");
     setTickerName("");
+    setSelectedValue("");
+    setSearchValue("");
     setTradeDate("");
     setExpiry("");
     setStrike("");
@@ -155,6 +194,7 @@ export default function LogTrade({ user }) {
     setComments("");
     setRisk("1");
     setReward("1");
+    window.localStorage.removeItem('tradeInfo');
   }
 
   const changeShowOptions = (e) => {
@@ -173,6 +213,20 @@ export default function LogTrade({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const tradeInfo = {
+      trade_type,
+      security_type,
+      ticker_name,
+      trade_date,
+      expiry,
+      strike,
+      buy_value,
+      units,
+      rr,
+      pnl,
+      percent_wl,
+      comments
+    };
     await dispatch(
       create({
         trade_type,
@@ -189,14 +243,12 @@ export default function LogTrade({ user }) {
         comments
       })
     );
+    window.localStorage.setItem('tradeInfo', JSON.stringify(tradeInfo));
+  }
+
+  const handleClear = (e) => {
+    e.preventDefault();
     clearFormStates();
-    const filters = {};
-    filters.page = 1;
-    filters.numrows = 100;
-    await dispatch(getTradesPage({ filters }));
-    setSearchValue('');
-    setSelectedValue('');
-    setIsDropdownOpen(false);
   }
 
   const handleCancel = async (e) => {
@@ -314,12 +366,9 @@ export default function LogTrade({ user }) {
       alignItems="center"
     >
       <Stack
-        flexDir="column"
-        mb="2"
-        justifyContent="center"
-        alignItems="center"
+        class='profilestack'
       >
-        <Heading class={colorMode === 'light' ? "logtradeheader" : "logtradeheaderdark"}>Log Trade</Heading>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Log Trade</Heading>
         <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
         {tradeLoading ? 
             <Stack
@@ -351,7 +400,7 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Trade Type *
                   </FormHelperText>
-                  <Select placeholder='Select Trade Type' onChange={(e) => setTradeType(e.target.value)}>
+                  <Select value={trade_type} placeholder='Select Trade Type' onChange={(e) => setTradeType(e.target.value)}>
                     <option>Swing Trade</option>
                     <option>Day Trade</option>
                   </Select>
@@ -360,7 +409,7 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Security Type *
                   </FormHelperText>
-                  <Select id="optionsSelection" placeholder='Select Security Type' onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value)}}>
+                  <Select id="optionsSelection" value={security_type} placeholder='Select Security Type' onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value)}}>
                     <option>Options</option>
                     <option>Shares</option>
                   </Select>
@@ -390,6 +439,7 @@ export default function LogTrade({ user }) {
                   Expiry (Options Only) *
                 </FormHelperText>
                 <Input
+                    value={expiry}
                     type="date"
                     max="3900-12-31"
                     min="1900-01-01"
@@ -403,6 +453,7 @@ export default function LogTrade({ user }) {
                 </FormHelperText>
                 <InputGroup>
                   <Input
+                    value={strike}
                     type="name"
                     onChange={(e) => setStrike(e.target.value)}
                   />
@@ -416,6 +467,7 @@ export default function LogTrade({ user }) {
                   Date Trade was Closed *
                 </FormHelperText>
                 <Input
+                    value={trade_date}
                     type="date"
                     max={maxDate}
                     min="1900-01-01"
@@ -428,6 +480,7 @@ export default function LogTrade({ user }) {
                     Average Cost *
                   </FormHelperText>
                   <Input
+                    value={buy_value}
                     type="name"
                     onChange={(e) => setBuyValue(e.target.value)}
                   />
@@ -438,6 +491,7 @@ export default function LogTrade({ user }) {
                     # of Units *
                   </FormHelperText>
                   <Input
+                    value={units}
                     type="name"
                     onChange={(e) => setUnits(e.target.value)}
                   />
@@ -487,6 +541,7 @@ export default function LogTrade({ user }) {
                     PNL *
                   </FormHelperText>
                   <Input
+                    value={pnl}
                     type="name"
                     onChange={(e) => setPNL(e.target.value)}
                   />
@@ -497,6 +552,7 @@ export default function LogTrade({ user }) {
                     % Win or Loss *
                   </FormHelperText>
                   <Input
+                    value={percent_wl}
                     type="name"
                     readOnly
                     placeholder={"0.00"}
@@ -509,31 +565,38 @@ export default function LogTrade({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Comments *
                   </FormHelperText>
-                  <Textarea placeholder='Reflect on your Trade...' onChange={(e) => setComments(e.target.value)}/>
+                  <Textarea value={comments} placeholder='Reflect on your Trade...' onChange={(e) => setComments(e.target.value)}/>
               </FormControl>
-              <ButtonGroup>
               <Button
                 borderRadius={0}
                 type="submit"
                 variant="solid"
                 colorScheme='blue'
-                width="50%"
+                width="full"
                 onClick={handleSubmit}
               >
-                Create Trade Entry
+                Create Entry
               </Button>
-
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
               <Button
                 borderRadius={0}
                 type="submit"
                 variant="solid"
                 colorScheme="gray"
-                width="50%"
+                width="full"
                 onClick={handleCancel}
               >
                 Cancel
               </Button>
-              </ButtonGroup>
             </Stack>
           </form>
         }

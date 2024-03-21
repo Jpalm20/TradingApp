@@ -79,7 +79,7 @@ class TestTradeValidator(unittest.TestCase):
             "comments": ""
         }
         response = validateNewTrade(request)
-        self.assertEqual(response[0]['result'], "Security Type is either Shares or Options, Try Again")
+        self.assertEqual(response[0]['result'], "Security Type is either 'Shares' or 'Options', Try Again")
         # 5 fail on ticker name
         request = {
             "trade_type": "Day Trade",
@@ -132,9 +132,53 @@ class TestTradeValidator(unittest.TestCase):
         }
         response = validateNewTrade(request)
         self.assertEqual(response[0]['result'], "Trade Closure Date Can't be in the Future")
+        # 8 fail on invalid trade_type
+        request = {
+            "trade_type": "Day",
+            "security_type": "Shares",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateNewTrade(request)
+        self.assertEqual(response[0]['result'], "Trade Type must be 'Day Trade' or 'Swing Trade', Try Again")
+        # 9 fail on invalid security_type
+        request = {
+            "trade_type": "Day Trade",
+            "security_type": "Share",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateNewTrade(request)
+        self.assertEqual(response[0]['result'], "Security Type is either 'Shares' or 'Options', Try Again")
 
 
     def test_validate_edit_trade(self):
+        # setup queries 
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateedittradetradevalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("validateedittradetradevalidatorunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"validateedittradetradevalidatorunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_id = response[0][0]['trade_id']
+        
         # 1 good path
         request = {
             "trade_type": "Day Trade",
@@ -150,7 +194,7 @@ class TestTradeValidator(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        response = validateEditTrade(request)
+        response = validateEditTrade(user_id,trade_id,request)
         self.assertEqual(response, True)
         # 2 fail on options check
         request = {
@@ -167,7 +211,7 @@ class TestTradeValidator(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        response = validateEditTrade(request)
+        response = validateEditTrade(user_id,trade_id,request)
         self.assertEqual(response[0]['result'], "Options require Strike Price and Expiry, Try Again")
         # 3 fail on shares check
         request = {
@@ -184,7 +228,7 @@ class TestTradeValidator(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        response = validateEditTrade(request)
+        response = validateEditTrade(user_id,trade_id,request)
         self.assertEqual(response[0]['result'], "Shares require no Strike Price or Expiry, Try Again")
         # 4 fail on ticker name
         request = {
@@ -201,7 +245,7 @@ class TestTradeValidator(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        response = validateEditTrade(request)
+        response = validateEditTrade(user_id,trade_id,request)
         self.assertEqual(response[0]['result'], "Invalid Ticker Symbol, Try Updating Again")
         # 5 fail on r/r
         request = {
@@ -218,7 +262,7 @@ class TestTradeValidator(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        response = validateEditTrade(request)
+        response = validateEditTrade(user_id,trade_id,request)
         self.assertEqual(response[0]['result'], "Must Include a Valid Risk to Reward Ratio")
         # 6 fail on trade date future
         date = (datetime.now()+timedelta(days=2)).strftime('%Y-%m-%d')
@@ -236,8 +280,86 @@ class TestTradeValidator(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        response = validateEditTrade(request)
+        response = validateEditTrade(user_id,trade_id,request)
         self.assertEqual(response[0]['result'], "Trade Closure Date Can't be in the Future")
+        
+        #7 fail on user_id not matching
+        request = {
+            "trade_type": "Day Trade",
+            "security_type": "Shares",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateEditTrade(0,trade_id,request)
+        self.assertEqual(response[0]['result'], "trade_id: {} does not belong to this user_id".format(trade_id))
+        self.assertEqual(response[1], 400)
+        
+        # 8 fail on invalid trade_type
+        request = {
+            "trade_type": "Day",
+            "security_type": "Shares",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateEditTrade(user_id,trade_id,request)
+        self.assertEqual(response[0]['result'], "Trade Type must be 'Day Trade' or 'Swing Trade', Try Again")
+        # 9 fail on invalid security_type
+        request = {
+            "trade_type": "Day Trade",
+            "security_type": "Share",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateEditTrade(user_id,trade_id,request)
+        self.assertEqual(response[0]['result'], "Security Type is either 'Shares' or 'Options', Try Again")
+        
+        # 10 fail on trade_id doesnt exist
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        request = {
+            "trade_type": "Day Trade",
+            "security_type": "Shares",
+            "ticker_name": "QQQ",
+            "trade_date": "",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "1:3",
+            "pnl": "",
+            "percent_wl": "",
+            "comments": ""
+        }
+        response = validateEditTrade(user_id,trade_id,request)
+        self.assertEqual(response[0]['result'], "trade_id: {} does not exist".format(trade_id))
+        self.assertEqual(response[1], 400)
+        
+        
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
         
     def test_validate_csv(self):
@@ -535,7 +657,37 @@ class TestTradeValidator(unittest.TestCase):
         response = validateSearchTicker(filter)
         self.assertEqual(response[0], False)
         self.assertEqual(response[1], "Please include ticker_name only for filtering parameters")
+        
     
+    def test_validate_delete_trades(self):
+        #setup queries
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatedeletetradestradevalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("validatedeletetradestradevalidatorunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"validatedeletetradestradevalidatorunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_id = response[0][0]['trade_id']
+        
+        # 1 good path, pass
+        response = validateDeleteTrades(user_id,[trade_id])
+        self.assertEqual(response, True)
+        
+        # 2 bad path fail on user id not matching
+        response = validateDeleteTrades(0,[trade_id])
+        self.assertEqual(response[0]['result'], "trade_id: {} does not belong to this user_id".format(trade_id))
+        self.assertEqual(response[1], 400)
+        
+        # 3 bad path fail on trade not existing
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+                
+        response = validateDeleteTrades(user_id,[trade_id])
+        self.assertEqual(response[0]['result'], "trade_id: {} does not exist".format(trade_id))
+        self.assertEqual(response[1], 400)
+    
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
         
     #def tearDown(self):
         #self.transaction.rollback()

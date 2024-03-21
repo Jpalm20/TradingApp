@@ -12,9 +12,14 @@ mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
 import user
 
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
+import utils
+
 
 def validateNewUser(request):
-    logger.info("Entering Validate New User Validator: " + "(request: {})".format(str(request)))
+    logger.info("Entering Validate New User Validator: " + "(request: {})".format(str(utils.censor_log(request))))
     if 'password' not in request or request['password'] == '' or len(request['password']) < 8:
         response = "Must Include a Password of at Least 8 Characters, Please Try Again"
         logger.warning("Leaving Validate New User Validator: " + response)
@@ -64,7 +69,7 @@ def validateEditUser(request):
     return True
 
 def validateChangePassword(request):
-    logger.info("Entering Validate Change Password Validator: " + "(request: {})".format(str(request)))
+    logger.info("Entering Validate Change Password Validator: " + "(request: {})".format(str(utils.censor_log(request))))
     if ('curr_pass' not in request or request['curr_pass'] == '' or len(request['curr_pass']) < 8) or ('new_pass_1' not in request or request['new_pass_1'] == '' or len(request['new_pass_1']) < 8) or ('new_pass_2' not in request or request['new_pass_2'] == '' or len(request['new_pass_2']) < 8):
         response = "All Passwords Must be at Least 8 Characters, Please Try Again"
         logger.warning("Leaving Validate Change Password Validator: " + response)
@@ -98,7 +103,7 @@ def validateReportBug(request):
     return True
 
 def validateResetPassword(request):
-    logger.info("Entering Validate Reset Password Validator: " + "(request: {})".format(str(request)))
+    logger.info("Entering Validate Reset Password Validator: " + "(request: {})".format(str(utils.censor_log(request))))
     if ('new_pass_1' not in request or request['new_pass_1'] == '' or len(request['new_pass_1']) < 8) or ('new_pass_2' not in request or request['new_pass_2'] == '' or len(request['new_pass_2']) < 8):
         response = "Password Must be at Least 8 Characters, Please Try Again"
         logger.warning("Leaving Validate Reset Password Validator: " + response)
@@ -158,4 +163,17 @@ def validateGetAccountValue(request):
             "result": response
         }, 400
     logger.info("Leaving Validate Get Account Value Validator: ")
+    return True
+
+def validateToggleFeatureFlags(request):
+    logger.info("Entering Validate Toggle Feature Flags Validator: " + "(request: {})".format(str(request)))
+    valid_featureflags = ['email_optin','account_value_optin']
+    for ff in request:
+        if(ff not in valid_featureflags):
+            response = "Please provide only valid feature flags in your request"
+            logger.warning("Leaving Validate Toggle Feature Flags Validator: " + response)
+            return {
+                "result": response
+            }, 400
+    logger.info("Leaving Validate Toggle Feature Flags Validator: ")
     return True

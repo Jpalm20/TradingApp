@@ -926,15 +926,7 @@ export default function Home({ user }) {
             </Heading>
             
             <Box overflowX="auto" w="100%" h='100%' borderWidth="1px" rounded="lg" >
-              <Grid templateColumns='repeat(2, 1fr)' w='100%' h='12%' minHeight='100px' minWidth='250px'>
-                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
-                  <Center fontWeight='bold'>
-                  <Stat>
-                    <StatLabel>Total PNL</StatLabel>
-                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.total_pnl))}</StatNumber>
-                  </Stat>
-                  </Center>
-                </GridItem>
+              <Grid templateColumns='repeat(1, 1fr)' w='100%' h='12%' minHeight='100px' minWidth='250px'>
                 <GridItem boxShadow='inner' p='1' w='100%' h='100%'>
                   <Center fontWeight='bold'>
                   <Stat>
@@ -963,8 +955,26 @@ export default function Home({ user }) {
                   </Center>
                 </GridItem>
               </Grid>
-              <Grid templateColumns='repeat(2, 7fr)' w='100%' h='70%' minWidth='250px'>
-              <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+              <Grid templateColumns='repeat(2, 1fr)' w='100%' h='12%' minHeight='100px' minWidth='250px'>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Total PNL</StatLabel>
+                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.total_pnl))}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Avergae PNL Per Trade</StatLabel>
+                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.avg_pnl))}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+              </Grid>
+              <Grid templateColumns='repeat(2, 8fr)' w='100%' h='70%' minWidth='250px'>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel># of Trades</StatLabel>
@@ -1057,6 +1067,22 @@ export default function Home({ user }) {
                   <Stat>
                     <StatLabel>Average Loss</StatLabel>
                     <StatNumber>{pnlValue(formatter.format(stats.stats.avg_loss))}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Average Shares Per Trade</StatLabel>
+                    <StatNumber>{stats.stats.avg_shares_per_trade}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>Average Contracts Per Trade</StatLabel>
+                    <StatNumber>{stats.stats.avg_options_per_trade}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>

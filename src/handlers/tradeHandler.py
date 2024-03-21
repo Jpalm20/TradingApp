@@ -84,7 +84,7 @@ def logTrade(user_id, requestBody):
 def getExistingTrade(trade_id):
     logger.info("Entering Get Trade Handler: " + "(trade_id: {})".format(str(trade_id)))
     response = trade.Trade.getTrade(trade_id)
-    if 'trade_id' in response[0][0]:
+    if response[0] and response[0][0] and 'trade_id' in response[0][0]:
         response = {
             "trade_id": response[0][0]['trade_id'],
             "user_id": response[0][0]['user_id'],
@@ -113,7 +113,10 @@ def getExistingTrade(trade_id):
 def searchUserTicker(user_id, filter=None):
     logger.info("Entering Search User Ticker Handler: " + "(user_id: {}, filter: {})".format(str(user_id), str(filter)))
     if filter:
-        filterBody = filter.to_dict()
+        if isinstance(filter, dict):
+            filterBody = filter  # 'filter' is already a dictionary
+        else:
+            filterBody = filter.to_dict() 
         eval, response = tradeValidator.validateSearchTicker(filterBody)
         if eval == False:
             logger.warning("Leaving Search User Ticker Handler: " + str(response))
@@ -135,10 +138,10 @@ def searchUserTicker(user_id, filter=None):
         }, 400
 
 
-def editExistingTrade(trade_id,requestBody):
+def editExistingTrade(user_id,trade_id,requestBody):
     logger.info("Entering Edit Trade Handler: " + "(trade_id: {}, request: {})".format(str(trade_id), str(requestBody)))
     og_trade_info = getExistingTrade(trade_id)
-    response = tradeValidator.validateEditTrade(requestBody)
+    response = tradeValidator.validateEditTrade(user_id,trade_id,requestBody)
     if response != True:
         logger.warning("Leaving Edit Trade Handler: " + str(response))
         return response
@@ -236,9 +239,13 @@ def editExistingTrade(trade_id,requestBody):
             "result": response
         }, 400
 
-def deleteExistingTrade(trade_id):
+def deleteExistingTrade(user_id,trade_id):
     logger.info("Entering Delete Trade Handler: " + "(trade_id: {})".format(str(trade_id)))
     #add call to validator here to verify each provided trade_id is under the same user_id as who called the API
+    response = tradeValidator.validateDeleteTrades(user_id,[trade_id])
+    if response != True:
+        logger.warning("Leaving Delete Trade Handler: " + str(response))
+        return response
     trade_info = getExistingTrade(trade_id)
     if ('trade_date' in trade_info and trade_info['trade_date'] is not None) and ('pnl' in trade_info and trade_info['pnl'] is not None):
         avresponse = accountvalue.Accountvalue.handleDeleteTrade(trade_id)
@@ -261,9 +268,13 @@ def deleteExistingTrade(trade_id):
         logger.info("Leaving Delete Trade Handler: " + str(response))
         return response
         
-def deleteTrades(requestBody):
+def deleteTrades(user_id,requestBody):
     logger.info("Entering Delete Trades Handler: " + "(request: {})".format(str(requestBody)))
     #add call to validator here to verify each provided trade_id is under the same user_id as who called the API
+    response = tradeValidator.validateDeleteTrades(user_id,requestBody)
+    if response != True:
+        logger.warning("Leaving Delete Trade Handler: " + str(response))
+        return response
     user_id = None
     for trade_id in requestBody:
         trade_info = getExistingTrade(trade_id)

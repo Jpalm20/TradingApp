@@ -95,7 +95,10 @@ export default function Navbar({ user }) {
 
   const evaluateSuccess = () => {
     if(success === true && isBugReported){
-        setToastMessage(info.result);
+      setReportBugFlag(false);
+      clearBugForm();
+      onClose();
+      setToastMessage(info.result);
     }
   }
 
@@ -119,22 +122,26 @@ export default function Navbar({ user }) {
     const filters = {};
     filters.date = returnInTZ(today.toISOString());
     await dispatch(getAccountValues({ filters }));
+    handleDeleteLocal();
   }
 
   const handlePnlCalendar = async (e) => {
     navigate("/PnlCalendar");
     await dispatch(getPnlByYear({ year }));
+    handleDeleteLocal();
   }
 
   const handleJournal = async (e) => {
     navigate("/journal");
     const date = returnInTZ(today.toISOString());
     await dispatch(getJournalEntries({ date })); 
+    handleDeleteLocal();
   }
 
   const handleProfile = async (e) => {
     navigate("/profile");
     await dispatch(getPreferences()); 
+    handleDeleteLocal();
   }
 
   const handleTrades = async (e) => {
@@ -143,12 +150,21 @@ export default function Navbar({ user }) {
     filters.page = 1;
     filters.numrows = 100;
     await dispatch(getTradesPage({ filters }));
+    handleDeleteLocal();
   }
 
   const handleReportBug = (e) => {
     setReportBugFlag(true);
     onOpen();
   }
+
+  const handleDeleteLocal = () => {
+    window.localStorage.removeItem('userInfo');
+    window.localStorage.removeItem('journalInfo');
+    window.localStorage.removeItem('tradeInfo');
+    window.localStorage.removeItem('feedbackInfo');
+    window.localStorage.removeItem('updateTradeInfo');
+  } 
 
   
   const displayPageName = () =>{
@@ -169,8 +185,25 @@ export default function Navbar({ user }) {
     return content;
   }
 
+  useEffect(() => {
+    const savedFeedbackInfo = window.localStorage.getItem('feedbackInfo');
+    if (savedFeedbackInfo) {
+      const feedbackInfo = JSON.parse(savedFeedbackInfo);
+      setRequestType(feedbackInfo.requestType || "");
+      setPage(feedbackInfo.page || "");
+      setDescription(feedbackInfo.description || "");
+      setSummary(feedbackInfo.summary || "");
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
   const handleConfirmReportBug = async (e) => {
     e.preventDefault();
+    const feedbackInfo = {
+      requestType,
+      summary,
+      description,
+      page 
+    };
     await dispatch(
       reportBug({ 
         requestType,
@@ -178,10 +211,8 @@ export default function Navbar({ user }) {
         description,
         page 
       })
-    );   
-    setReportBugFlag(false);
-    clearBugForm();
-    onClose();
+    );
+    window.localStorage.setItem('feedbackInfo', JSON.stringify(feedbackInfo));
   };
 
   const handleCancelReportBug = (e) => {
@@ -190,10 +221,16 @@ export default function Navbar({ user }) {
     onClose();
   };
 
+  const handleClearReportBug = (e) => {
+    clearBugForm();
+  };
+
   function clearBugForm() {
+    setRequestType("");
     setPage("");
     setDescription("");
     setSummary("");
+    window.localStorage.removeItem('feedbackInfo');
   }
 
   const handleGotoLogin = (e) => {
@@ -250,7 +287,7 @@ export default function Navbar({ user }) {
               Journal
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleReportBug(e.target.value)}>
-              Provide Feedback
+              Feedback
             </Button>
             <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleColorMode}>
               <Icon as={colorMode === 'light' ? BsSun : BsMoon}></Icon>
@@ -282,15 +319,20 @@ export default function Navbar({ user }) {
               <AlertDialogOverlay>
               <AlertDialogContent>
                 <AlertDialogHeader fontSize='lg' fontWeight='bold'>
-                  Provide Feedback
+                  <Flex justifyContent="space-between" alignItems="center" width="100%">
+                    <Text>Provide Feedback</Text>
+                    <Button size='sm' colorScheme='blue' onClick={e => handleClearReportBug(e)}>
+                      Clear
+                    </Button>
+                  </Flex>
                 </AlertDialogHeader>
-
+                
                 <AlertDialogBody>
                   <FormControl>
                     <FormHelperText mb={2} ml={1}>
                       Feedback Type *
                     </FormHelperText>
-                    <Select id="optionsSelection" placeholder='Bug Report or Feature Request?' onChange={(e) => setRequestType(e.target.value)}>
+                    <Select id="optionsSelection" value={requestType} placeholder='Bug Report or Feature Request?' onChange={(e) => setRequestType(e.target.value)}>
                     <option>Bug Report</option>
                     <option>Feature Request</option>
                     </Select>
@@ -302,6 +344,7 @@ export default function Navbar({ user }) {
                     <InputGroup>
                       <Input
                         type="name"
+                        value={summary}
                         onChange={(e) => setSummary(e.target.value)}
                       />
                     </InputGroup>
@@ -310,12 +353,13 @@ export default function Navbar({ user }) {
                     <FormHelperText mb={2} ml={1}>
                       Page *
                     </FormHelperText>
-                    <Select id="optionsSelection" placeholder='Which Page is affected?' onChange={(e) => setPage(e.target.value)}>
+                    <Select id="optionsSelection" value={page} placeholder='Which Page is affected?' onChange={(e) => setPage(e.target.value)}>
                     <option>Login</option>
                     <option>Signup</option>
                     <option>Home</option>
                     <option>Trade Summary Table</option>
                     <option>PnL Calendar</option>
+                    <option>Journal</option>
                     <option>User Profile</option>
                     <option>Other</option>
                     </Select>
@@ -324,7 +368,7 @@ export default function Navbar({ user }) {
                     <FormHelperText mb={2} ml={1}>
                       Description *
                     </FormHelperText>
-                    <Textarea placeholder='Describe the bug you are experiencing...' onChange={(e) => setDescription(e.target.value)}/>
+                    <Textarea value={description} placeholder='Describe the bug you are experiencing...' onChange={(e) => setDescription(e.target.value)}/>
                   </FormControl>
                 </AlertDialogBody>
 
@@ -333,7 +377,7 @@ export default function Navbar({ user }) {
                     Cancel
                   </Button>
                   <Button colorScheme='blue' onClick={e => handleConfirmReportBug(e)} ml={3}>
-                    Submit Feedback
+                    Submit
                   </Button>
                 </AlertDialogFooter>
               </AlertDialogContent>

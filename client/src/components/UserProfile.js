@@ -45,7 +45,7 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin } from '../store/auth';
+import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, toggleFeatureFlags } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
@@ -111,7 +111,10 @@ export default function UserProfile({ user }) {
 
   const evaluateSuccess = () => {
     if(success === true && user.result === "User Edited Successfully" && !(info && info.result && info.result === "Password Successfully Changed")){
-        setToastMessage(user.result);
+      clearFormStates();
+      setSelectPage(true);
+      selectUpdateInfo(false);
+      setToastMessage(user.result);
     }else if(success === true && info && info.result && info.result === "Password Successfully Changed"){
       setToastMessage(info.result);
       setChangePwAlertDialog(false);
@@ -161,6 +164,23 @@ export default function UserProfile({ user }) {
     setToastErrorMessage(undefined);
   }, [toastErrorMessage, toast]);
 
+  useEffect(() => {
+    const savedUserInfo = window.localStorage.getItem('updateUserInfo');
+    if (savedUserInfo) {
+      const userInfo = JSON.parse(savedUserInfo);
+      setFirstName(userInfo.first_name || "");
+      setLastName(userInfo.last_name || "");
+      setBirthday(userInfo.birthday || "");
+      setEmail(userInfo.email || "");
+      setStreetAddress(userInfo.street_address || "");
+      setCity(userInfo.city || "");
+      setState(userInfo.state || "");
+      setCountry(userInfo.country || "");
+      // Clear the saved info after loading it
+      //window.localStorage.removeItem('userInfo');
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
   function clearFormStates() {
     setFirstName("");
     setLastName("");
@@ -170,6 +190,7 @@ export default function UserProfile({ user }) {
     setCity("");
     setState("");
     setCountry("");
+    window.localStorage.removeItem('updateUserInfo');
   }
 
   const handleGotoUpdate = (e) => {
@@ -208,11 +229,23 @@ export default function UserProfile({ user }) {
   };
 
   const handleToggleAvTracking = async (e) => {
-    await dispatch(toggleAvTracking());
+    //await dispatch(toggleAvTracking());
+    const flags = ["account_value_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
   }
 
   const handleToggleEmailOptin = async (e) => {
-    await dispatch(toggleEmailOptin());
+    //await dispatch(toggleEmailOptin());
+    const flags = ["email_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
   }
 
   const handleLogout = async () => {
@@ -239,6 +272,16 @@ export default function UserProfile({ user }) {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    const updateUserInfo = {
+      first_name,
+      last_name,
+      email,
+      birthday,
+      street_address,
+      city,
+      state,
+      country,
+    };
     await dispatch(
       update({
         first_name,
@@ -251,9 +294,8 @@ export default function UserProfile({ user }) {
         country
       })
     );
-    clearFormStates();
-    setSelectPage(true);
-    selectUpdateInfo(false);
+    //clearFormStates();
+    window.localStorage.setItem('updateUserInfo', JSON.stringify(updateUserInfo));
   }
 
   const handleCancel = (e) => {
@@ -261,6 +303,11 @@ export default function UserProfile({ user }) {
     clearFormStates();
     setSelectPage(true);
     selectUpdateInfo(false);
+  }
+
+  const handleClear = (e) => {
+    e.preventDefault();
+    clearFormStates();
   }
 
     // grabbing current date to set a max to the birthday input
@@ -281,11 +328,8 @@ export default function UserProfile({ user }) {
           justifyContent="center"
           alignItems="center"
         >
-          <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="center"
-            alignItems="center"
+          <Stack 
+            class='profilestack'
           >
           <Avatar class='avatar' />
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Profile Information</Heading>
@@ -636,10 +680,7 @@ export default function UserProfile({ user }) {
           alignItems="center"
         >
           <Stack
-            flexDir="column"
-            mb="2"
-            justifyContent="center"
-            alignItems="center"
+            class='profilestack'
           >
           <Avatar class='avatar' />
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Information</Heading>
@@ -676,6 +717,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    value={first_name}
                     placeholder={user.first_name}
                     onChange={(e) => setFirstName(e.target.value)}
                   />
@@ -686,6 +728,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    value={last_name}
                     placeholder={user.last_name}
                     onChange={(e) => setLastName(e.target.value)}
                   />
@@ -695,7 +738,7 @@ export default function UserProfile({ user }) {
                 <FormHelperText mb={2} ml={1}>
                   Email *
                 </FormHelperText>
-                <Input type="name" placeholder={user.email} onChange={(e) => setEmail(e.target.value)} />
+                <Input value={email} type="name" placeholder={user.email} onChange={(e) => setEmail(e.target.value)} />
               </FormControl>
 
               <FormControl>
@@ -704,6 +747,7 @@ export default function UserProfile({ user }) {
                 </FormHelperText>
                 <InputGroup>
                   <Input
+                    value={birthday} 
                     placeholder={user.birthday}
                     onFocus={(e) => (e.target.type = "date")}
                     onBlur={(e) => (e.target.type = "text")}
@@ -721,6 +765,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    value={street_address} 
                     placeholder={user.street_address}
                     onChange={(e) => setStreetAddress(e.target.value)}
                   />
@@ -732,6 +777,7 @@ export default function UserProfile({ user }) {
                   </FormHelperText>
                   <Input
                     type="name"
+                    value={city} 
                     placeholder={user.city}
                     onChange={(e) => setCity(e.target.value)}
                   />
@@ -743,7 +789,7 @@ export default function UserProfile({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     State *
                   </FormHelperText>
-                  <Select onChange={(e) => setState(e.target.value)}>
+                  <Select value={state} onChange={(e) => setState(e.target.value)}>
                     <option value="" disabled selected>{user.state}</option>
                     {states.map((state) => (<option key={state}>{state}</option>))}
                   </Select>
@@ -753,7 +799,7 @@ export default function UserProfile({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Country *
                   </FormHelperText>
-                  <Select onChange={(e) => setCountry(e.target.value)}>
+                  <Select value={country} onChange={(e) => setCountry(e.target.value)}>
                     <option value="" disabled selected>{user.country}</option>
                     <option value="Afghanistan">Afghanistan</option>
                     <option value="Albania">Albania</option>
@@ -997,7 +1043,6 @@ export default function UserProfile({ user }) {
                   </Select>
               </FormControl>
               </Box>
-              <ButtonGroup>
               <Button
                 borderRadius={0}
                 type="submit"
@@ -1006,9 +1051,18 @@ export default function UserProfile({ user }) {
                 width="full"
                 onClick={handleUpdate}
               >
-                Confirm Update
+                Update
               </Button>
-
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
               <Button
                 borderRadius={0}
                 type="submit"
@@ -1019,7 +1073,6 @@ export default function UserProfile({ user }) {
               >
                 Cancel
               </Button>
-              </ButtonGroup>
             </Stack>
           </form>
           }

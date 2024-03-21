@@ -89,11 +89,33 @@
     .next {
       color: #65baff;
     }
+
+    .my-button {
+      background-color: rgb(100, 100, 100); /* A green color to match the .feature class */
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      display: inline-block;
+      font-family: "Poppins", sans-serif;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .my-button:hover {
+      background-color: rgb(126, 125, 125); /* A darker shade of green for hover effect */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📣 MyTradingTracker Release Notes - Version 1.0.7</h1>
+    <h1>📣 MyTradingTracker Release Notes - Version 1.0.8</h1>
     <p class="section">We are excited to present the latest update for MyTradingTracker!
 
       <br>This version comes packed with new features, improvements, and bug fixes to enhance your trading experience. Here are the highlights:<br> 
@@ -102,27 +124,34 @@
     <div class="section">
       <h2 class="section-title">New Features</h2>
       <ul>
-        <li><span class="emoji">🌟</span><span class="feature">Landing Page - A new look to the start of your journey with MyTradingTracker!</span></li>
-        <li><span class="emoji">⭐️</span><span class="feature">Email Opt-In/Out - You can now enable or disable email notification in the settings of the User Profile Page.</span></li>
-        <li><span class="emoji">📊</span><span class="feature">Redis Caching - Enjoy decreased data access latency with caching, better put... faster response time when using MyTradingTracker!</span></li>
-        <li><span class="emoji">📝</span><span class="feature">Logging - Added server side logging to aid in troubleshooting and security by saving all application events.</span></li>
+        <li><span class="emoji">⭐</span><span class="feature">TRADE-329 - Users can now specify the number of results per page they would like to return on the Trade Summary Page.</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">Bug Fixes</h2>
       <ul>
-        <li><span class="emoji">🐛</span><span class="bug">On desktop, options contract expiry dates can now be selected in the future, this was inappropriately blocked previously.</span></li>
-        <li><span class="emoji">🕷️</span><span class="bug">When trying to load Journal Page during December there was an error due to incorrect date handling for overflow into next year, now resolved.</span></li>
-        <li><span class="emoji">🐞</span><span class="bug">Issue when trying to submit feedback in the form of Bug Report or Feature Request due to invalid string concatentation, now resolved.</span></li>
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-362 - Caching issue that was causing a saved Journal Entry to be saved to our Database but not show up on the UI, now resolved.</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">Improvements</h2>
       <ul>
-        <li><span class="emoji">🔧</span><span class="improvement">Account Value Tracking enhancement - Account Value chart is now anchored to $0 for a better perspective and outlook on account growth.</span></li>
-        <li><span class="emoji">🚀</span><span class="improvement">Journal Page enhancements - Rich Text Support, auto sizing for the entry box and improved experience when cancelling an entry before saving!</span></li>
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-326 - PnL Calendar Stats improvements and additions, along with some additional metrics to Home Page Stats.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-155 - Whenever you are filling out a form, the form will not clear until you successfully submit, form values will not clear on errors or screen refresh.</span></li>
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-398 - When you generate a new Reset Code, all previous codes for you're account will expire for safety purposes.</span></li>      
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-397 - Enhanced the Reset Code Validation flow to make it more robust and safe on direct API access.</span></li>      
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-340 - Added censoring to server logs to hide any sensitive data.</span></li>            
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-189 - UI improvements on overflow when smaller devices are held horizontally.</span></li>            
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-41 - Improve the Presentation and Storage of string values for data consistentcy and quality of presentation.</span></li>                  
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-368 - Improved security validation of Update Trade and Update Trades APIs to further protect user data.</span></li>                  
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-361 - Additional error handling when making Database connections.</span></li>    
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-360 - Added a button that will take you to MyTradingTracker site in all email templates.</span></li>                                     
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-350 - Improved security validation of Delete Trade and Delete Trades APIs to further protect user data.</span></li>    
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-345 - Improved Update User query to cut down on execution time by ~80%.</span></li>                                     
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-337 - Rearchitected the User Opt-In features API to be more robust and scalable.</span></li>    
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-187 - Completed API documentaiton in Postman with a complete collection of the application's APIs.</span></li>                                           
       </ul>
     </div>
 
@@ -130,6 +159,12 @@
       <h2 class="section-title">What's Coming Next</h2>
       <ul>
         <li><span class="emoji">🧑‍💻</span><span class="next">Wrapping up the build out of our Frontend and Backend testing for a more robust and secure application, all tests will need to pass before releasing a new build to Production.</span></li>
+        <li><span class="emoji">🧑‍💻</span><span class="next">Addition of commision/fees in each trade entry for more accurracy on accout value calculation, and opportunity for insight into long term spending on fees.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Additional classification for each trade entry with PUT/CALL for options and LONG/SHORT for equity trades.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Home Page component that allows users to view any of their trades that have not been closed yet.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">A few more smaller enhancements to PnL Calendar Stats calculations.</span></li>  
+        <li><span class="emoji">🧑‍💻</span><span class="next">Ability for Users to upload Profile Pictures to their profile.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Two-Factor Authentication Integration.</span></li>          
       </ul>
     </div>
     
@@ -141,6 +176,9 @@
     </div>
     <p style="text-align: center;">Thank you for your continued support! ❤️</p>
     <p style="text-align: center;">Contact us at: <a href="mailto:mytradingtrackerapp@gmail.com">mytradingtrackerapp@gmail.com</a></p>
+    <p style="text-align: center;">
+      <a href="https://mytradingtracker.netlify.app/" class="my-button">Go to MyTradingTracker</a>
+    </p>
   </div>
 </body>
 </html>

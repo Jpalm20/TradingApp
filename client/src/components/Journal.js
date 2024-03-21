@@ -89,7 +89,9 @@ export default function Journal({ user }) {
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
-  const hasEntries = ((journalentries && journalentries.entries && Object.keys(journalentries.entries).length > 0) ? (true):(false));
+  //const hasEntries = ((journalentries && journalentries.entries && Object.keys(journalentries.entries).length > 0) ? (true):(false));
+  const hasEntries = ((journalentries && journalentries.entries) ? (true):(false));
+
 
   const user_id = user.user_id;
 
@@ -128,11 +130,45 @@ export default function Journal({ user }) {
   const [backpageclick, setBackPageClick] = useState(false);
   const [nextpageclick, setNextPageClick] = useState(false);
 
-
+  useEffect(() => {
+    const todayDate = today;
+    const savedJournalInfo = window.localStorage.getItem('journalInfo');
+    if (savedJournalInfo) {
+      const journalInfo = JSON.parse(savedJournalInfo);
+      setEntry(journalInfo.entry || "");
+      setSelectedDate(journalInfo.date || todayDate);
+      // Clear the saved info after loading it
+      //window.localStorage.removeItem('userInfo');
+    }
+  }, []); // Empty dependency array means this runs once on mount
 
   useEffect(() => {
     evaluateDateArrows();
   }, [selected_date]);
+
+
+  useEffect(() => {
+    //Check for if journal entry exists yet that matches entryy otherwise put into edit mode
+    if (entryy !== ''){
+      const entry = entryy;
+      const date = selected_date;
+      const journalInfo = {
+        date,
+        entry
+      };
+      window.localStorage.setItem('journalInfo', JSON.stringify(journalInfo));
+    }
+    if (hasEntries) {
+      const existingentry = journalentries.entries.find(entry => entry.date === selected_date)?.entrytext || '';
+      if (existingentry !== entryy && entryy !== ''){
+        setIsEdit(true);
+      }
+    }
+    
+    // This should basically mean if you were previously editing and saving didnt work put back into edit and load entryy text
+    // Right now it is doing some checks in the WYSIWYG editor but because journal entry object is empty for that day it is loading entryy text but not in edit mode, and when I edit it is blank
+  }, [entryy,hasEntries]);
+  
 
   const evaluateDateArrows = async () => {
     if(selected_date === today){
@@ -174,6 +210,7 @@ export default function Journal({ user }) {
   const handleNextPage = () => {
     if(nextPageEnable){
       setEntry('');
+      window.localStorage.removeItem('journalInfo');
       setIsEdit(false);
       setNextPageClick(true);
       setSelectedDate(moment(selected_date).add(1, 'days').format('YYYY-MM-DD'));
@@ -183,6 +220,7 @@ export default function Journal({ user }) {
   const handleBackPage = () => {
     if(backPageEnable){
       setEntry('');
+      window.localStorage.removeItem('journalInfo');
       setIsEdit(false);
       setBackPageClick(true);
       setSelectedDate(moment(selected_date).add(-1, 'days').format('YYYY-MM-DD'));
@@ -194,14 +232,27 @@ export default function Journal({ user }) {
   }, [success]); 
 
 
-  const evaluateSuccess = () => {
+  const evaluateSuccess = async () => {
+    const date = selected_date;
     if(success === true && info && info.result && info.result === "Journal Entry Successfully Deleted"){
+      setIsEdit(false);
+      await dispatch(getJournalEntries({ date }));
+      window.localStorage.removeItem('journalInfo');
       setToastMessage(info.result);
     }else if (success === true && info && info.result && info.result === "Journal Entry Successfully Saved"){
+      setIsEdit(false);
+      await dispatch(getJournalEntries({ date }));
+      window.localStorage.removeItem('journalInfo');
       setToastMessage(info.result);
     }else if (success === true && info && info.result && info.result === "Journal Entry Successfully Updated"){
+      setIsEdit(false);
+      await dispatch(getJournalEntries({ date }));
+      window.localStorage.removeItem('journalInfo');
       setToastMessage(info.result);
     }else if (success === true && info && info.result && info.result === "Journal Entry Successfully Deleted"){
+      setIsEdit(false);
+      await dispatch(getJournalEntries({ date }));
+      window.localStorage.removeItem('journalInfo');
       setToastMessage(info.result);
     }
   }
@@ -246,6 +297,7 @@ export default function Journal({ user }) {
 
   const handleCancel = () => {
     setEntry('');
+    window.localStorage.removeItem('journalInfo');
     setIsEdit(false);
   };
 
@@ -257,14 +309,10 @@ export default function Journal({ user }) {
       setSaveLoading(true);
       await dispatch(clearJournalEntry({ date }));
       setSaveLoading(false);
-      setIsEdit(false);
-      await dispatch(getJournalEntries({ date }));
     }else if (entry !== ""){
       setSaveLoading(true);
       await dispatch(postJournalEntry({ date, entry }));
       setSaveLoading(false);
-      setIsEdit(false);
-      await dispatch(getJournalEntries({ date }));
     }else{
       setToastErrorMessage("Please enter information before trying to Save");
     }
@@ -272,13 +320,17 @@ export default function Journal({ user }) {
 
   const handleGotoEdit = (e) => {
     e.preventDefault();
-    setEntry(journalentries.entries.find(entry => entry.date === selected_date)?.entrytext || '');
-    setIsEdit(true);
+    if(!isEdit){
+      setEntry(journalentries.entries.find(entry => entry.date === selected_date)?.entrytext || '');
+      window.localStorage.removeItem('journalInfo');
+      setIsEdit(true);
+    }
   };
 
   const handleClearEntry = (e) => {
     e.preventDefault();
     setEntry('');
+    window.localStorage.removeItem('journalInfo');
     setIsEdit(true);
   };
 
@@ -400,7 +452,10 @@ export default function Journal({ user }) {
                       max={maxDate}
                       min="1900-01-01"
                       value={selected_date}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedDate(e.target.value);
+                        window.localStorage.removeItem('journalInfo');
+                      }}
                     />
                     <Button onClick={e => handleGotoEdit(e)}>
                       Edit
