@@ -109,6 +109,7 @@ export default function LogTrade({ user }) {
   const evaluateSuccess = async () => {
     if(success === true && trade.result === "Trade Logged Successfully"){
       clearFormStates();
+      setToastMessage(trade.result);
       const filters = {};
       filters.page = 1;
       filters.numrows = 100;
@@ -116,7 +117,7 @@ export default function LogTrade({ user }) {
       setSearchValue('');
       setSelectedValue('');
       setIsDropdownOpen(false);
-      setToastMessage(trade.result);
+      
     }
   }
 

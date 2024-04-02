@@ -943,15 +943,38 @@ def logout_session():
         if auth_header:
             auth_token = auth_header.split(" ")[1]
             eval,message = sessionHandler.validateToken(auth_token)
-            if eval:
+            eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+            if eval and eval2:
                 if request.method == 'POST':
+                    user_id = message2
                     response = sessionHandler.logoutSession(auth_token) 
+                    top_level_keys = [
+                            'trades',
+                            'stats',
+                            'accountvalues',
+                            'tradespage',
+                            'tickersearch',
+                            'pnlyear',
+                            'user',
+                            'journalentry',
+                            'preferences'
+                        ]
+                    for key in top_level_keys:
+                        pattern = f'{key}:{user_id}:*'
+                        keys_to_delete = redis_client.keys(pattern)
+                        if keys_to_delete:
+                            redis_client.delete(*keys_to_delete)
                     logger.info("Leaving Logout Session: " + str(response))
                     return response
-            else:
+            elif not eval:
                 logger.warning("Leaving Logout Session: " + str(message))
                 return {
                     "result": message
+                }, 401
+            else:
+                logger.warning("Leaving Logout Session: " + str(message2))
+                return {
+                    "result": message2
                 }, 401
         else:
             response = "Authorization Header is Missing"
@@ -1096,9 +1119,10 @@ def existing_trade(trade_id):
                             keys_to_delete = redis_client.keys(pattern)
                             if keys_to_delete:
                                 redis_client.delete(*keys_to_delete)
-                        #add key for this trade id
+                        response_copy = response.copy()
+                        response_copy.pop('result', None)
                         key = f'trade:{trade_id}'
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 14400, json.dumps(response_copy))
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 if request.method == 'DELETE':
