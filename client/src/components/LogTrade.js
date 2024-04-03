@@ -117,7 +117,6 @@ export default function LogTrade({ user }) {
       setSearchValue('');
       setSelectedValue('');
       setIsDropdownOpen(false);
-      
     }
   }
 
