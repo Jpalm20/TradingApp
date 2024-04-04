@@ -79,7 +79,7 @@ def validate_user():
             if 'user_id' in response:
                 user_id = response['user_id']
                 key = f'user:{user_id}'
-                redis_client.setex(key, 14400, json.dumps(response))
+                redis_client.setex(key, 1200, json.dumps(response))
             logger.info("Leaving Validate User: " + str(response))
             return response
     except Exception as e:
@@ -108,7 +108,7 @@ def get_user_preferences():
                         return json.loads(cached_data)
                     response = userHandler.getUserPreferences(user_id)
                     if 'account_value_optin' in response:
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving User Preferences: " + str(response))
                     return response
             elif not eval:
@@ -150,7 +150,7 @@ def toggle_account_value_tracking():
                     response = userHandler.toggleAvTracking(user_id)
                     if 'account_value_optin' in response:
                         key = f'preferences:{user_id}'
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Toggle Account Value Tracking: " + str(response))
                     return response
             elif not eval:
@@ -192,7 +192,7 @@ def toggle_email_optin_flag():
                     response = userHandler.toggleEmailOptInHandler(user_id)
                     if 'account_value_optin' in response:
                         key = f'preferences:{user_id}'
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Toggle Email Alerts: " + str(response))
                     return response
             elif not eval:
@@ -234,7 +234,7 @@ def toggle_feature_flags():
                     response = userHandler.toggleFeatureFlagsHandler(user_id,request.json)
                     if 'account_value_optin' in response:
                         key = f'preferences:{user_id}'
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Toggle Feature Flags: " + str(response))
                     return response
             elif not eval:
@@ -280,7 +280,7 @@ def user_from_session():
                         return json.loads(cached_data)
                     response = userHandler.getUserFromSession(auth_token)
                     if 'user_id' in response:
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Get User From Session: " + str(response))
                     return response
             elif not eval:
@@ -330,7 +330,7 @@ def user_trades():
                             return json.loads(cached_data)
                         response = userHandler.getUserTrades(user_id, request.args) 
                         if 'trades' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key as well to compare next time
                         logger.info("Leaving User Trades with Filters: " + str(response))
                         return response
@@ -344,7 +344,7 @@ def user_trades():
                             return json.loads(cached_data)
                         response = userHandler.getUserTrades(user_id) 
                         if 'trades' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key to none as well to compare next time
                         logger.info("Leaving User Trades without Filters: " + str(response))
                         return response
@@ -395,7 +395,7 @@ def user_trades_stats():
                             return json.loads(cached_data)
                         response = userHandler.getUserTradesStats(user_id, request.args) 
                         if 'stats' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key as well to compare next time 
                         logger.info("Leaving User Trade Stats with Filters: " + str(response))
                         return response
@@ -409,7 +409,7 @@ def user_trades_stats():
                             return json.loads(cached_data)
                         response = userHandler.getUserTradesStats(user_id) 
                         if 'stats' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key to none as well to compare next time
                         logger.info("Leaving User Trade Stats without Filters: " + str(response))
                         return response
@@ -464,7 +464,7 @@ def user_account_value():
                             return json.loads(cached_data)
                         response = userHandler.getAccountValue(user_id, request.args)
                         if 'accountvalues' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key as well to compare next time 
                         logger.info("Leaving User Account Value: " + str(response))
                         return response
@@ -492,7 +492,7 @@ def user_account_value():
                                     item["accountvalue"] = response['accountvalue']
 
                                     # Save the updated JSON object back to Redis
-                                    redis_client.setex(key, 3600, json.dumps(existing_json))
+                                    redis_client.setex(key, 1200, json.dumps(existing_json))
                                     break  # Exit the loop after the update
                     logger.info("Leaving User Account Value: " + str(response))
                     return response
@@ -580,7 +580,7 @@ def user_trades_page():
                             return json.loads(cached_data)
                         response = userHandler.getUserTradesPage(user_id, request.args) 
                         if 'page' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key as well to compare next time
                         logger.info("Leaving User Trade Pagination: " + str(response))
                         return response
@@ -637,7 +637,7 @@ def search_user_ticker():
                             return json.loads(cached_data)
                         response = tradeHandler.searchUserTicker(user_id, request.args)
                         if 'tickers' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key as well to compare next time
                         logger.info("Leaving Search User Ticker with Filters: " + str(response))
                         return response
@@ -652,7 +652,7 @@ def search_user_ticker():
                             return json.loads(cached_data)
                         response = tradeHandler.searchUserTicker(user_id)
                         if 'tickers' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         #need to set filters key to none as well to compare next time
                         logger.info("Leaving Search User Ticker without Filters: " + str(response))
                         return response
@@ -703,7 +703,7 @@ def pnl_year(date_year):
                             return json.loads(cached_data)
                         response = userHandler.getPnLbyYear(user_id, date_year, request.args) 
                         if 'months' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         logger.info("Leaving PnL by Year with Filters: " + str(response))
                         return response
                 else:
@@ -715,7 +715,7 @@ def pnl_year(date_year):
                             return json.loads(cached_data)
                         response = userHandler.getPnLbyYear(user_id, date_year)
                         if 'months' in response:
-                            redis_client.setex(key, 14400, json.dumps(response))
+                            redis_client.setex(key, 1200, json.dumps(response))
                         logger.info("Leaving PnL by Year without Filters: " + str(response))
                         return response
             elif not eval:
@@ -775,7 +775,7 @@ def log_trade():
                         #add key for this trade id
                         trade_id = response['trade_id']
                         key = f'trade:{trade_id}'
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Log Trade: " + str(response))
                     return response
             elif not eval:
@@ -1013,14 +1013,14 @@ def existing_user():
                         return json.loads(cached_data)
                     response = userHandler.getExistingUser(user_id)
                     if 'user_id' in response:
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Existing User: " + str(response))
                     return response
                 elif request.method == 'POST':
                     response = userHandler.editExistingUser(user_id,request.json)
                     if 'user_id' in response:
                         key = f'user:{user_id}'
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Existing User: " + str(response))
                     return response
                 if request.method == 'DELETE':
@@ -1090,7 +1090,7 @@ def existing_trade(trade_id):
                         return json.loads(cached_data)
                     response = tradeHandler.getExistingTrade(trade_id)
                     if 'trade_id' in response:
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 elif request.method == 'POST':
@@ -1122,7 +1122,7 @@ def existing_trade(trade_id):
                         response_copy = response.copy()
                         response_copy.pop('result', None)
                         key = f'trade:{trade_id}'
-                        redis_client.setex(key, 14400, json.dumps(response_copy))
+                        redis_client.setex(key, 1200, json.dumps(response_copy))
                     logger.info("Leaving Existing Trade: " + str(response))
                     return response
                 if request.method == 'DELETE':
@@ -1341,7 +1341,7 @@ def existing_journalentry(date):
                         return json.loads(cached_data)
                     response = journalentryHandler.getJournalEntries(user_id, date)
                     if 'entries' in response:
-                        redis_client.setex(key, 14400, json.dumps(response))
+                        redis_client.setex(key, 1200, json.dumps(response))
                     logger.info("Leaving Existing Journal Entry: " + str(response))
                     return response
                 elif request.method == 'POST':
@@ -1375,7 +1375,7 @@ def existing_journalentry(date):
                             existing_json["entries"].append(new_entry)
 
                         # Save the updated journal entries back to Redis
-                        redis_client.setex(key, 3600, json.dumps(existing_json))
+                        redis_client.setex(key, 1200, json.dumps(existing_json))
                         
                     logger.info("Leaving Existing Journal Entry: " + str(response))
                     return response
@@ -1393,7 +1393,7 @@ def existing_journalentry(date):
                             entries = existing_json.get("entries", [])
                             new_entries = [item for item in entries if item.get("date") != response['date']]
                             existing_json["entries"] = new_entries
-                            redis_client.setex(key, 3600, json.dumps(existing_json))
+                            redis_client.setex(key, 1200, json.dumps(existing_json))
                     logger.info("Leaving Existing Journal Entry: " + str(response))
                     return response
             elif not eval:
