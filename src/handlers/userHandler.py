@@ -109,6 +109,7 @@ def validateUser(requestBody):
     elif 'password' in response[0][0]:
         hashPass = userTransformer.hashPassword(requestBody['password'])
         if response[0][0]['password'] == hashPass:
+            session.Session.expirePreviousSessions(response[0][0]['user_id'])
             access_token = create_access_token(identity=response[0][0]['user_id']) 
             newSession = session.Session(None,response[0][0]['user_id'],access_token,datetime.now()+timedelta(hours=24))
             sessionResponse = session.Session.addSession(newSession)
