@@ -275,6 +275,7 @@ def deleteTrades(user_id,requestBody):
     if response != True:
         logger.warning("Leaving Delete Trade Handler: " + str(response))
         return response
+    user = user_id
     user_id = None
     for trade_id in requestBody:
         trade_info = getExistingTrade(trade_id)
@@ -297,14 +298,14 @@ def deleteTrades(user_id,requestBody):
         if len(requestBody) == 1:
             response = {
                 "result": "Trade Successfully Deleted",
-                "user_id": user_id
+                "user_id": user
             }
             logger.info("Leaving Delete Trades Handler: " + str(response))
             return response
         elif len(requestBody) > 1:
             response = {
                 "result": "Trades Successfully Deleted",
-                "user_id": user_id
+                "user_id": user
             }
             logger.info("Leaving Delete Trades Handler: " + str(response))
             return response
