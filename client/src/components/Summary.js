@@ -1329,6 +1329,7 @@ export default function Summary({ user }) {
         backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
         justifyContent="center"
         alignItems="center"
+        overflow="scroll"
       >
         <Stack
           class='profilestack'
