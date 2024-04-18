@@ -63,9 +63,12 @@ def processCsv(user_id, file):
     sell_trades = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
 
     if isinstance(file, FileStorage):
+        logger.info("FileStorage Type")
+        file.stream.seek(0)
         csv_string = file.stream.read().decode("utf-8-sig")
     else:
         # Assuming it's a standard file object
+        logger.info("Standard File Type")
         file.seek(0)  # Reset the file pointer
         csv_string = file.read()
 
@@ -78,7 +81,7 @@ def processCsv(user_id, file):
     for row in sorted_rows:
         if not all(col in row for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
             continue
-
+        logger.info("Row: {})".format(str(row)))
         if row['quantity'] == '' or row['security_type'] == '' or row['ticker_name'] == '' or row['execution_time'] == '' or row['side'] == '' or row['cost_basis'] == '':
             response = "Empty fields exist in .csv please resolve"
             logger.warning("Leaving Process CSV Transformer: " + response)

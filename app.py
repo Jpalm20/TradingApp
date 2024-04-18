@@ -804,7 +804,7 @@ def log_trade():
 
 @app.route('/trade/importCsv',methods= ['POST'])
 def import_csv():
-    logger.info("Entering Import CSV - " + str(request.method) + ": " + str(request.json))
+    logger.info("Entering Import CSV - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
         if auth_header:

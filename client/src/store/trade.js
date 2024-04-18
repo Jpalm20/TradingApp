@@ -329,6 +329,7 @@ const tradeSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = false;
+        state.trade = {"result": "Trades Exported Successfully"};
       },
       [exportCsv.pending]: (state) => {
         state.loading = true;

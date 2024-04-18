@@ -265,6 +265,9 @@ export default function Summary({ user }) {
     if(success === true && trade && trade.result === "Trades Imported Successfully"){
       setToastMessage(trade.trades.length.toString() + " " + trade.result);
     }
+    if(success === true && trade && trade.result === "Trades Exported Successfully"){
+      setToastMessage(trade.result);
+    }
   }
 
   const evaluatePage = () => {
