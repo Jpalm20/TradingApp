@@ -570,16 +570,16 @@ def getUserTradesStats(user_id,filters=None):
         avgPnL = 0  
         avgSpST = 0
         avgCpOT = 0
-        if(response[0][0]['numWins'] > 0):
+        if(response[0][0]['numWins'] > 0 and response[0][0]['sumWin'] is not None):
             avgWin = response[0][0]['sumWin']/response[0][0]['numWins']
-        if(response[0][0]['numLosses'] > 0):
+        if(response[0][0]['numLosses'] > 0 and response[0][0]['sumLoss'] is not None):
             avgLoss = response[0][0]['sumLoss']/response[0][0]['numLosses']  
-        if(response[0][0]['numTrades'] > 0):
+        if(response[0][0]['numTrades'] > 0 and response[0][0]['totalPNL'] is not None):
             winPercent = (response[0][0]['numWins']/response[0][0]['numTrades'])*100
             avgPnL = response[0][0]['totalPNL']/response[0][0]['numTrades']
-        if(response[0][0]['numOT'] > 0):
+        if(response[0][0]['numOT'] > 0 and response[0][0]['sumOptionsUnits'] is not None):
             avgCpOT = response[0][0]['sumOptionsUnits']/response[0][0]['numOT']
-        if(response[0][0]['numShT'] > 0):
+        if(response[0][0]['numShT'] > 0 and response[0][0]['sumSharesUnits'] is not None):
             avgSpST = response[0][0]['sumSharesUnits']/response[0][0]['numShT']
         response = {
             "stats": {
@@ -688,52 +688,33 @@ def getPnLbyYear(user_id, date_year, filters=None):
         response = user.User.getUserPnLbyYear(user_id, date_year)
     else:
         response = user.User.getUserPnLbyYearFilter(user_id, date_year, filters)
-    months = numpy.zeros((12,31))
+    months = numpy.zeros((12,31,2))
     if len(response[0]) != 0 and "trade_date" in response[0][0]:
         for day in response[0]:
             date = datetime.strptime(day['trade_date'], "%Y-%m-%d")
             curr_month = date.month
             curr_day = date.day
-            months[curr_month-1][curr_day-1] = day['day_pnl'] 
-            monthsJSON = months.tolist() 
-        response = {
-            "months": [
-                {"0" : monthsJSON[0]},
-                {"1" : monthsJSON[1]},
-                {"2" : monthsJSON[2]},
-                {"3" : monthsJSON[3]},
-                {"4" : monthsJSON[4]},
-                {"5" : monthsJSON[5]},
-                {"6" : monthsJSON[6]},
-                {"7" : monthsJSON[7]},
-                {"8" : monthsJSON[8]},
-                {"9" : monthsJSON[9]},
-                {"10" : monthsJSON[10]},
-                {"11" : monthsJSON[11]}
-            ]
-        }
-        logger.info("Leaving Get PnL By Year Handler: " + str(response))
-        return response
-    else:
-        monthsJSON = months.tolist()
-        response = {
-            "months": [
-                {"0" : monthsJSON[0]},
-                {"1" : monthsJSON[1]},
-                {"2" : monthsJSON[2]},
-                {"3" : monthsJSON[3]},
-                {"4" : monthsJSON[4]},
-                {"5" : monthsJSON[5]},
-                {"6" : monthsJSON[6]},
-                {"7" : monthsJSON[7]},
-                {"8" : monthsJSON[8]},
-                {"9" : monthsJSON[9]},
-                {"10" : monthsJSON[10]},
-                {"11" : monthsJSON[11]}
-            ]
-        }
-        logger.info("Leaving Get PnL By Year Handler: " + str(response))
-        return response
+            months[curr_month-1][curr_day-1][0] = day['day_pnl'] 
+            months[curr_month-1][curr_day-1][1] = day['day_count']
+    monthsJSON = months.tolist() 
+    response = {
+        "months": [
+            {"0": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[0]]},
+            {"1": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[1]]},
+            {"2": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[2]]},
+            {"3": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[3]]},
+            {"4": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[4]]},
+            {"5": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[5]]},
+            {"6": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[6]]},
+            {"7": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[7]]},
+            {"8": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[8]]},
+            {"9": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[9]]},
+            {"10": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[10]]},
+            {"11": [{"pnl": day[0], "count": day[1]} for day in monthsJSON[11]]}
+        ]
+    }
+    logger.info("Leaving Get PnL By Year Handler: " + str(response))
+    return response
     
 def generateResetCode(requestBody):
     logger.info("Entering Generate Reset Code Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))

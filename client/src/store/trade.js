@@ -129,6 +129,33 @@ export const deleteTrade = createAsyncThunk(
   }
 );
 
+export const updateTrades = createAsyncThunk(
+  "trade/updateTrades",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { ids, update_info } = formInfo;
+        const res = await axios.post(API_URL + `trade/updateTrades`,{
+          ids,
+          update_info
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const importCsv = createAsyncThunk(
   "trade/importCsv",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -268,6 +295,22 @@ const tradeSlice = createSlice({
         state.success = false;
       },
       [deleteTrade.rejected]: (state, action) => {
+        state.error = true;
+        state.info = action.payload;
+        state.loading = false;
+      },
+      [updateTrades.fulfilled]: (state, action) => {
+        state.trade = action.payload;
+        state.success = true;
+        state.error = false;
+        state.loading = false;
+      },
+      [updateTrades.pending]: (state) => {
+        state.loading = true;
+        state.error = false;
+        state.success = false;
+      },
+      [updateTrades.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
         state.loading = false;

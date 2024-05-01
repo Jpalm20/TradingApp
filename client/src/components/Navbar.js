@@ -119,9 +119,14 @@ export default function Navbar({ user }) {
     navigate("/");
     await dispatch(getTradesStats());
     await dispatch(getPreferences());
-    const filters = {};
+    let filters = {};
     filters.date = returnInTZ(today.toISOString());
     await dispatch(getAccountValues({ filters }));
+    filters = {};
+    filters.page = 1;
+    filters.numrows = 5;
+    filters.trade_date = 'NULL';
+    await dispatch(getTradesPage({ filters }));
     handleDeleteLocal();
   }
 

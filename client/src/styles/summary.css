@@ -31,6 +31,14 @@
     color: rgb(128, 128, 128);
   }
   
+  .pagearrowssmall {
+    font-size: 1em;
+  }
+
+  .pagearrowssmall:hover {
+    color: rgb(128, 128, 128);
+  }
+
   .numresults {
     font-family: 'Saira Semi Condensed', sans-serif;
     font-weight: bold; 

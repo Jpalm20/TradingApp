@@ -6,6 +6,14 @@
     padding-bottom: 5px
   }
 
+  .statsheadersmall {
+    display: block;
+    font-size: large;
+    color: rgb(99, 99, 99);
+    font-family: 'Open Sans', sans-serif;
+    padding-bottom: 1px
+  }
+
 .keyheader {
   display: block;
   font-size: large;
@@ -20,6 +28,14 @@
   color: rgb(223, 223, 223);
   font-family: 'Open Sans', sans-serif;
   padding-bottom: 5px
+}
+
+.statsheaderdarksmall {
+  display: block;
+  font-size: large;
+  color: rgb(223, 223, 223);
+  font-family: 'Open Sans', sans-serif;
+  padding-bottom: 1px
 }
 
 .keyheaderdark {

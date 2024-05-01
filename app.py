@@ -1235,6 +1235,82 @@ def delete_trades():
         }, 400
         
 
+@app.route('/trade/updateTrades',methods = ['POST'])
+def update_trades():
+    logger.info("Entering Update Trades - " + str(request.method) + ": " + str(request.json))
+    try:
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+            eval,message = sessionHandler.validateToken(auth_token)
+            if eval:
+                if request.method == 'POST':
+                    user_id = None
+                    eval,message = sessionHandler.getUserFromToken(auth_token)
+                    if not eval:
+                        logger.warning("Leaving Update Trades: " + str(message))
+                        return {
+                            "result": message
+                        }, 401
+                    user_id = message
+                    anysuccess = False
+                    if 'ids' not in request.json or 'update_info' not in request.json:
+                        message = "Request must include both 'ids' and 'update_info' keys"
+                        logger.warning("Leaving Update Trades: " + str(message))
+                        return {
+                            "result": message
+                        }, 400
+                    updated_ids = []
+                    for trade_id in request.json['ids']:
+                        response = tradeHandler.editExistingTrade(user_id,trade_id,request.json['update_info'])
+                        if 'trade_id' in response:
+                            updated_ids.append(trade_id)
+                            anysuccess = True
+                            response_copy = response.copy()
+                            response_copy.pop('result', None)
+                            key = f'trade:{trade_id}'
+                            redis_client.setex(key, 1200, json.dumps(response_copy))
+                    if anysuccess == True:
+                        #delete all affected keys, too costly to update them
+                        #TODO: get user_id from handler function and return to use here
+                        user_id = response['user_id']
+                        top_level_keys = [
+                            'trades',
+                            'stats',
+                            'accountvalues',
+                            'tradespage',
+                            'tickersearch',
+                            'pnlyear'
+                        ]
+                        for key in top_level_keys:
+                            pattern = f'{key}:{user_id}:*'
+                            keys_to_delete = redis_client.keys(pattern)
+                            if keys_to_delete:
+                                redis_client.delete(*keys_to_delete)
+                    response = {
+                        "result": "Trades Updated Successfully: {}".format(', '.join(map(str, updated_ids))),
+                    }
+                    logger.info("Leaving Update Trades: " + str(response))
+                    return response
+            else:
+                logger.warning("Leaving Update Trades: " + str(message))
+                return {
+                    "result": message
+                }, 401
+        else:
+            response = "Authorization Header is Missing"
+            logger.warning("Leaving Update Trades: " + response)
+            return {
+                "result": response
+            }, 401
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        logger.error("Leaving Update Trades: " + error_message)
+        return {
+            "result": error_message
+        }, 400
+        
+
 @app.route('/trade/exportCsv',methods = ['POST'])
 def export_csv():
     logger.info("Entering Export CSV - " + str(request.method) + ": " + str(request.json))
