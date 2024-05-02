@@ -1,6 +1,7 @@
 from ftplib import error_reply
 import os
 from flask import Flask, jsonify
+from flasgger import Swagger
 from flask import request
 from flask_cors import CORS
 import redis
@@ -23,6 +24,26 @@ from urllib.parse import urlparse
 
 app = Flask(__name__)
 CORS(app)
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'apispec_1',
+            "route": '/index.json',
+            "rule_filter": lambda rule: True,  # all endpoints included
+            "model_filter": lambda tag: True,  # all models included
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs/",
+    "info": {
+        "title": "MyTradingTracker APIs",
+        "description": "API documentation for MyTradingTracker",
+        "version": "1.0"
+    }
+}
+Swagger(app, config=swagger_config)
 
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
@@ -50,12 +71,62 @@ app.config['SMTP_PASSWORD'] = os.environ.get('SMTP_PASSWORD')
 
 @app.route('/')
 def hello_geek():
+    """
+    Health Check Endpoint
+    ---
+    get:
+      description: Returns a simple string indicating the server is up and running.
+      responses:
+        200:
+          description: Server is healthy and responding.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Health Check"
+        500:
+          description: Server is not healthy or not responding.
+    """
     logger.info("Health Check")
     return 'Health Check'
 
 
 @app.route('/user/register',methods = ['POST'])
 def register_user():
+    """
+    Register a new user.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: user
+        description: User data for registration
+        required: true
+        schema:
+          type: object
+          required:
+            - username
+            - email
+            - password
+          properties:
+            username:
+              type: string
+              example: johndoe
+            email:
+              type: string
+              example: johndoe@example.com
+            password:
+              type: string
+              example: securepassword123
+    responses:
+      200:
+        description: User registered successfully
+      400:
+        description: Error in registration data
+    """
     logger.info("Entering Register User - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
@@ -72,6 +143,36 @@ def register_user():
 
 @app.route('/user/login',methods = ['POST'])
 def validate_user():
+    """
+    Validate user login credentials.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: credentials
+        description: User login credentials
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              example: johndoe@example.com
+            password:
+              type: string
+              example: securepassword123
+    responses:
+      200:
+        description: Login successful, returns user session
+      400:
+        description: Invalid credentials or error in login process
+    """
     logger.info("Entering Validate User - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
@@ -91,6 +192,21 @@ def validate_user():
     
 @app.route('/user/preferences',methods = ['GET'])
 def get_user_preferences():
+    """
+    Retrieve user preferences based on authorization token.
+    ---
+    tags:
+      - User Management
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Returns user preferences
+      401:
+        description: Unauthorized access
+    """
     logger.info("Entering User Preferences - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -137,6 +253,32 @@ def get_user_preferences():
 
 @app.route('/user/preferences/toggleav',methods = ['POST'])
 def toggle_account_value_tracking():
+    """
+    Toggle account value tracking preference for a user.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: toggle
+        description: Toggle value for account value tracking
+        required: true
+        schema:
+          type: object
+          properties:
+            toggle:
+              type: boolean
+              example: true
+    responses:
+      200:
+        description: Preference updated successfully
+      401:
+        description: Unauthorized access
+    """
     logger.info("Entering Toggle Account Value Tracking - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -179,6 +321,32 @@ def toggle_account_value_tracking():
         
 @app.route('/user/preferences/toggleeoi',methods = ['POST'])
 def toggle_email_optin_flag():
+    """
+    Toggle the email opt-in setting for a user.
+    ---
+    tags:
+      - User Preferences
+    consumes:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: email_optin
+        description: Whether the user opts in to receive emails.
+        required: true
+        schema:
+          type: object
+          properties:
+            opt_in:
+              type: boolean
+              example: true
+    responses:
+      200:
+        description: Email preference updated successfully.
+      401:
+        description: Unauthorized access, invalid token.
+    """
     logger.info("Entering Toggle Email Alerts - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -221,6 +389,35 @@ def toggle_email_optin_flag():
 
 @app.route('/user/preferences/toggleff',methods = ['POST'])
 def toggle_feature_flags():
+    """
+    Toggle feature flags for the user's account.
+    ---
+    tags:
+      - User Preferences
+    consumes:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: feature_flags
+        description: Feature flags to be toggled.
+        required: true
+        schema:
+          type: object
+          properties:
+            feature_name:
+              type: string
+              example: "new_dashboard"
+            enabled:
+              type: boolean
+              example: true
+    responses:
+      200:
+        description: Feature flags updated successfully.
+      401:
+        description: Unauthorized access, invalid token.
+    """
     logger.info("Entering Toggle Feature Flags - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -263,6 +460,21 @@ def toggle_feature_flags():
 
 @app.route('/user/getUserFromSession',methods= ['GET'])
 def user_from_session():
+    """
+    Retrieve user details from the session token.
+    ---
+    tags:
+      - User Session
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Successfully retrieved user data from session.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Get User From Session - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -309,6 +521,37 @@ def user_from_session():
 
 @app.route('/user/trades',methods = ['GET'])
 def user_trades():
+    """
+    Retrieve trades for the user, optionally filtered by various criteria.
+    ---
+    tags:
+      - Trading Information
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: filter_criteria
+        description: Optional filters for trade retrieval.
+        required: false
+        schema:
+          type: object
+          properties:
+            date_from:
+              type: string
+              format: date
+              example: "2023-01-01"
+            date_to:
+              type: string
+              format: date
+              example: "2023-02-01"
+    responses:
+      200:
+        description: Successfully retrieved trades.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering User Trades - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -374,6 +617,37 @@ def user_trades():
 
 @app.route('/user/trades/stats',methods = ['GET'])
 def user_trades_stats():
+    """
+    Retrieve statistical data of user trades, optionally filtered by specific criteria.
+    ---
+    tags:
+      - Trading Information
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: filter_criteria
+        description: Optional filters for retrieving trade statistics.
+        required: false
+        schema:
+          type: object
+          properties:
+            date_from:
+              type: string
+              format: date
+              example: "2023-01-01"
+            date_to:
+              type: string
+              format: date
+              example: "2023-02-01"
+    responses:
+      200:
+        description: Successfully retrieved trade statistics.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering User Trade Stats - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -439,6 +713,44 @@ def user_trades_stats():
         
 @app.route('/user/accountValue',methods = ['GET', 'POST'])
 def user_account_value():
+    """
+    Get or update user account value. GET to retrieve, POST to update.
+    ---
+    tags:
+      - Account Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: date
+        required: false
+        description: Date for which account value is queried.
+        schema:
+          type: string
+          format: date
+          example: "2023-03-15"
+      - in: body
+        name: account_value
+        required: false
+        description: New account value to be updated.
+        schema:
+          type: object
+          properties:
+            value:
+              type: float
+              example: 10000.00
+    responses:
+      200:
+        description: Account value retrieved or updated successfully.
+      400:
+        description: Bad request, possibly due to missing parameters.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     if request.method == 'POST':
         logger.info("Entering User Account Value - " + str(request.method) + ": " + str(request.json))
     if request.method == 'GET':
@@ -522,6 +834,33 @@ def user_account_value():
         
 @app.route('/accountValueJob',methods = ['POST'])
 def account_value_job():
+    """
+    Trigger a job to update account values based on provided data.
+    ---
+    tags:
+      - Account Management
+    consumes:
+      - application/json
+    security:
+      - Basic: []
+    parameters:
+      - in: body
+        name: job_details
+        description: Details necessary to initiate the account value job.
+        required: true
+        schema:
+          type: object
+          properties:
+            trigger_time:
+              type: string
+              format: date-time
+              example: "2023-03-15T12:00:00Z"
+    responses:
+      200:
+        description: Job triggered successfully.
+      401:
+        description: Unauthorized access, incorrect credentials.
+    """
     logger.info("Account Value Job Triggered - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -559,6 +898,53 @@ def account_value_job():
         
 @app.route('/user/trades/page',methods = ['GET'])
 def user_trades_page():
+    """
+    Paginate through user trades based on provided criteria and pagination settings.
+    ---
+    tags:
+      - Trading Information
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: page_number
+        description: Page number for pagination.
+        required: true
+        schema:
+          type: integer
+          example: 1
+      - in: query
+        name: page_size
+        description: Number of trades per page.
+        required: true
+        schema:
+          type: integer
+          example: 10
+      - in: query
+        name: filters
+        description: Optional filters for trades.
+        required: false
+        schema:
+          type: object
+          properties:
+            date_from:
+              type: string
+              format: date
+              example: "2023-01-01"
+            date_to:
+              type: string
+              format: date
+              example: "2023-02-01"
+    responses:
+      200:
+        description: Page of trades retrieved successfully.
+      400:
+        description: Bad request, possibly due to missing or incorrect query parameters.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering User Trade Pagination - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -616,6 +1002,29 @@ def user_trades_page():
 
 @app.route('/trade/searchTicker',methods = ['GET'])
 def search_user_ticker():
+    """
+    Search for ticker symbols based on user input.
+    ---
+    tags:
+      - Trading Information
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: query
+        description: Ticker symbol or part of it to search for.
+        required: true
+        schema:
+          type: string
+          example: "AAPL"
+    responses:
+      200:
+        description: Successfully retrieved matching ticker symbols.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Search User Ticker - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -682,6 +1091,29 @@ def search_user_ticker():
 
 @app.route('/user/pnlbyYear/<int:date_year>',methods = ['GET'])
 def pnl_year(date_year):
+    """
+    Get profit and loss (PnL) data for a specific year.
+    ---
+    tags:
+      - Financial Reporting
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: date_year
+        description: The year for which PnL data is requested.
+        required: true
+        schema:
+          type: integer
+          example: 2023
+    responses:
+      200:
+        description: Successfully retrieved PnL data for the year.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering PnL by Year - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -744,6 +1176,44 @@ def pnl_year(date_year):
 
 @app.route('/trade/create',methods= ['POST'])
 def log_trade():
+    """
+    Log a new trade into the system.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: trade_details
+        description: Details of the trade to log.
+        required: true
+        schema:
+          type: object
+          properties:
+            symbol:
+              type: string
+              example: "AAPL"
+            volume:
+              type: integer
+              example: 100
+            price:
+              type: float
+              example: 150.5
+            trade_date:
+              type: string
+              format: date
+              example: "2023-03-15"
+    responses:
+      200:
+        description: Trade logged successfully.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Log Trade - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -804,6 +1274,29 @@ def log_trade():
 
 @app.route('/trade/importCsv',methods= ['POST'])
 def import_csv():
+    """
+    Import trades from a CSV file.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - multipart/form-data
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: formData
+        name: csv_file
+        description: CSV file containing trades to import.
+        required: true
+        type: file
+    responses:
+      200:
+        description: Trades imported successfully from the CSV.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Import CSV - " + str(request.method))
     try:
         auth_header = request.headers.get('Authorization')
@@ -859,6 +1352,37 @@ def import_csv():
 
 @app.route('/user/reportBug',methods= ['POST'])
 def report_bug():
+    """
+    Allows users to report bugs they encounter.
+    ---
+    tags:
+      - User Support
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: bug_details
+        description: Details of the bug reported by the user.
+        required: true
+        schema:
+          type: object
+          properties:
+            description:
+              type: string
+              example: "App crashes on clicking the 'Save' button in settings."
+            severity:
+              type: string
+              example: "high"
+    responses:
+      200:
+        description: Bug reported successfully.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Report Bug - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -898,6 +1422,37 @@ def report_bug():
         
 @app.route('/user/changePassword',methods= ['POST'])
 def change_Password():
+    """
+    Allows users to change their password.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: password_details
+        description: Current and new passwords.
+        required: true
+        schema:
+          type: object
+          properties:
+            current_password:
+              type: string
+              example: "oldPassword123"
+            new_password:
+              type: string
+              example: "newSecurePassword321"
+    responses:
+      200:
+        description: Password changed successfully.
+      401:
+        description: Unauthorized access, invalid or incorrect current password.
+    """
     logger.info("Entering Change Password - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         auth_header = request.headers.get('Authorization')
@@ -937,6 +1492,21 @@ def change_Password():
         
 @app.route('/user/logout',methods= ['POST'])
 def logout_session():
+    """
+    Logs out a user by ending the session.
+    ---
+    tags:
+      - User Session
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Successfully logged out.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Logout Session - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -992,6 +1562,37 @@ def logout_session():
 
 @app.route('/user',methods = ['GET','POST','DELETE'])
 def existing_user():
+    """
+    Manage existing user information: retrieve, update, or delete user data.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: user_details
+        description: User details to update or criteria to delete.
+        required: false
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "johndoe@example.com"
+            phone:
+              type: string
+              example: "+1234567890"
+    responses:
+      200:
+        description: User data retrieved, updated, or deleted successfully.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     if request.method == 'GET' or request.method == 'DELETE':
         logger.info("Entering Existing User - " + str(request.method))
     if request.method == 'POST':
@@ -1071,6 +1672,50 @@ def existing_user():
 
 @app.route('/trade/<int:trade_id>',methods = ['GET','POST','DELETE'])
 def existing_trade(trade_id):
+    """
+    Manage an existing trade by its ID. Retrieve, update, or delete the trade.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - name: trade_id
+        in: path
+        type: integer
+        required: true
+        description: Unique identifier of the trade.
+      - in: body
+        name: trade_details
+        description: Details to update the trade (used only for POST).
+        required: false
+        schema:
+          type: object
+          properties:
+            price:
+              type: float
+              example: 150.5
+            volume:
+              type: integer
+              example: 200
+            date:
+              type: string
+              format: date
+              example: "2023-03-15"
+    responses:
+      200:
+        description: Trade retrieved, updated, or deleted successfully.
+      400:
+        description: Bad request, data missing or format incorrect.
+      401:
+        description: Unauthorized access, invalid or missing token.
+      404:
+        description: Trade not found with the given ID.
+    """
     if request.method == 'GET' or request.method == 'DELETE':
         logger.info("Entering Existing Trade - " + str(request.method))
     if request.method == 'POST':
@@ -1176,6 +1821,33 @@ def existing_trade(trade_id):
         
 @app.route('/trade/deleteTrades',methods = ['DELETE'])
 def delete_trades():
+    """
+    Deletes one or more trades for a user.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: trade_ids
+        description: List of trade IDs to delete.
+        required: true
+        schema:
+          type: array
+          items:
+            type: integer
+          example: [101, 102, 103]
+    responses:
+      200:
+        description: Trades deleted successfully.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Delete Trades - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -1237,6 +1909,47 @@ def delete_trades():
 
 @app.route('/trade/updateTrades',methods = ['POST'])
 def update_trades():
+    """
+    Updates details for specified trades.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: trade_update_info
+        description: Information for updating trades, including trade IDs and new data.
+        required: true
+        schema:
+          type: object
+          properties:
+            ids:
+              type: array
+              items:
+                type: integer
+              example: [101, 102, 103]
+            update_info:
+              type: object
+              properties:
+                price:
+                  type: float
+                  example: 150.5
+                volume:
+                  type: integer
+                  example: 200
+    responses:
+      200:
+        description: Trades updated successfully.
+      400:
+        description: Bad request, required data missing or incorrect format.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Update Trades - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -1313,6 +2026,39 @@ def update_trades():
 
 @app.route('/trade/exportCsv',methods = ['POST'])
 def export_csv():
+    """
+    Exports trading data to a CSV file based on specified criteria.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - application/json
+    produces:
+      - application/octet-stream
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: export_criteria
+        description: Criteria for exporting trades to CSV.
+        required: true
+        schema:
+          type: object
+          properties:
+            date_from:
+              type: string
+              format: date
+              example: "2023-01-01"
+            date_to:
+              type: string
+              format: date
+              example: "2023-02-01"
+    responses:
+      200:
+        description: CSV export initiated successfully.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Export CSV - " + str(request.method) + ": " + str(request.json))
     try:
         auth_header = request.headers.get('Authorization')
@@ -1345,6 +2091,32 @@ def export_csv():
 
 @app.route('/user/generateResetCode',methods = ['POST'])
 def generate_reset_code():
+    """
+    Generate a reset code for a user to enable password recovery.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: user_info
+        description: User information to identify the account for which the reset code is generated.
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "user@example.com"
+    responses:
+      200:
+        description: Reset code generated successfully, instructions sent to user's email.
+      400:
+        description: Bad request, required information missing or incorrect.
+    """
     logger.info("Entering Generate Reset Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
@@ -1361,6 +2133,35 @@ def generate_reset_code():
     
 @app.route('/user/confirmResetCode',methods = ['POST'])
 def validate_reset_code():
+    """
+    Confirm the reset code provided by the user for password recovery.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: reset_info
+        description: Reset code information to validate.
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "user@example.com"
+            reset_code:
+              type: string
+              example: "123456"
+    responses:
+      200:
+        description: Reset code confirmed, user can proceed to reset password.
+      400:
+        description: Invalid or expired reset code.
+    """
     logger.info("Entering Validate Reset Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
@@ -1377,6 +2178,39 @@ def validate_reset_code():
 
 @app.route('/user/resetPassword',methods = ['POST'])
 def reset_password():
+    """
+    Resets a user's password based on the provided reset token.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: password_reset_info
+        description: Details for resetting the user's password.
+        required: true
+        schema:
+          type: object
+          properties:
+            reset_token:
+              type: string
+              example: "abc123xyz"
+            new_password:
+              type: string
+              example: "newSecurePassword321"
+    responses:
+      200:
+        description: Password reset successfully.
+      400:
+        description: Bad request, token invalid or missing data.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
     logger.info("Entering Reset Password - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
     try:
         if request.method == 'POST':
@@ -1393,6 +2227,44 @@ def reset_password():
 
 @app.route('/journal/<string:date>',methods = ['GET','POST','DELETE'])
 def existing_journalentry(date):
+    """
+    Manage a journal entry by date. Retrieve, create, or delete an entry.
+    ---
+    tags:
+      - Journal Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - name: date
+        in: path
+        type: string
+        required: true
+        format: 'yyyy-mm-dd'
+        description: Date of the journal entry to manage.
+      - in: body
+        name: entry_details
+        required: false
+        description: Journal entry details to create or update.
+        schema:
+          type: object
+          properties:
+            entrytext:
+              type: string
+              example: "Reflecting on today's achievements and challenges."
+    responses:
+      200:
+        description: Journal entry retrieved, created, or deleted successfully.
+      400:
+        description: Bad request, data missing or format incorrect.
+      401:
+        description: Unauthorized access, invalid or missing token.
+      404:
+        description: No journal entry found for the specified date.
+    """
     if request.method == 'POST':
         logger.info("Entering Existing Journal Entry - " + str(request.method) + ": " + str(request.json))
     if request.method == 'GET' or request.method == 'DELETE':
