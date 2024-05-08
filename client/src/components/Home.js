@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getTrades, getTradesFiltered, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues, setAccountValue } from '../store/auth'
-import { searchTicker } from '../store/trade'
+import { getTrades, getTradesFiltered, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues, setAccountValue, getTradesPage } from '../store/auth'
+import { searchTicker, update, reset, updateTrades } from '../store/trade'
 import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
@@ -12,6 +12,7 @@ import '../styles/filter.css';
 import '../styles/home.css';
 import Lottie from "lottie-react";
 import animationData from "../lotties/no-data-animation.json";
+import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
 import {
   Flex,
   Text,
@@ -38,6 +39,7 @@ import {
   Td,
   TableCaption,
   TableContainer,
+  Divider,
   List,
   ListItem,
   ListIcon,
@@ -103,6 +105,8 @@ export default function Home({ user }) {
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { trade } = useSelector((state) => state.trade);
+  const tradeSuccess = useSelector((state) => state.trade.success);
   const { trades } = useSelector((state) => state.auth);
   const { stats } = useSelector((state) => state.auth);
   const { preferences } = useSelector((state) => state.auth);
@@ -114,6 +118,8 @@ export default function Home({ user }) {
   const hasPreferences = ((preferences && Object.keys(preferences).length > 0) ? (true):(false)); //need to look into this for home error
   const hasAVs = ((accountValues && accountValues.accountvalues && Object.keys(accountValues.accountvalues).length > 0) ? (true):(false)); //need to look into this for home error
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false));
+  const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length >= 0) ? (true):(false));
+
 
   const [toggleFilter, setToggleFilter] = useState(false);
 
@@ -220,6 +226,10 @@ export default function Home({ user }) {
     evaluateSuccess();
   }, [success]); 
 
+  useEffect(() => {
+    evaluateTradeSuccess();
+  }, [tradeSuccess]); 
+
   const evaluateSuccess = async () => {
     if(success === true && info && info.result && info.result === "Account Value Set Successfully"){
       setToastMessage(info.result);
@@ -229,6 +239,43 @@ export default function Home({ user }) {
       filters.date = today
       await dispatch(getPreferences());
       await dispatch(getAccountValues({ filters }));
+    }
+  }
+
+  const evaluateTradeSuccess = async () => {
+    if(tradeSuccess === true && trade && trade.result && trade.result.includes("Trades Updated Successfully")){
+      setToastMessage(trade.result);
+      let filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      if(filter_switch_time !== ''){
+        filters.date_range = filter_switch_time;
+      }
+      await dispatch(
+        getTradesStatsFiltered({
+          filters
+        })
+      );
+      filters.page = 1;
+      filters.numrows = num_results;
+      filters.trade_date = 'NULL';
+      await dispatch(getTradesPage({ filters }));
+      dispatch(
+        reset()      
+      );
+      filters = {};
+      filters.date = today
+      await dispatch(getAccountValues({ filters }));
+      clearFormStates();
+      setSelectedRow([]);
+      setTradeID(null);
     }
   }
 
@@ -253,6 +300,8 @@ export default function Home({ user }) {
   const [filter_switch_time, setFilterSwitchDate] = useState("");
 
   const authLoading = useSelector((state) => state.auth.loading);
+  const tradeLoading = useSelector((state) => state.trade.loading);
+
 
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -311,7 +360,9 @@ export default function Home({ user }) {
     </li>
   ));
 
-  const appliedFilters = Object.entries(filters).map(([key, value]) => (
+  const keysToSkip = ['page', 'numrows', 'trade_date'];
+  
+  const appliedFilters = Object.entries(filters).filter(([key]) => !keysToSkip.includes(key)).map(([key, value]) => (
     <Tr key={key}>
       <Td>{key}</Td>
       <Td>{value}</Td>
@@ -603,7 +654,6 @@ export default function Home({ user }) {
     } else if (pnl < 0) {
       bgColor = "red.400"
     } else {
-      bgColor = "black"
     }
     return bgColor;
   };
@@ -773,6 +823,489 @@ export default function Home({ user }) {
     return content
   };
 
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [numRows, setNumRows] = useState(0);
+  const [num_results, setNumResults] = useState(5);
+  const pageStartOffset = (page !== 0) ? ((page*numRows)-(numRows-1)) : 0;
+  const pageEndOffset = totalCount < (page*numRows) ? totalCount : (page*numRows);
+  const [backPageEnable, setBackPageEnable] = useState(false);
+  const [nextPageEnable, setNextPageEnable] = useState(false);
+  const [selectedRow, setSelectedRow] = useState([]);
+  const [ids, setSelectedTradeIds] = useState([]);
+  const [opentradesLoading, setOpenTradesLoading] = useState(false);
+  const [closeTradePopup, setCloseTradePopup] = useState(false);
+  const [trade_date, setTradeDate] = useState("");
+
+  const [trade_type, setTradeType] = useState("");
+  const [security_type, setSecurityType] = useState("");
+  const [ticker_name, setTickerName] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [strike, setStrike] = useState("");
+  const [buy_value, setBuyValue] = useState("");
+  const [units, setUnits] = useState("");
+  const [rr, setRR] = useState("");
+  const [pnl, setPNL] = useState("");
+  const [percent_wl, setPercentWL] = useState("");
+  const [comments, setComments] = useState("");
+
+  const rrformat = (val1,val2) => val1 + ":" + val2;
+  const [risk, setRisk] = useState("1");
+  const [reward, setReward] = useState("1");
+
+  useEffect(() => {
+    if(risk > 0 && reward > 0 && rr !== rrformat(risk, reward)){
+      setRR(rrformat(risk,reward));
+    }
+  }, [risk, reward]); 
+
+  function clearFormStates() {
+    setTradeType("");
+    setSecurityType("");
+    setTickerName("");
+    setSelectedValue("");
+    setSearchValue("");
+    setTradeDate("");
+    setExpiry("");
+    setStrike("");
+    setBuyValue("");
+    setUnits("");
+    setRR("");
+    setPNL("");
+    setPercentWL("");
+    setComments("");
+    setRisk( "1");
+    setReward( "1");
+  }
+
+
+  useEffect(() => {
+    if (hasTrades) {
+      setPage(parseInt(trades.page));
+      setTotalCount(parseInt(trades.count));
+      setNumRows(parseInt(trades.numrows));
+    }
+  }, [trades]); 
+
+  const evaluatePage = () => {
+    if(totalCount > 0){
+      const pageCount = Math.ceil(totalCount/numRows);
+      if(page === pageCount){
+        setNextPageEnable(false);
+      }else if (page < pageCount){
+        setNextPageEnable(true);
+      }
+    }else{
+      setNextPageEnable(false);
+    }
+    if(page === 1 || page === 0){
+      setBackPageEnable(false);
+    }else{
+      setBackPageEnable(true);
+    }
+  }
+
+  useEffect(() => {
+    evaluatePage();
+  }, [page,totalCount,num_results,numRows]);
+
+  const handleNextPage = async (e) => {
+    if(nextPageEnable){
+      setOpenTradesLoading(true);
+      const filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      if(filter_switch_time !== ''){
+        filters.date_range = filter_switch_time;
+      }
+      filters.page = page+1;
+      filters.numrows = num_results;
+      filters.trade_date = 'NULL';
+      await dispatch(getTradesPage({ filters }));  
+      setSelectedRow([]);
+      setOpenTradesLoading(false);
+    }
+  }
+
+  const handleBackPage = async (e) => {
+    if(backPageEnable){
+      setOpenTradesLoading(true);
+      const filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      if(filter_switch_time !== ''){
+        filters.date_range = filter_switch_time;
+      }
+      filters.page = page-1;
+      filters.numrows = num_results;
+      filters.trade_date = 'NULL';
+      await dispatch(getTradesPage({ filters }));  
+      setSelectedRow([]);
+      setOpenTradesLoading(false);
+    }
+  }
+
+  const handleChangeNumResults = async (e) => {
+    const new_num_results = e.target.value;
+    setNumResults(new_num_results);
+    setOpenTradesLoading(true);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.page = 1;
+    filters.numrows = new_num_results;
+    filters.trade_date = 'NULL';
+    await dispatch(getTradesPage({ filters }));  
+    setSelectedRow([]);
+    setOpenTradesLoading(false);
+  }
+
+  const handleSelectAll = (e) => {
+    if (hasTrades && trades.trades.length === 1) {
+      setSelectedRow([]);
+      setTradeID(trades.trades[0].trade_id);
+      setSelectedRow([...selectedRow, 0]);
+    }else if (hasTrades && trades.trades.length > 1){
+      setSelectedRow([]);
+      setTradeID(null);
+      setSelectedRow(Array.from({ length: trades.trades.length }, (_, index) => index));
+    }
+  }
+
+  const handleClearSelected = (e) => {
+    setSelectedRow([]);
+    setTradeID(null);
+  }
+
+  const handleGotoClose = (e) => {
+    setSelectedTradeIds(selectedRow.map(index => trades.trades[index].trade_id));
+    setCloseTradePopup(true);
+  };
+
+  const handleConfirmClose = async (e) => {
+    e.preventDefault();
+    setSelectedRow([]);
+    setOpenTradesLoading(true);
+    setCloseTradePopup(false);
+    let update_info = {
+      trade_type,
+      security_type,
+      ticker_name,
+      trade_date,
+      expiry,
+      strike,
+      buy_value,
+      units,
+      rr,
+      pnl,
+      percent_wl,
+      comments
+    }
+    await dispatch(
+      updateTrades({
+        ids,
+        update_info
+      })
+    );
+    clearFormStates();
+    setSelectedTradeIds([]);
+    setOpenTradesLoading(false);
+  };
+
+  const handleCancelClose = (e) => {
+    setSelectedRow([]);
+    setCloseTradePopup(false);
+    setSelectedTradeIds([]);
+    clearFormStates();
+  };
+
+  useEffect(() => {
+    calculatePercent();
+  }, [pnl, buy_value, units]); 
+
+  const calculatePercent = () => {
+    const pnlFloat=parseFloat(pnl);
+    const buyValueFloat=parseFloat(buy_value);
+    const unitsFloat=parseFloat(units);
+    if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0) {
+      setPercentWL(((pnlFloat/(buyValueFloat*unitsFloat)*100).toFixed(2)));
+    }else{
+      setPercentWL("");
+    }
+  }
+
+  
+
+  const getOpenTrades = () => {
+    let content = [];
+    content.push(
+      <>
+      <Heading class={colorMode === 'light' ? 'statsheadersmall' : 'statsheaderdarksmall'}>
+        <Center>
+          Open Trades
+        </Center>
+      </Heading>
+      {opentradesLoading ?
+        <Stack
+        flex="auto"
+        p="1rem"
+        h="full"
+        w="full"
+        >
+        <Center>
+        <Spinner
+            thickness='4px'
+            speed='0.65s'
+            emptyColor='gray.200'
+            color='blue.500'
+            size='xl'
+        />
+        </Center>
+        </Stack>
+      :
+      <>
+      <Stack
+        flex="auto"
+        w="full"
+      >
+      <HStack justifyContent='space-between'>
+      <HStack justifyContent='space-between'>
+      <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='75px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleSelectAll(e.target.value)}>
+        Select All
+      </Button>
+      <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='50px' backgroundColor='gray.300'  color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleClearSelected(e.target.value)}>
+        Clear
+      </Button>
+      </HStack>
+      <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='50px' colorScheme='blue' isDisabled={selectedRow.length <= 0} onClick={e => handleGotoClose(e)}>
+        Close
+      </Button>
+      <AlertDialog
+        motionPreset='slideInBottom'
+        isOpen={closeTradePopup}
+        leastDestructiveRef={cancelRef}
+        onClose={e => handleCancelClose(e)}
+        isCentered={true}
+        size='sm'
+        closeOnOverlayClick={true}
+      >
+        <AlertDialogOverlay>
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+            Close Trade
+          </AlertDialogHeader>
+
+          <AlertDialogBody>
+            <FormControl>
+              <FormHelperText mb={2} ml={1}>
+                Closure Date
+              </FormHelperText>
+              <Input
+                  value={trade_date}
+                  type="date"
+                  max={maxDate}
+                  min="1900-01-01"
+                  onChange={(e) => setTradeDate(e.target.value)}
+              />
+            </FormControl>
+            <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Average Cost *
+                  </FormHelperText>
+                  <Input
+                    value={buy_value}
+                    type="name"
+                    onChange={(e) => setBuyValue(e.target.value)}
+                  />
+              </FormControl>
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    # of Units *
+                  </FormHelperText>
+                  <Input
+                    value={units}
+                    type="name"
+                    onChange={(e) => setUnits(e.target.value)}
+                  />
+              </FormControl>
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    PNL *
+                  </FormHelperText>
+                  <Input
+                    value={pnl}
+                    type="name"
+                    onChange={(e) => setPNL(e.target.value)}
+                  />
+              </FormControl>
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    % Win or Loss *
+                  </FormHelperText>
+                  <Input
+                    value={percent_wl}
+                    type="name"
+                    readOnly
+                    placeholder={"0.00"}
+                    value={percent_wl}
+                  />
+              </FormControl>
+          </AlertDialogBody>
+          <AlertDialogFooter paddingTop={10}>
+            <Button ref={cancelRef} minWidth='50px' onClick={e => handleCancelClose(e)}>
+              Cancel
+            </Button>
+            <Button colorScheme='blue' minWidth='50px' isDisabled={!trade_date} onClick={e => handleConfirmClose(e)} ml={3}>
+              Submit
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+      </HStack>
+      </Stack>
+      {hasTrades ?
+      <>
+      <TableContainer overflowY="auto" overflowX="auto" rounded="lg" h="80%" maxHeight="400px">
+        <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
+          <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
+            <Tr>
+              <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
+              <Th resize='horizontal' overflow='auto'>Security<br></br>Type</Th>
+              <Th resize='horizontal' overflow='auto'>Ticker</Th>
+              <Th resize='horizontal' overflow='auto'># of<br></br>Units</Th>
+              <Th resize='horizontal' overflow='auto'>Avg<br></br>Price</Th>
+            </Tr>
+          </Thead>
+              <Tbody zIndex={1}>
+                {trades.trades.map((trade, index) => (
+                  <Tr
+                  onClick={async () => {
+                    if (selectedRow.includes(index)) {
+                      const filteredSelectedRow = selectedRow.filter((row) => row !== index);
+                      await setSelectedRow(filteredSelectedRow);
+                      if (selectedRow.length === 2){
+                        const indexofIndex = selectedRow.indexOf(index);
+                        if(indexofIndex === 0){
+                          setTradeID(trades.trades[selectedRow[1]].trade_id);
+                        } else{
+                          setTradeID(trades.trades[selectedRow[0]].trade_id);
+                        }
+                      } else if (selectedRow.length === 1) {
+                        setTradeID(null);
+                      }
+                    } else if (!selectedRow.includes(index) && selectedRow.length === 0) {
+                      setSelectedRow([...selectedRow, index]); 
+                      setTradeID(trade.trade_id);
+                    } else if (!selectedRow.includes(index) && selectedRow.length >= 1) {
+                      setSelectedRow([...selectedRow, index]); 
+                      setTradeID(null);
+                    } 
+                  }}
+                  bgColor={colorMode === 'light' ? selectedRow.includes(index) ? 'lightgrey' : 'white' : selectedRow.includes(index) ? 'gray.900' : "gray.700"}
+                  >
+                    <Td>{trade.trade_type}</Td>
+                    <Td>{trade.security_type}</Td>
+                    <Td>{trade.ticker_name}</Td>
+                    <Td isNumeric>{trade.units}</Td>
+                    <Td isNumeric>{trade.buy_value}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+        </Table>
+      </TableContainer>
+      <Stack
+        flex="auto"
+        w="full"
+      >
+      <HStack justifyContent='end' paddingEnd='1' paddingTop='1'>
+        <Text class='numresults'>
+          No. of Rows:
+        </Text>
+        <Select maxW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </Select>
+        <Divider orientation="vertical" colorScheme="gray"/>
+        <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
+
+        </VscTriangleLeft>
+        <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
+
+        </VscTriangleRight>
+        <Text class='pagenumbers'>
+          {pageStartOffset}-{pageEndOffset} of {totalCount}
+        </Text>
+      </HStack>
+      </Stack>
+      </>
+      :
+      <>
+      <TableContainer overflowY="auto" overflowX="auto" rounded="lg" h="80%" maxHeight="400px">
+        <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
+          <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
+            <Tr>
+              <Th resize='horizontal' overflow='auto'>Trade Type</Th>
+              <Th resize='horizontal' overflow='auto'>Security Type</Th>
+              <Th resize='horizontal' overflow='auto'>Ticker</Th>
+              <Th resize='horizontal' overflow='auto'># of Units</Th>
+              <Th resize='horizontal' overflow='auto'>Avg Price</Th>
+            </Tr>
+          </Thead>
+        </Table>
+      </TableContainer>
+      <HStack justifyContent='end' paddingEnd='1' paddingTop='1'>
+        <Text class='numresults'>
+          No. of Rows:
+        </Text>
+        <Select maxW={50} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </Select>
+        <Divider orientation="vertical" colorScheme="gray"/>
+        <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
+
+        </VscTriangleLeft>
+        <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
+
+        </VscTriangleRight>
+        <Text class='pagenumbers'>
+          {pageStartOffset}-{pageEndOffset} of {totalCount}
+        </Text>
+      </HStack>
+      </>
+      }
+      </>
+      }
+      </>
+    );
+    return content;
+  };
 
   const handleSubmitFilter = async (e) => {
     e.preventDefault();
@@ -795,6 +1328,11 @@ export default function Home({ user }) {
         filters
       })
     );
+    filters.page = 1;
+    filters.numrows = 5;
+    filters.trade_date = 'NULL';
+    await dispatch(getTradesPage({ filters }));
+    setSelectedRow([]);
     setFilters(filters);
     //setToggleFilter(!toggleFilter);
   }
@@ -809,7 +1347,13 @@ export default function Home({ user }) {
     setSearchTickerValue('');
     setSelectedTickerValue('');
     await dispatch(getTradesStats());
+    const filters = {};
+    filters.page = 1;
+    filters.numrows = 5;
+    filters.trade_date = 'NULL';
+    await dispatch(getTradesPage({ filters }));
     setFilters({});
+    setSelectedRow([]);
     //setToggleFilter(!toggleFilter);
   }
 
@@ -886,7 +1430,7 @@ export default function Home({ user }) {
           >
           
           <Box overflowX="auto" flexGrow="1" display="flex" borderWidth="1px" rounded="lg" overflow="hidden" alignItems="stretch">
-          {authLoading && !optInAlertDialog && !avtimeloading ?
+          {authLoading && !optInAlertDialog && !avtimeloading && !opentradesLoading ?
             <Stack
             flex="auto"
             p="1rem"
@@ -916,16 +1460,16 @@ export default function Home({ user }) {
               justifyContent="left"
               overflowX="auto"
             >
-            {hasStats && hasPreferences && hasAVs ? (
+            {hasStats && hasPreferences && hasAVs && hasTrades ? (
             <HStack h="full" w="full" align='top'>
-            <VStack w='30%' h='100%'>
+            <VStack w='40%' h='100%'>
             <Heading class={colorMode === 'light' ? 'statsheader' : 'statsheaderdark'}>
               <Center>
                 Statistics
               </Center>
             </Heading>
             
-            <Box overflowX="auto" w="100%" h='100%' borderWidth="1px" rounded="lg" >
+            <Box overflowX="auto" w="100%" h='100%' borderWidth="1px" rounded="lg" maxHeight="400px">
               <Grid templateColumns='repeat(1, 1fr)' w='100%' h='12%' minHeight='100px' minWidth='250px'>
                 <GridItem boxShadow='inner' p='1' w='100%' h='100%'>
                   <Center fontWeight='bold'>
@@ -955,7 +1499,7 @@ export default function Home({ user }) {
                   </Center>
                 </GridItem>
               </Grid>
-              <Grid templateColumns='repeat(2, 1fr)' w='100%' h='12%' minHeight='100px' minWidth='250px'>
+              <Grid templateColumns='repeat(2, 10fr)' w='100%' h='70%' minWidth='250px'>
                 <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
                   <Center fontWeight='bold'>
                   <Stat>
@@ -972,8 +1516,6 @@ export default function Home({ user }) {
                   </Stat>
                   </Center>
                 </GridItem>
-              </Grid>
-              <Grid templateColumns='repeat(2, 8fr)' w='100%' h='70%' minWidth='250px'>
                 <GridItem boxShadow='inner' p='1' w='100%' h='100%' >
                   <Center fontWeight='bold'>
                   <Stat>
@@ -1088,9 +1630,10 @@ export default function Home({ user }) {
                 </GridItem>
               </Grid>
             </Box>
+            {getOpenTrades()}
             </VStack>
             <VStack h="full" w="full" rounded="lg">
-            <HStack h="70%" w="full">
+            <HStack h="60%" w="full">
               <Box overflowX="auto" h="full" w="full" overflow="auto" rounded="lg">
                     <Chart
                       chartType="PieChart"

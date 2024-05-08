@@ -133,6 +133,7 @@ def validateCsv(file):
     logger.info("Entering Validate CSV Validator: " + "(file: {})".format(str(file)))
     #csv_string = file.stream.read().decode("utf-8-sig")
     if isinstance(file, FileStorage):
+        file.stream.seek(0)
         csv_string = file.stream.read().decode("utf-8-sig")
     else:
         # Assuming it's a standard file object
@@ -141,6 +142,9 @@ def validateCsv(file):
     reader = csv.DictReader(csv_string.splitlines())
     headers = next(reader, None) 
     required_headers = ["security_type", "ticker_name", "execution_time", "side", "quantity", "cost_basis"]
+    if headers is None:
+        logger.warning("Empty CSV")
+        return False
     for header in required_headers:
         if header not in headers:
             logger.warning("Leaving Validate CSV Validator: ")

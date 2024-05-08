@@ -58,6 +58,15 @@ class Session:
         logger.info("Leaving Expire Session Model Function: " + str(response))
         return response
     
+    def expirePreviousSessions(userID):
+        
+        logger.info("Entering Expire Previous Sessions Model Function: " + "(user_id: {})".format(str(userID)))
+        Query = """UPDATE session SET expiration = %s WHERE user_id = %s"""
+        Args = (datetime.now(),userID)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Expire Previous Sessions Model Function: " + str(response))
+        return response
+    
     def getUserFromSession(token):
             
         logger.info("Entering Get User from Session Model Function: " + "(token: {})".format(str(token)))

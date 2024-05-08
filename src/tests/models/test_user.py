@@ -191,7 +191,7 @@ class TestUser(unittest.TestCase):
         user_id = response[0][0]['user_id']
         #ADD TRADE(S)
         response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"gettotaltradesunittest"))
-        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Swing Trade","Shares","QQQ","2022-01-01","2023-01-01",410,400,1,"1:3",100,25,"gettotaltradesunittest"))        
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Swing Trade","Shares","QQQ",None,"2023-01-01",410,400,1,"1:3",100,25,"gettotaltradesunittest"))        
         #CHECK FOR ALL TRADES WITHOUT FILTER
         response = User.getTotalTrades(user_id)
         self.assertEqual(response[0][0]['COUNT(*)'], 2)
@@ -214,6 +214,12 @@ class TestUser(unittest.TestCase):
         }
         response = User.getTotalTrades(user_id,filters)
         self.assertEqual(response[0][0]['COUNT(*)'], 0)
+        #LOOK FOR TRADE DATE NULL
+        filters = {
+            'trade_date': 'NULL'
+        }
+        response = User.getTotalTrades(user_id,filters)
+        self.assertEqual(response[0][0]['COUNT(*)'], 1)
         #DELETE TRADES UNDER USER ID
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("gettotaltradesunittest@gmail.com",))
@@ -375,7 +381,7 @@ class TestUser(unittest.TestCase):
         user_id = response[0][0]['user_id']
         #ADD TRADE(S)
         response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"getusertradespageunittest"))
-        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Swing Trade","Shares","QQQ","2022-01-01","2023-01-01",410,400,1,"1:3",100,25,"getusertradespageunittest"))        
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Swing Trade","Shares","QQQ",None,"2023-01-01",410,400,1,"1:3",100,25,"getusertradespageunittest"))        
         #CHECK FOR ALL TRADES WITHOUT FILTER
         filters = {}
         response = User.getUserTradesPage(user_id,100,0,filters)
@@ -397,6 +403,12 @@ class TestUser(unittest.TestCase):
         }
         response = User.getUserTradesPage(user_id,100,0,filters)
         self.assertEqual(len(response[0]), 0)
+         #LOOK FOR TRADE DATE NULL
+        filters = {
+            'trade_date': 'NULL'
+        }
+        response = User.getTotalTrades(user_id,filters)
+        self.assertEqual(len(response[0]), 1)
         #DELETE TRADES UNDER USER ID
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("getusertradespageunittest@gmail.com",))
@@ -421,6 +433,9 @@ class TestUser(unittest.TestCase):
         #CHECK FOR TRADES WITH FILTER THAT RETURNS NO RESULTS (TICKER THAT USER DOESNT HAVE)
         response = User.getUserPnLbyYear(user_id,2022)
         self.assertEqual(len(response[0]), 1)
+        self.assertEqual(response[0][0]['trade_date'], '2022-01-01')
+        self.assertEqual(response[0][0]['day_pnl'], 100)
+        self.assertEqual(response[0][0]['day_count'], 1)
         response = User.getUserPnLbyYear(user_id,2021)
         self.assertEqual(len(response[0]), 0)
         #DELETE TRADES UNDER USER ID

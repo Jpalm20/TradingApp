@@ -48,6 +48,9 @@ class User:
             for key, value in filters.items():
                 if key == 'date_range':
                     continue
+                if key == 'trade_date' and value == 'NULL':
+                    conditions.append(f"{key} IS NULL")
+                    continue
                 if value:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
@@ -177,6 +180,9 @@ class User:
             for key, value in filters.items():
                 if key == 'date_range':
                     continue
+                if key == 'trade_date' and value == 'NULL':
+                    conditions.append(f"{key} IS NULL")
+                    continue
                 if value:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
@@ -191,7 +197,7 @@ class User:
     def getUserPnLbyYear(userID,year):
             
         logger.info("Entering Get User PnL by Year Model Function: " + "(user_id: {}, year: {})".format(str(userID),str(year)))
-        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s GROUP BY trade_date ORDER BY trade_date ASC;"""
+        Query = """SELECT trade_date, SUM(pnl) AS day_pnl, count(*) as 'day_count' FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s GROUP BY trade_date ORDER BY trade_date ASC;"""
         Args = (userID,year)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User PnL by Year Model Function: " + str(response))
@@ -200,7 +206,7 @@ class User:
     def getUserPnLbyYearFilter(userID,year,filters=None):
         
         logger.info("Entering Get User PnL by Year with Filters Model Function: " + "(user_id: {}, year: {}, filters: {})".format(str(userID),str(year),str(filters)))
-        Query = """SELECT trade_date, SUM(pnl) AS day_pnl FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
+        Query = """SELECT trade_date, SUM(pnl) AS day_pnl, count(*) as 'day_count' FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
         if filters:
             Query += " AND "
             conditions = []
@@ -214,6 +220,25 @@ class User:
         logger.info("Leaving Get User PnL by Year with Filters Model Function: " + str(response))
         return response 
     
+    def getUserTradesCountByDay(userID,year,filters=None):
+            
+        logger.info("Entering Get User Trades Count By Day Model Function: " + "(user_id: {}, year: {}, filters: {})".format(str(userID),str(year),str(filters)))
+        
+        Query = """SELECT trade_date, count(*) as 'trade_count' FROM trade WHERE user_id = %s AND YEAR(DATE(trade_date)) = %s"""
+        if filters:
+            Query += " AND "
+            conditions = []
+            for key, value in filters.items():
+                if value:
+                    conditions.append(f"{key}='{value}'")
+            Query += " AND ".join(conditions)
+        Query += " GROUP BY trade_date ORDER BY trade_date ASC;"
+        Args = (userID,year)
+        response = utils.execute_db(Query,Args)
+        
+        logger.info("Entering Get User Trades Count By Day Model Function: " + str(response))
+        return response  
+        
     def addUser(newUser):
 
         logger.info("Entering Add User Model Function: " + "(new_user: {})".format(str(newUser)))

@@ -109,6 +109,7 @@ export default function LogTrade({ user }) {
   const evaluateSuccess = async () => {
     if(success === true && trade.result === "Trade Logged Successfully"){
       clearFormStates();
+      setToastMessage(trade.result);
       const filters = {};
       filters.page = 1;
       filters.numrows = 100;
@@ -116,7 +117,6 @@ export default function LogTrade({ user }) {
       setSearchValue('');
       setSelectedValue('');
       setIsDropdownOpen(false);
-      setToastMessage(trade.result);
     }
   }
 
@@ -364,6 +364,7 @@ export default function LogTrade({ user }) {
       backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
       justifyContent="center"
       alignItems="center"
+      overflow="scroll"
     >
       <Stack
         class='profilestack'

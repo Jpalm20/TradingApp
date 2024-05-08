@@ -101,9 +101,14 @@ export default function App() {
         if (window.location.pathname === "/home" || window.location.pathname === "/"){
           await dispatch(getTradesStats());
           await dispatch(getPreferences());
-          const filters = {};
+          let filters = {};
           filters.date = today
           await dispatch(getAccountValues({ filters }));
+          filters = {};
+          filters.page = 1;
+          filters.numrows = 5;
+          filters.trade_date = 'NULL';
+          await dispatch(getTradesPage({ filters }));
         }else if (window.location.pathname === "/journal"){
           const date = today
           await dispatch(getJournalEntries({ date })); 

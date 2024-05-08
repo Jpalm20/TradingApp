@@ -27,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  AlertDialogCloseButton,
   useDisclosure,
   FormControl,
   FormHelperText,
@@ -38,8 +39,14 @@ import {
 import { Link as RouterLink, useNavigate, useLocation, parsePath} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
 import { BsSun, BsMoon } from "react-icons/bs";
+import { IoIosInformationCircleOutline } from "react-icons/io";
+import { SiSwagger } from "react-icons/si";
 import { useSelector, useDispatch } from "react-redux";
 import logo from '../logo/mttlogo512.png';
+
+const API_URL = process.env.REACT_APP_API_URL;
+const SWAGGER_URL = API_URL+'apidocs/';
+const APP_VERSION = "1.0.9";
 
 const PAGE_NAME = [
   {page:"/home", text: "Home"}, 
@@ -68,6 +75,7 @@ export default function Navbar({ user }) {
   const year = today.getFullYear();
   const authLoading = useSelector((state) => state.auth.loading);
   const [reportBugFlag, setReportBugFlag] = useState(false);
+  const [infoPopup, setInfoPopup] = useState(false);
   const [requestType, setRequestType] = useState("");
   const [page, setPage] = useState("");
   const [summary, setSummary] = useState("");
@@ -115,13 +123,31 @@ export default function Navbar({ user }) {
     setToastMessage(undefined);
   }, [toastMessage, toast]);
 
+  const toggleInfoButton = (e) => {
+    setInfoPopup(true);
+  }
+
+  const handleCancelInfoPopup = (e) => {
+    setInfoPopup(false);
+  };
+
+  const handleGoToSwagger = (e) => {
+    window.location.href = SWAGGER_URL; // Replace with your actual Swagger URL
+    //window.open(SWAGGER_URL, '_blank');
+  };
+
   const handleHome = async (e) => {
     navigate("/");
     await dispatch(getTradesStats());
     await dispatch(getPreferences());
-    const filters = {};
+    let filters = {};
     filters.date = returnInTZ(today.toISOString());
     await dispatch(getAccountValues({ filters }));
+    filters = {};
+    filters.page = 1;
+    filters.numrows = 5;
+    filters.trade_date = 'NULL';
+    await dispatch(getTradesPage({ filters }));
     handleDeleteLocal();
   }
 
@@ -164,6 +190,7 @@ export default function Navbar({ user }) {
     window.localStorage.removeItem('tradeInfo');
     window.localStorage.removeItem('feedbackInfo');
     window.localStorage.removeItem('updateTradeInfo');
+    window.localStorage.removeItem('updateUserInfo');
   } 
 
   
@@ -292,8 +319,11 @@ export default function Navbar({ user }) {
             <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleColorMode}>
               <Icon as={colorMode === 'light' ? BsSun : BsMoon}></Icon>
             </button>
+            <button className={colorMode === 'light' ? 'color-mode-comp' : 'color-mode-comp-dark'} onClick={toggleInfoButton}>
+              <Icon as={IoIosInformationCircleOutline}></Icon>
+            </button>
             {reportBugFlag}
-              <AlertDialog
+            <AlertDialog
               motionPreset='slideInBottom'
               isOpen={reportBugFlag}
               leastDestructiveRef={cancelRef}
@@ -379,6 +409,61 @@ export default function Navbar({ user }) {
                   <Button colorScheme='blue' onClick={e => handleConfirmReportBug(e)} ml={3}>
                     Submit
                   </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+              </AlertDialogOverlay>
+            }
+            </AlertDialog>
+            {infoPopup}
+              <AlertDialog
+              motionPreset='slideInBottom'
+              isOpen={infoPopup}
+              leastDestructiveRef={cancelRef}
+              onClose={e => handleCancelInfoPopup(e)}
+              isCentered={true}
+              closeOnOverlayClick={true}
+            >
+            {authLoading ?
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+              <Center>
+                <Spinner
+                    thickness='4px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='blue.500'
+                    size='xl'
+                />
+              </Center>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+            :
+              <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  <Flex alignItems="center" width="100%">
+                    <IoIosInformationCircleOutline/>
+                    <Text paddingLeft={1}>Information</Text>
+                  </Flex>
+                </AlertDialogHeader>
+                <AlertDialogCloseButton />
+                <AlertDialogBody>
+                  <Center>
+                  <HStack>
+                  <button className={colorMode === 'light' ? 'color-mode-comp-dark' : 'color-mode-comp'} onClick={e => handleGoToSwagger(e)}>
+                    <Icon as={SiSwagger}></Icon>
+                  </button>
+                  <Text>
+                    API Documentation
+                  </Text>
+                  </HStack>
+                  </Center>
+                </AlertDialogBody>
+
+                <AlertDialogFooter>
+                  <Text as='i'>
+                    v{APP_VERSION}
+                  </Text>
                 </AlertDialogFooter>
               </AlertDialogContent>
               </AlertDialogOverlay>

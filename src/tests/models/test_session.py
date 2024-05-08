@@ -107,10 +107,31 @@ class TestSession(unittest.TestCase):
         token = response[0][0]['token']
         session_id = response[0][0]['session_id']
         response = Session.expireSession(token)
-        response = execute_db("SELECT * FROM session WHERE user_id = %s", (user_id,))
-        self.assertTrue(response[0][0]['expiration'] < datetime.now())
+        response = execute_db("SELECT * FROM session WHERE session_id = %s", (session_id,))
+        self.assertTrue(response[0][0]['expiration'] < datetime.now()+timedelta(seconds=1))
         response = execute_db("DELETE FROM session WHERE session_id = %s", (session_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("expiresessionunittest@gmail.com",))
+        
+        
+    def test_expire_previous_session(self):
+        
+        ## Need all logic paths tested
+        ## 1. Good Path
+        ## 2. DB Level Failures
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","expireprevioussessionsunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("expireprevioussessionsunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO session VALUES (null,%s,%s,%s)",(user_id,'expireprevioussessionsunittesttoken01',datetime.now()+timedelta(hours=24)))
+        self.assertEqual(response[0], [])
+        response = execute_db("INSERT INTO session VALUES (null,%s,%s,%s)",(user_id,'expireprevioussessionsunittesttoken02',datetime.now()+timedelta(hours=24)))
+        self.assertEqual(response[0], [])
+        response = Session.expirePreviousSessions(user_id)
+        response = execute_db("SELECT * FROM session WHERE user_id = %s and expiration > %s", (user_id,datetime.now()+timedelta(seconds=1),))
+        print(response)
+        self.assertTrue(len(response[0]) == 0)
+        response = execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
 
     def test_get_user_from_session(self):
@@ -130,7 +151,7 @@ class TestSession(unittest.TestCase):
         session_id = response[0][0]['session_id']
         response = Session.getUserFromSession(token)
         self.assertEqual(response[0][0]['user_id'], user_id)
-        response = execute_db("DELETE FROM session WHERE token = %s", (session_id,))
+        response = execute_db("DELETE FROM session WHERE session_id = %s", (session_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("getuserfromsessionunittest@gmail.com",))
 
 
@@ -152,7 +173,7 @@ class TestSession(unittest.TestCase):
         session_id = response[0][0]['session_id']
         response = Session.getEmailFromSession(token)
         self.assertEqual(response[0][0]['email'], email)
-        response = execute_db("DELETE FROM session WHERE token = %s", (session_id,))
+        response = execute_db("DELETE FROM session WHERE session_id = %s", (session_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("getemailfromsessionunittest@gmail.com",))
 
     
