@@ -44,15 +44,24 @@ class Trade:
     def addTrades(newTrades):
         
         logger.info("Entering Add Trades Model Function: " + "(new_trades: {})".format(str(newTrades)))
+        response = {}
+        Query = """INSERT INTO trade VALUES """
+        Args = []
+        
         for newTrade in newTrades:
-            Query = """INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-            Args = (newTrade['user_id'],newTrade['trade_type'],newTrade['security_type'],newTrade['ticker_name'],newTrade['trade_date'],
-                            newTrade['expiry'],newTrade['strike'],newTrade['buy_value'],newTrade['units'],newTrade['rr'],
-                            newTrade['pnl'],newTrade['percent_wl'],newTrade['comments'])
-            response = utils.execute_db(Query,Args)
-            if response[0]:
-                logger.warning("Leaving Add Trades Model Function: " + str(response))
-                return False, response
+            placeholders = "(null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            Args.extend([newTrade['user_id'],newTrade['trade_type'],newTrade['security_type'],newTrade['ticker_name'],newTrade['trade_date'],
+                        newTrade['expiry'],newTrade['strike'],newTrade['buy_value'],newTrade['units'],newTrade['rr'],
+                        newTrade['pnl'],newTrade['percent_wl'],newTrade['comments']])
+            if newTrades.index(newTrade) == 0:
+                Query += placeholders
+            else:
+                Query += ", " + placeholders
+
+        response = utils.execute_db(Query, tuple(Args))
+        if response[0]:
+            logger.warning("Leaving Add Trades Model Function: " + str(response))
+            return False, response
         logger.info("Leaving Add Trades Model Function: " + str(response))
         return True, "Pass"
         

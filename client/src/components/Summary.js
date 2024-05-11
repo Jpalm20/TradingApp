@@ -233,6 +233,7 @@ export default function Summary({ user }) {
   const evaluateSuccess = async () => {
     if(success === true && trade && trade.result === "Trade Edited Successfully"){
       setEditTrade(false);
+      setToastMessage(trade.result);
       const filters = {};
       if(filter_trade_type !== ''){
         filters.trade_type = filter_trade_type;
@@ -254,7 +255,6 @@ export default function Summary({ user }) {
       setTradeID(null);
       setSearchValue('');
       setIsDropdownOpen(false);
-      setToastMessage(trade.result);
     }
     if(success === true && trade && trade.result === "Trade Successfully Deleted"){
       setToastMessage(trade.result);
@@ -264,6 +264,9 @@ export default function Summary({ user }) {
     }
     if(success === true && trade && trade.result === "Trades Imported Successfully"){
       setToastMessage(trade.trades.length.toString() + " " + trade.result);
+    }
+    if(success === true && trade && trade.result === "Trades Exported Successfully"){
+      setToastMessage(trade.result);
     }
   }
 
@@ -1329,6 +1332,7 @@ export default function Summary({ user }) {
         backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
         justifyContent="center"
         alignItems="center"
+        overflow="scroll"
       >
         <Stack
           class='profilestack'

@@ -284,10 +284,6 @@ export default function PnlCalendar({ user }) {
     let firstDay = new Date(calYear, calMonth, 1).getDay();
     for (let i = 0; i < firstDay; i++) {
       content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
-                  -
-                  <Center fontWeight='bold' >
-                    -
-                  </Center>
                 </GridItem>);
     }
     return content;
@@ -300,10 +296,6 @@ export default function PnlCalendar({ user }) {
     let spotsLeft = 42-totalDays-1-firstDay-(30-totalDays);
     for (let i = 0; i < spotsLeft; i++) {
       content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
-                  -
-                  <Center fontWeight='bold' >
-                    -
-                  </Center>
                 </GridItem>);
     }
     return content;
@@ -312,7 +304,7 @@ export default function PnlCalendar({ user }) {
   const getMonthlyTotal = () => {
     let monthlyTotal = 0;
     for (let i = 0; i < 31; i++) {
-      monthlyTotal += pnlYTD.months[calMonth][calMonth][i]
+      monthlyTotal += pnlYTD.months[calMonth][calMonth][i]['pnl']
     }
     return monthlyTotal;
   };
@@ -320,7 +312,7 @@ export default function PnlCalendar({ user }) {
   const getGreenDayTotal = () => {
     let greenDayTotal = 0;
     for (let i = 0; i < 31; i++) {
-      if(pnlYTD.months[calMonth][calMonth][i] > 0){
+      if(pnlYTD.months[calMonth][calMonth][i]['pnl'] > 0){
         greenDayTotal += 1
       }
     }
@@ -330,7 +322,7 @@ export default function PnlCalendar({ user }) {
   const getRedDayTotal = () => {
     let redDayTotal = 0;
     for (let i = 0; i < 31; i++) {
-      if(pnlYTD.months[calMonth][calMonth][i] < 0){
+      if(pnlYTD.months[calMonth][calMonth][i]['pnl'] < 0){
         redDayTotal += 1
       }
     }
@@ -342,10 +334,10 @@ export default function PnlCalendar({ user }) {
     let totalTradeDays = 0;
     let totalDays = getDays(calYear, calMonth);
     for (let i = 0; i < totalDays; i++) {
-      if(pnlYTD.months[calMonth][calMonth][i] > 0){
+      if(pnlYTD.months[calMonth][calMonth][i]['pnl'] > 0){
         greenDays += 1
       }
-      if(pnlYTD.months[calMonth][calMonth][i] !== 0){
+      if(pnlYTD.months[calMonth][calMonth][i]['count'] > 0){
         totalTradeDays += 1
       }
     }
@@ -362,10 +354,10 @@ export default function PnlCalendar({ user }) {
     let totalTradeDays = 0;
     let totalDays = getDays(calYear, calMonth);
     for (let i = 0; i < totalDays; i++) {
-      if(pnlYTD.months[calMonth][calMonth][i] < 0){
+      if(pnlYTD.months[calMonth][calMonth][i]['pnl'] < 0){
         redDays += 1
       }
-      if(pnlYTD.months[calMonth][calMonth][i] !== 0){
+      if(pnlYTD.months[calMonth][calMonth][i]['count'] > 0){
         totalTradeDays += 1
       }
     }
@@ -377,9 +369,30 @@ export default function PnlCalendar({ user }) {
     
   };
 
+  const getBreakevenDayPercent = () => {
+    let evenDays = 0;
+    let totalTradeDays = 0;
+    let totalDays = getDays(calYear, calMonth);
+    for (let i = 0; i < totalDays; i++) {
+      if(pnlYTD.months[calMonth][calMonth][i]['pnl'] === 0 && pnlYTD.months[calMonth][calMonth][i]['count'] > 0){
+        evenDays += 1
+      }
+      if(pnlYTD.months[calMonth][calMonth][i]['count'] > 0){
+        totalTradeDays += 1
+      }
+    }
+    if(totalTradeDays > 0){
+      return (evenDays/totalTradeDays);
+    } else {
+      return (0);
+    }
+    
+  };
+
   const getWeeklyTotals = () => {
     let content = [];
     let weekTotals = [0.0,0.0,0.0,0.0,0.0,0.0];
+    let weekCounts = [0.0,0.0,0.0,0.0,0.0,0.0];
     let weekCount = 0;
     let dayCount = 0;
     let pnlDayCount = 0;
@@ -391,15 +404,21 @@ export default function PnlCalendar({ user }) {
       if (weekCount === 0 && dayCount === 0 && firstDay !== 0) {
         dayCount += firstDay;
       }
-      if(pnlYTD.months[calMonth][calMonth][pnlDayCount] !== 0.0 && pnlDayCount < 31){
-        weekTotals[weekCount] += pnlYTD.months[calMonth][calMonth][pnlDayCount];
+      if(pnlYTD.months[calMonth][calMonth][pnlDayCount]?.pnl !== 0.0 && pnlDayCount < 31){
+        weekTotals[weekCount] += pnlYTD.months[calMonth][calMonth][pnlDayCount]?.pnl ?? 0;
+      }
+      if(pnlYTD.months[calMonth][calMonth][pnlDayCount]?.count !== 0.0 && pnlDayCount < 31){
+        weekCounts[weekCount] += pnlYTD.months[calMonth][calMonth][pnlDayCount]?.count ?? 0;
       }
       dayCount += 1;
       pnlDayCount += 1;
     }
     for (let i = 0; i < weekTotals.length; i++) {
       content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorChange(weekTotals[i])} >
-                  -
+                  <Text fontWeight='bold'>-</Text>
+                  <Center padding={1}>
+                    {weekCounts[i]} Trade(s)
+                  </Center>
                   <Center fontWeight='bold' isNumeric>
                     {pnlValue(formatter.format(weekTotals[i]))}
                   </Center>
@@ -410,10 +429,13 @@ export default function PnlCalendar({ user }) {
 
   const getPnlDays = () => {
     let content = pnlYTD.months[calMonth][calMonth].map((pnl, index) => ( 
-      <GridItem key={index} boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl)} onClick={e => handleTradesOfDay(e, index+1)}>
-          {index+1}
+      <GridItem key={index} boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl['pnl'])} onClick={e => handleTradesOfDay(e, index+1)}>
+          <Text fontWeight='bold'>{index + 1}</Text>
+          <Center padding={1}>
+            {pnl['count']} Trade(s)
+          </Center>
           <Center fontWeight='bold' isNumeric>
-            {pnlValue(formatter.format(pnl))}
+            {pnlValue(formatter.format(pnl['pnl']))}
           </Center>
       </GridItem>
     ));
@@ -850,12 +872,16 @@ export default function PnlCalendar({ user }) {
                   </AlertDialogBody>
 
                   <AlertDialogFooter>
-                  <Center>
-                    <Stat>
-                      <StatLabel>Total PnL</StatLabel>
-                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1])}>{pnlValue(formatter.format(pnlYTD.months[calMonth][calMonth][calDay-1]))}</StatNumber>
+                  <Flex width="100%" justifyContent="space-between">
+                    <Stat flex="1">
+                      <StatLabel>Total Trades</StatLabel>
+                      <StatNumber>{(pnlYTD.months[calMonth][calMonth][calDay-1]?.count ?? 0)}</StatNumber>
                     </Stat>
-                  </Center>
+                    <Stat flex="1" textAlign="right">
+                      <StatLabel>Total PnL</StatLabel>
+                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0)}>{pnlValue(formatter.format(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0))}</StatNumber>
+                    </Stat>
+                  </Flex>
                   </AlertDialogFooter>
                 </AlertDialogContent>
                 </AlertDialogOverlay>
@@ -881,7 +907,7 @@ export default function PnlCalendar({ user }) {
               </HStack>
               
               <HStack spacing={8} overflowX="auto" w='100%'>
-              <Grid overflowX='scroll' templateColumns='repeat(5, 1fr)' gap={6}>
+              <Grid overflowX='scroll' templateColumns='repeat(6, 1fr)' gap={6}>
                 <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
                   <Center fontWeight='bold'>
                   <Stat>
@@ -919,6 +945,14 @@ export default function PnlCalendar({ user }) {
                   <Stat>
                     <StatLabel>% Red Days</StatLabel>
                     <StatNumber>{percent.format(getRedDayPercent())}</StatNumber>
+                  </Stat>
+                  </Center>
+                </GridItem>
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
+                  <Center fontWeight='bold'>
+                  <Stat>
+                    <StatLabel>% Break Even Days</StatLabel>
+                    <StatNumber>{percent.format(getBreakevenDayPercent())}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>

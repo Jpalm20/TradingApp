@@ -327,6 +327,7 @@ export default function UserProfile({ user }) {
           backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
           justifyContent="center"
           alignItems="center"
+          overflow="scroll"
         >
           <Stack 
             class='profilestack'
@@ -678,6 +679,7 @@ export default function UserProfile({ user }) {
           backgroundColor={colorMode === 'light' ? "gray.200" : "gray.800"}
           justifyContent="center"
           alignItems="center"
+          overflow="scroll"
         >
           <Stack
             class='profilestack'

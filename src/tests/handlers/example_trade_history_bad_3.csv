@@ -1,0 +1,3 @@
+﻿execution_time,side,quantity,ticker_name,expiry,strike,security_type,cost_basis
+12/12/22 9:09,BUY,1,SPY,13-Dec-22,393,PUT,3.39
+12/13/22 8:47,SELL,-1,QQQ,15-Dec-22,290,PUT,3.59
