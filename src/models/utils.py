@@ -33,8 +33,7 @@ def execute_db(query,args):
     except mysql.connector.Error as error:
         response = "Failed: {}".format(error)
     finally:
-        #if connection is not None and connection.is_connected():
-        if connection.is_connected():
+        if connection is not None and connection.is_connected():
             connection.close()
             logger.info("DB Connection Closed")
     logger.info("Leaving Execute Database Query Util: " + str(response))
