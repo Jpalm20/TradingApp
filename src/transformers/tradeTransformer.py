@@ -203,11 +203,11 @@ def processCsv(user_id, file):
         ## create trade object       
         trade = {
             "buy_value" : "",
-            "comments" : None,
+            "comments" : "",
             "expiry" : "",
             "percent_wl" : "",
             "pnl" : "",
-            "rr" : None,
+            "rr" : "1:1",
             "security_type" : "",
             "strike" : "",
             "ticker_name" : "",

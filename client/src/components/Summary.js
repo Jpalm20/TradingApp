@@ -127,7 +127,7 @@ export default function Summary({ user }) {
   }, [trades]); 
 
   useEffect(() => {
-    if (hasTrade) {
+    if (hasTrade && trade.rr) {
       setRisk(trade.rr.split(":")[0]);
       setReward(trade.rr.split(":")[1]);
     }
