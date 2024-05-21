@@ -212,6 +212,20 @@ def editExistingTrade(user_id,trade_id,requestBody):
                 return {
                     "result": avresponse
                 }, 400
+        elif ('pnl' in og_trade_info and og_trade_info['pnl'] is None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is None): #when closing trade that originally has no pnl or trade_date
+            if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
+                if fdresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(fdresponse))
+                    return {
+                        "result": fdresponse
+                    }, 400
+            avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
+            if avresponse[0]:
+                logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
+                return {
+                    "result": avresponse
+                }, 400
         
     if 'trade_id' in response[0][0]:
         response = {

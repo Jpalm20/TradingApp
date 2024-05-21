@@ -313,6 +313,33 @@ class TestTradeHandler(unittest.TestCase):
 
         # 6c fail updating trade date - trade_date was null originally, need to set all days with pnl fully as normal, fail on handleAddTrade (TODO)
         
+        #good path close trade - both trade_date and pnl were originally null
+        response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY",None,"2023-01-01",410,400,1,"1:3",None,None,"editexistingtradetradehandlerunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_id = response[0][0]['trade_id']
+        
+        requestBody = {
+            "trade_type": "",
+            "security_type": "",
+            "ticker_name": "",
+            "trade_date": "2023-01-01",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "",
+            "pnl": 25,
+            "percent_wl": 10,
+            "comments": ""
+        }
+        
+        response = editExistingTrade(user_id,trade_id,requestBody)
+        self.assertEqual(response['trade_id'], trade_id)
+        self.assertEqual(response['trade_date'], "2023-01-01")
+        self.assertEqual(response['pnl'], 25)
+        
         # 7 fail on not found trade_id, fail on validator pt 2(doesnt exist)
         response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
         requestBody = {
