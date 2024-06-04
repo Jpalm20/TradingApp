@@ -400,6 +400,8 @@ def getUserTrades(user_id,filters=None):
         filterBody = filters.to_dict()
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        if 'from_date' in filters and 'to_date' in filters:
+            filterBody['from_and_to_date'] = userTransformer.transformFromAndToDate(filters['from_date'],filters['to_date'])
         response = user.User.getUserTradesFilter(user_id,filterBody)
     if len(response[0]) != 0 and "trade_id" in response[0][0]:
         numTrades = 0

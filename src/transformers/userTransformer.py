@@ -101,6 +101,12 @@ def transformDateRange(date_range):
     logger.info("Leaving Transform Date Range Transformer: " + str(query))
     return query
 
+def transformFromAndToDate(from_date,to_date):
+    logger.info("Entering Transform From and To Date Transformer: " + "(date_range: {})".format(str(from_date),str(to_date)))
+    query = "trade_date >= '{}' AND trade_date <= '{}'".format(str(from_date),str(to_date))
+    logger.info("Leaving Transform From and To Date Transformer: " + str(query))
+    return query
+
 def transformAVtf(today_date,time_frame):
     logger.info("Entering Transform Account Value Timeframe Transformer: " + "(today_date: {}, time_frame: {})".format(str(today_date),str(time_frame)))
     last_dates = []

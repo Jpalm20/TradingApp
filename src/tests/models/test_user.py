@@ -298,11 +298,18 @@ class TestUser(unittest.TestCase):
         }
         response = User.getUserTradesFilter(user_id,filters)
         self.assertEqual(len(response[0]), 0)
+        #CHECK FOR DATE RANGE
         filters = {
             'date_range': 'trade_date >= DATE_ADD(NOW(), INTERVAL -1 DAY)'
         }
         response = User.getUserTradesFilter(user_id,filters)
         self.assertEqual(len(response[0]), 0)
+        #CHECK FOR FROM AND TO DATE
+        filters = {
+            'from_and_to_date': "trade_date >= '2023-01-01' AND trade_date <= '2023-01-10'"
+        }
+        response = User.getUserTradesFilter(user_id,filters)
+        self.assertEqual(len(response[0]), 1)
         #DELETE TRADES UNDER USER ID
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("getusertradesfilterunittest@gmail.com",))

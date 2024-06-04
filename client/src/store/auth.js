@@ -953,6 +953,7 @@ const authSlice = createSlice({
       state.error = false;
     },
     [getTradesOfDateFiltered.pending]: (state) => {
+      state.tradesOfDay = null;
       state.loading = true;
       state.error = false;
       state.success = false;
