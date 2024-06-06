@@ -1,6 +1,6 @@
 from ftplib import error_reply
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, g
 from flasgger import Swagger
 from flask import request
 from flask_cors import CORS
@@ -9,6 +9,7 @@ from datetime import datetime
 import hashlib
 import json
 import base64
+from src.models.utils import get_db_connection, close_db_connection
 import src.handlers.userHandler as userHandler
 import src.handlers.tradeHandler as tradeHandler
 import src.handlers.sessionHandler as sessionHandler
@@ -68,6 +69,16 @@ jwt = JWTManager(app)
 app.config['SMTP_USERNAME'] = os.environ.get('SMTP_USERNAME')
 app.config['SMTP_PASSWORD'] = os.environ.get('SMTP_PASSWORD')
 
+@app.teardown_appcontext
+def teardown_db(exception):
+    logger.info("DB Teardown Called")
+    db_connection = g.pop('db_connection', None)
+    if db_connection is not None:
+        close_db_connection(db_connection)
+
+@app.before_request
+def before_request():
+    g.db_connection = get_db_connection()
 
 @app.route('/')
 def hello_geek():
