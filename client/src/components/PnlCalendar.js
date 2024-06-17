@@ -1150,11 +1150,11 @@ export default function PnlCalendar({ user }) {
                   <Flex width="100%" justifyContent="space-between">
                     <Stat flex="1">
                       <StatLabel>Total Trades</StatLabel>
-                      <StatNumber>{(trades.stats?.num_trades ?? 0)}</StatNumber>
+                      <StatNumber>{(trades?.stats?.num_trades ?? 0)}</StatNumber>
                     </Stat>
                     <Stat flex="1" textAlign="right">
                       <StatLabel>Total PnL</StatLabel>
-                      <StatNumber color={colorChangeDay(trades.stats?.total_pnl ?? 0)}>{pnlValue(formatter.format(trades.stats?.total_pnl ?? 0))}</StatNumber>
+                      <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter.format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
                     </Stat>
                   </Flex>
                   </AlertDialogFooter>
@@ -1244,11 +1244,11 @@ export default function PnlCalendar({ user }) {
                     <Flex width="100%" justifyContent="space-between">
                       <Stat flex="1">
                         <StatLabel>Total Trades</StatLabel>
-                        <StatNumber>{(trades.stats?.num_trades ?? 0)}</StatNumber>
+                        <StatNumber>{(trades?.stats?.num_trades ?? 0)}</StatNumber>
                       </Stat>
                       <Stat flex="1" textAlign="right">
                         <StatLabel>Total PnL</StatLabel>
-                        <StatNumber color={colorChangeDay(trades.stats?.total_pnl ?? 0)}>{pnlValue(formatter.format(trades.stats?.total_pnl ?? 0))}</StatNumber>
+                        <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter.format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
                       </Stat>
                     </Flex>
                     </AlertDialogFooter>

@@ -21,7 +21,7 @@ db_config = {
     "port": DB_PORT,
     "connection_timeout": 300,  # Set the connection timeout to 5 minutes (300 seconds)
     "pool_name": "mypool",
-    "pool_size": 10,
+    "pool_size": 5,
     "pool_reset_session": True
 }
 
@@ -106,12 +106,14 @@ def add_filters_to_query_sring(query,filters):
         queryString += " AND "
         conditions = []
         for key, value in filters.items():
-            if key == 'date_range':
+            if key in ('date_range','from_and_to_date','from_date','to_date'):
                 continue
             if value:
                 conditions.append(f"{key}='{value}'")
         if 'date_range' in filters: 
             conditions.append(filters['date_range'])
+        if 'from_and_to_date' in filters:
+            conditions.append(filters['from_and_to_date'])
         queryString += " AND ".join(conditions)
     logger.info("Leaving Add Filters to Query String Util: " + str(queryString))
     return queryString

@@ -46,7 +46,7 @@ class User:
             Query += " AND "
             conditions = []
             for key, value in filters.items():
-                if key == 'date_range':
+                if key in ('date_range','from_and_to_date','from_date','to_date'):
                     continue
                 if key == 'trade_date' and value == 'NULL':
                     conditions.append(f"{key} IS NULL")
@@ -55,6 +55,8 @@ class User:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
                 conditions.append(filters['date_range'])
+            if 'from_and_to_date' in filters:
+                conditions.append(filters['from_and_to_date'])
             Query += " AND ".join(conditions)
         Args = (userID,)
         response = utils.execute_db(Query,Args)
@@ -180,7 +182,7 @@ class User:
             Query += " AND "
             conditions = []
             for key, value in filters.items():
-                if key == 'date_range':
+                if key in ('date_range','from_and_to_date','from_date','to_date'):
                     continue
                 if key == 'trade_date' and value == 'NULL':
                     conditions.append(f"{key} IS NULL")
@@ -189,6 +191,8 @@ class User:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
                 conditions.append(filters['date_range'])
+            if 'from_and_to_date' in filters:
+                conditions.append(filters['from_and_to_date'])
             Query += " AND ".join(conditions)
         Query += " LIMIT %s OFFSET %s"
         Args = (userID,limit,offset)

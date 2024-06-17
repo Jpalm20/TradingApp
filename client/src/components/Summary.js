@@ -5,6 +5,8 @@ import { Link as RouterLink, useNavigate} from "react-router-dom";
 import '../styles/summary.css';
 import '../styles/logtrade.css';
 import '../styles/filter.css';
+import moment from 'moment'; 
+import 'moment-timezone';
 import { BsFilter } from "react-icons/bs";
 import axios from "axios";
 import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
@@ -151,6 +153,16 @@ export default function Summary({ user }) {
   const [filter_trade_type, setFilterTradeType] = useState("");
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
+  const [filter_from_date, setFilterFromDate] = useState("");
+  const [filter_to_date, setFilterToDate] = useState("");
+
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
+  const today = returnInTZ(new Date().toISOString());
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -243,6 +255,19 @@ export default function Summary({ user }) {
       }
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
+      }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       filters.page = 1;
       filters.numrows = num_results;
@@ -485,6 +510,19 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
@@ -575,6 +613,19 @@ export default function Summary({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
+      }
       filters.page = page+1;
       filters.numrows = num_results;
       await dispatch(getTradesPage({ filters }));  
@@ -593,6 +644,19 @@ export default function Summary({ user }) {
       }
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
+      }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       filters.page = page-1;
       filters.numrows = num_results;
@@ -613,6 +677,19 @@ export default function Summary({ user }) {
     }
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
     }
     filters.page = 1;
     filters.numrows = new_num_results;
@@ -673,6 +750,30 @@ export default function Summary({ user }) {
                       </ul>
                     )}
                   </div>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                />
                 </FormControl>
               </Box>
                   <Button size="sm" backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} width="full" onClick={handleSubmitFilter} >
@@ -741,6 +842,30 @@ export default function Summary({ user }) {
                     )}
                   </div>               
                 </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                />
+                </FormControl>
                 {appliedFiltersComponent()}
           </DrawerBody>
 
@@ -772,6 +897,19 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));  
@@ -788,6 +926,8 @@ export default function Summary({ user }) {
     setFilterTickerName('');
     setSearchTickerValue('');
     setSelectedTickerValue('');
+    setFilterFromDate('');
+    setFilterToDate('');
     const filters = {};
     filters.page = 1;
     filters.numrows = num_results;
@@ -863,6 +1003,19 @@ export default function Summary({ user }) {
     }
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
     }
     filters.page = 1;
     filters.numrows = num_results;

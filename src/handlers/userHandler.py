@@ -564,6 +564,8 @@ def getUserTradesStats(user_id,filters=None):
         filterBody = filters.to_dict()
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        if 'from_date' in filters and 'to_date' in filters:
+            filterBody['from_and_to_date'] = userTransformer.transformFromAndToDate(filters['from_date'],filters['to_date'])
         response = user.User.getUserTradesStatsFilter(user_id,filterBody)
     if len(response[0]) != 0 and "numTrades" in response[0][0]:   
         avgWin = 0
@@ -661,6 +663,8 @@ def getUserTradesPage(user_id,filters):
         del filterBody['page'], filterBody['numrows']
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        if 'from_date' in filters and 'to_date' in filters:
+            filterBody['from_and_to_date'] = userTransformer.transformFromAndToDate(filters['from_date'],filters['to_date'])
         count = user.User.getTotalTrades(user_id,filterBody)[0][0]['COUNT(*)']
         offset = (int(page)-1)*int(numrows)
         response = user.User.getUserTradesPage(user_id,int(numrows),offset,filterBody)

@@ -255,8 +255,21 @@ export default function Home({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
-      if(filter_switch_time !== ''){
+      if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
         filters.date_range = filter_switch_time;
+      }
+      if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       await dispatch(
         getTradesStatsFiltered({
@@ -298,6 +311,25 @@ export default function Home({ user }) {
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
   const [filter_switch_time, setFilterSwitchDate] = useState("");
+  const [filter_from_date, setFilterFromDate] = useState("");
+  const [filter_to_date, setFilterToDate] = useState("");
+  const [isFromToDisabled, setIsFromToDisabled] = useState(false);
+  const [isDateRangeDisabled, setIsDateRangeDisabled] = useState(false);
+
+  // Your logic to enable or disable the input
+  useEffect(() => {
+    if (filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')) {
+      setIsFromToDisabled(true);
+      setIsDateRangeDisabled(false);
+    } else if ((filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== ''))){
+      setIsFromToDisabled(false);
+      setIsDateRangeDisabled(true);
+    } else if ((filter_switch_time === '' && filter_from_date === '' && filter_to_date === '')){
+      setIsFromToDisabled(false);
+      setIsDateRangeDisabled(false);
+    }
+  }, [filter_switch_time,filter_from_date,filter_to_date]);
+
 
   const authLoading = useSelector((state) => state.auth.loading);
   const tradeLoading = useSelector((state) => state.trade.loading);
@@ -720,12 +752,38 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Time Frame
                   </FormHelperText>
-                  <Select placeholder='Select Time Frame' value={filter_switch_time} onChange={(e) => setFilterSwitchDate(e.target.value)}>
+                  <Select placeholder='Select Time Frame' value={filter_switch_time} onChange={(e) => setFilterSwitchDate(e.target.value)} disabled={isDateRangeDisabled}>
                     <option>Year</option>
                     <option>Month</option>
                     <option>Week</option>
                     <option>Day</option>
                   </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
                 </FormControl>
 
               </Box>
@@ -804,6 +862,32 @@ export default function Home({ user }) {
                     <option>Week</option>
                     <option>Day</option>
                   </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
                 </FormControl>
                 {appliedFiltersComponent()}
           </DrawerBody>
@@ -922,8 +1006,21 @@ export default function Home({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
-      if(filter_switch_time !== ''){
+      if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
         filters.date_range = filter_switch_time;
+      }
+      if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       filters.page = page+1;
       filters.numrows = num_results;
@@ -947,8 +1044,21 @@ export default function Home({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
-      if(filter_switch_time !== ''){
+      if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
         filters.date_range = filter_switch_time;
+      }
+      if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       filters.page = page-1;
       filters.numrows = num_results;
@@ -972,6 +1082,22 @@ export default function Home({ user }) {
     }
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
+      filters.date_range = filter_switch_time;
+    }
+    if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
     }
     filters.page = 1;
     filters.numrows = new_num_results;
@@ -1320,8 +1446,21 @@ export default function Home({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
-    if(filter_switch_time !== ''){
+    if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
       filters.date_range = filter_switch_time;
+    }
+    if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
     }
     await dispatch(
       getTradesStatsFiltered({
@@ -1344,6 +1483,8 @@ export default function Home({ user }) {
     setFilterSecurityType('');
     setFilterTickerName('');
     setFilterSwitchDate('');
+    setFilterFromDate('');
+    setFilterToDate('');
     setSearchTickerValue('');
     setSelectedTickerValue('');
     await dispatch(getTradesStats());

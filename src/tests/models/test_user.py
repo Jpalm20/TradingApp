@@ -220,6 +220,12 @@ class TestUser(unittest.TestCase):
         }
         response = User.getTotalTrades(user_id,filters)
         self.assertEqual(response[0][0]['COUNT(*)'], 1)
+        #CHECK FOR FROM AND TO DATE
+        filters = {
+            'from_and_to_date': "trade_date >= '2023-01-01' AND trade_date <= '2023-01-10'"
+        }
+        response = User.getTotalTrades(user_id,filters)
+        self.assertEqual(len(response[0]), 1)
         #DELETE TRADES UNDER USER ID
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("gettotaltradesunittest@gmail.com",))
@@ -414,7 +420,13 @@ class TestUser(unittest.TestCase):
         filters = {
             'trade_date': 'NULL'
         }
-        response = User.getTotalTrades(user_id,filters)
+        response = User.getUserTradesPage(user_id,100,0,filters)
+        self.assertEqual(len(response[0]), 1)
+        #CHECK FOR FROM AND TO DATE
+        filters = {
+            'from_and_to_date': "trade_date >= '2023-01-01' AND trade_date <= '2023-01-10'"
+        }
+        response = User.getUserTradesPage(user_id,100,0,filters)
         self.assertEqual(len(response[0]), 1)
         #DELETE TRADES UNDER USER ID
         response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
