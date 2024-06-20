@@ -1254,17 +1254,17 @@ export default function Home({ user }) {
         w="full"
       >
       <HStack justifyContent='space-between'>
-      <HStack justifyContent='space-between'>
+      <HStack justifyContent='space-between' flexWrap='wrap' overflowX="scroll">
       <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='75px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleSelectAll(e.target.value)}>
         Select All
       </Button>
       <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='50px' backgroundColor='gray.300'  color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleClearSelected(e.target.value)}>
         Clear
       </Button>
-      </HStack>
       <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='50px' colorScheme='blue' isDisabled={selectedRow.length <= 0} onClick={e => handleGotoClose(e)}>
         Close
       </Button>
+      </HStack>
       <AlertDialog
         motionPreset='slideInBottom'
         isOpen={closeTradePopup}
@@ -1403,26 +1403,29 @@ export default function Home({ user }) {
         flex="auto"
         w="full"
       >
-      <HStack justifyContent='end' paddingEnd='1' paddingTop='1'>
-        <Text class='numresults'>
-          No. of Rows:
-        </Text>
-        <Select maxW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-        </Select>
-        <Divider orientation="vertical" colorScheme="gray"/>
-        <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
+      <HStack justifyContent='end' paddingEnd='1' paddingTop='1' flexWrap='wrap' overflowX="scroll">
+        <HStack flexWrap='wrap'>
+          <Text class='numresults'>
+            No. of Rows:
+          </Text>
+          <Select maxW={65} minW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </Select>
+        </HStack>
+        <HStack>
+          <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
 
-        </VscTriangleLeft>
-        <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
+          </VscTriangleLeft>
+          <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
 
-        </VscTriangleRight>
-        <Text class='pagenumbers'>
-          {pageStartOffset}-{pageEndOffset} of {totalCount}
-        </Text>
+          </VscTriangleRight>
+          <Text class='pagenumbers'>
+            {pageStartOffset}-{pageEndOffset} of {totalCount}
+          </Text>
+        </HStack>
       </HStack>
       </Stack>
       </>
@@ -1441,26 +1444,29 @@ export default function Home({ user }) {
           </Thead>
         </Table>
       </TableContainer>
-      <HStack justifyContent='end' paddingEnd='1' paddingTop='1'>
-        <Text class='numresults'>
-          No. of Rows:
-        </Text>
-        <Select maxW={50} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-        </Select>
-        <Divider orientation="vertical" colorScheme="gray"/>
-        <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
+      <HStack justifyContent='end' paddingEnd='1' paddingTop='1' flexWrap='wrap' overflowX="scroll">
+        <HStack flexWrap='wrap'>
+          <Text class='numresults'>
+            No. of Rows:
+          </Text>
+          <Select maxW={65} minW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </Select>
+        </HStack>
+        <HStack>
+          <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
 
-        </VscTriangleLeft>
-        <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
+          </VscTriangleLeft>
+          <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
 
-        </VscTriangleRight>
-        <Text class='pagenumbers'>
-          {pageStartOffset}-{pageEndOffset} of {totalCount}
-        </Text>
+          </VscTriangleRight>
+          <Text class='pagenumbers'>
+            {pageStartOffset}-{pageEndOffset} of {totalCount}
+          </Text>
+        </HStack>
       </HStack>
       </>
       }
