@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered , getTradesPage, expiredLogout} from '../store/auth'
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import '../styles/summary.css';
 import '../styles/logtrade.css';
 import '../styles/filter.css';
@@ -77,12 +77,17 @@ import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCs
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 export default function Summary({ user }) {
   const btnRef = React.useRef()
   const [toastMessage, setToastMessage] = useState(undefined);
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = useQuery();
   const { trade } = useSelector((state) => state.trade);
   const { success } = useSelector((state) => state.trade);
   const { trades } = useSelector((state) => state.auth);
@@ -111,6 +116,36 @@ export default function Summary({ user }) {
 
   const [filters, setFilters] = useState({});
 
+  const handleFilterChange = (newFilter) => {
+    query.set('filter', newFilter);
+    navigate(`?${query.toString()}`);
+  };
+
+  function filtersToQueryString(filters) {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      if (filters[key] !== '') {
+        params.append(key, filters[key]);
+      }
+    }
+    return params.toString();
+  }
+
+  useEffect(() => {
+    const savedSummaryFilters = window.localStorage.getItem('SummaryFilters');
+    if (savedSummaryFilters) {
+      const SummaryFilters = JSON.parse(savedSummaryFilters);
+      setFilterTradeType(SummaryFilters.trade_type || "");
+      setFilterSecurityType(SummaryFilters.security_type || "");
+      setFilterTickerName(SummaryFilters.ticker_name || "");
+      setSelectedTickerValue(SummaryFilters.ticker_name || "");
+      setFilterFromDate(SummaryFilters.from_date || "");
+      setFilterToDate(SummaryFilters.to_date || "");
+      setFilters(SummaryFilters);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [numRows, setNumRows] = useState(0);
@@ -121,10 +156,18 @@ export default function Summary({ user }) {
   const [nextPageEnable, setNextPageEnable] = useState(false);
 
   useEffect(() => {
+    console.log('here');
+    console.log(trades);
+    console.log(trades.count);
     if (hasTrades) {
       setPage(parseInt(trades.page));
       setTotalCount(parseInt(trades.count));
       setNumRows(parseInt(trades.numrows));
+    } else if (trades && 'count' in trades && trades.count === 0){
+      console.log('here');
+      setPage(trades.page);
+      setTotalCount(trades.count);
+      setNumRows(trades.numrows);
     }
   }, [trades]); 
 
@@ -275,6 +318,8 @@ export default function Summary({ user }) {
       dispatch(
         reset()      
       );
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
       clearFormStates();
       setSelectedRow([]);
       setTradeID(null);
@@ -526,6 +571,8 @@ export default function Summary({ user }) {
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
     dispatch(
       reset()      
     );
@@ -628,7 +675,9 @@ export default function Summary({ user }) {
       }
       filters.page = page+1;
       filters.numrows = num_results;
-      await dispatch(getTradesPage({ filters }));  
+      await dispatch(getTradesPage({ filters }));
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
       setSelectedRow([]);
     }
   }
@@ -661,6 +710,8 @@ export default function Summary({ user }) {
       filters.page = page-1;
       filters.numrows = num_results;
       await dispatch(getTradesPage({ filters }));  
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
       setSelectedRow([]);
     }
   }
@@ -694,6 +745,8 @@ export default function Summary({ user }) {
     filters.page = 1;
     filters.numrows = new_num_results;
     await dispatch(getTradesPage({ filters }));  
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
     setSelectedRow([]);
   }
 
@@ -912,7 +965,9 @@ export default function Summary({ user }) {
     }
     filters.page = 1;
     filters.numrows = num_results;
-    await dispatch(getTradesPage({ filters }));  
+    await dispatch(getTradesPage({ filters })); 
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters)); 
     setSelectedRow([]);
     setFilters(filters);
     //setToggleFilter(!toggleFilter);
@@ -932,6 +987,8 @@ export default function Summary({ user }) {
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString({}));
+    window.localStorage.removeItem('SummaryFilters');
     setFilters({});
     setSelectedRow([]);
     //setToggleFilter(!toggleFilter);
@@ -1020,6 +1077,8 @@ export default function Summary({ user }) {
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters)); 
     setSelectedFile(null);
   };
 

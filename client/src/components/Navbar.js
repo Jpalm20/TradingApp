@@ -191,6 +191,9 @@ export default function Navbar({ user }) {
     window.localStorage.removeItem('feedbackInfo');
     window.localStorage.removeItem('updateTradeInfo');
     window.localStorage.removeItem('updateUserInfo');
+    window.localStorage.removeItem('HomeFilters');
+    window.localStorage.removeItem('CalendarFilters');
+    window.localStorage.removeItem('SummaryFilters');
   } 
 
   

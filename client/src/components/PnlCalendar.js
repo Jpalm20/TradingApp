@@ -2,7 +2,7 @@ import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../store/auth';
 import { searchTicker } from '../store/trade'
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import monthsString from "../data/months";
 import { BsFilter } from "react-icons/bs";
 import '../styles/filter.css';
@@ -70,10 +70,15 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 export default function PnlCalendar({ user }) {
   const btnRef = React.useRef()
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = useQuery();
   const { pnlYTD } = useSelector((state) => state.auth);
   const trades = useSelector((state) => state.auth.tradesOfDay);
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
@@ -127,6 +132,36 @@ export default function PnlCalendar({ user }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [filters, setFilters] = useState({});
+
+  const handleFilterChange = (newFilter) => {
+    query.set('filter', newFilter);
+    navigate(`?${query.toString()}`);
+  };
+
+  function filtersToQueryString(filters) {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      if (filters[key] !== '') {
+        params.append(key, filters[key]);
+      }
+    }
+    return params.toString();
+  }
+
+  useEffect(() => {
+    const savedCalendarFilters = window.localStorage.getItem('CalendarFilters');
+    if (savedCalendarFilters) {
+      const CalendarFilters = JSON.parse(savedCalendarFilters);
+      setFilterTradeType(CalendarFilters.trade_type || "");
+      setFilterSecurityType(CalendarFilters.security_type || "");
+      setFilterTickerName(CalendarFilters.ticker_name || "");
+      setSelectedTickerValue(CalendarFilters.ticker_name || "");
+      setFilters(CalendarFilters);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  
+
 
 
   useEffect(() => {
@@ -241,6 +276,8 @@ export default function PnlCalendar({ user }) {
         filters
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
   };
 
   function getWeekDateRange(year, month, week) {
@@ -303,6 +340,8 @@ export default function PnlCalendar({ user }) {
         filters
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
   };
 
   const handleTradesOfMonth = async (e) => {
@@ -327,6 +366,8 @@ export default function PnlCalendar({ user }) {
         filters
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
   };
 
   const handleCancelTradesOfDay = (e) => {
@@ -614,17 +655,27 @@ export default function PnlCalendar({ user }) {
     return content;
   }
   
+  function loadFiltersFromLocalStorage(page) {
+    const filters = localStorage.getItem(page+'Filters');
+    return filters ? JSON.parse(filters) : {};
+  }
 
   useEffect(() => {
     let year = calYear;
+    let filters = loadFiltersFromLocalStorage('Calendar');
+    const hasFilters = Object.keys(filters).length > 0;
     if(user.user_id != undefined){
-      dispatch(getPnlByYear({ year }));
+      if (hasFilters) {
+        dispatch(getPnlByYearFiltered({ filters, year }));
+      } else {
+        dispatch(getPnlByYear({ year }));
+      }
     }
-    setFilterTradeType('');
-    setFilterSecurityType('');
-    setFilterTickerName('');
-    setSearchTickerValue('');
-    setSelectedTickerValue('');
+    //setFilterTradeType('');
+    //setFilterSecurityType('');
+    //setFilterTickerName('');
+    //setSearchTickerValue('');
+    //setSelectedTickerValue('');
   }, [calYear, user]); 
 
   const getFilterComponent = () => {
@@ -782,6 +833,8 @@ export default function PnlCalendar({ user }) {
         year
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
     setFilters(filters);
     //setToggleFilter(!toggleFilter);
   }
@@ -796,6 +849,8 @@ export default function PnlCalendar({ user }) {
     setSelectedTickerValue('');
     let year = calYear;
     await dispatch(getPnlByYear({ year }));
+    handleFilterChange(filtersToQueryString({}));
+    window.localStorage.removeItem('CalendarFilters');
     setFilters({});
     //setToggleFilter(!toggleFilter);
   }

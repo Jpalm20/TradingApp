@@ -14,7 +14,7 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades, getJournalEntries, getTradesPage, getUserFromSession, expiredLogout, getTradesStats, getPreferences, getAccountValues } from "./store/auth";
+import { me, getTrades, getJournalEntries, getTradesPage, getUserFromSession, expiredLogout, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
@@ -93,32 +93,58 @@ export default function App() {
 
   const today = returnInTZ(new Date().toISOString());
 
+  function loadFiltersFromLocalStorage(page) {
+    const filters = localStorage.getItem(page+'Filters');
+    return filters ? JSON.parse(filters) : {};
+  }
+
   
   useEffect(() => {
     async function getUserTrades(){
       if(isLoggedIn && !hasTrades && !noTrades && user.user_id && !hasStats){
         const user_id = user.user_id;
         if (window.location.pathname === "/home" || window.location.pathname === "/"){
-          await dispatch(getTradesStats());
+          let filters = loadFiltersFromLocalStorage('Home');
+          let hasFilters = Object.keys(filters).length > 0;
+          if (hasFilters) {
+            await dispatch(getTradesStatsFiltered({ filters }));
+          } else {
+            await dispatch(getTradesStats());
+          }
           await dispatch(getPreferences());
-          let filters = {};
+          filters = {};
           filters.date = today
           await dispatch(getAccountValues({ filters }));
-          filters = {};
-          filters.page = 1;
-          filters.numrows = 5;
-          filters.trade_date = 'NULL';
-          await dispatch(getTradesPage({ filters }));
+          filters = loadFiltersFromLocalStorage('Home');
+          hasFilters = Object.keys(filters).length > 0;
+          if (hasFilters) {
+            filters.page = 1;
+            filters.numrows = 5;
+            filters.trade_date = 'NULL';
+            await dispatch(getTradesPage({ filters }));
+          } else {
+            filters = {};
+            filters.page = 1;
+            filters.numrows = 5;
+            filters.trade_date = 'NULL';
+            await dispatch(getTradesPage({ filters }));
+          }
         }else if (window.location.pathname === "/journal"){
           const date = today
           await dispatch(getJournalEntries({ date })); 
         }else if (window.location.pathname === "/profile"){
           await dispatch(getPreferences());
         }else{
-          const filters = {};
-          filters.page = 1;
-          filters.numrows = 100;
-          await dispatch(getTradesPage({ filters }));
+          let filters = loadFiltersFromLocalStorage('Summary');
+          let hasFilters = Object.keys(filters).length > 0;
+          if (hasFilters) {
+            await dispatch(getTradesPage({ filters }));
+          } else {
+            filters = {};
+            filters.page = 1;
+            filters.numrows = 100;
+            await dispatch(getTradesPage({ filters }));
+          }
         }
       }else if (isLoggedIn && user.user_id === undefined){
         await dispatch(getUserFromSession());

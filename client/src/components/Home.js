@@ -2,7 +2,7 @@ import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues, setAccountValue, getTradesPage } from '../store/auth'
 import { searchTicker, update, reset, updateTrades } from '../store/trade'
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useHistory, useLocation} from "react-router-dom";
 import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import { BiPencil } from "react-icons/bi";
@@ -95,6 +95,9 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 export default function Home({ user }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -105,6 +108,7 @@ export default function Home({ user }) {
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = useQuery();
   const { trade } = useSelector((state) => state.trade);
   const tradeSuccess = useSelector((state) => state.trade.success);
   const { trades } = useSelector((state) => state.auth);
@@ -139,6 +143,38 @@ export default function Home({ user }) {
     const tzDate = moment.utc(utcDate).tz(userTZ);
     return tzDate.format('YYYY-MM-DD')
   }
+
+  const handleFilterChange = (newFilter) => {
+    query.set('filter', newFilter);
+    navigate(`?${query.toString()}`);
+  };
+
+  function filtersToQueryString(filters) {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      if (filters[key] !== '') {
+        params.append(key, filters[key]);
+      }
+    }
+    return params.toString();
+  }
+
+  useEffect(() => {
+    const savedHomeFilters = window.localStorage.getItem('HomeFilters');
+    if (savedHomeFilters) {
+      const HomeFilters = JSON.parse(savedHomeFilters);
+      setFilterTradeType(HomeFilters.trade_type || "");
+      setFilterSecurityType(HomeFilters.security_type || "");
+      setFilterTickerName(HomeFilters.ticker_name || "");
+      setSelectedTickerValue(HomeFilters.ticker_name || "");
+      setFilterSwitchDate(HomeFilters.date_range || "");
+      setFilterFromDate(HomeFilters.from_date || "");
+      setFilterToDate(HomeFilters.to_date || "");
+      setFilters(HomeFilters);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  
 
   const today = returnInTZ(new Date().toISOString());
   const [todayAccountValue, setTodayAccountValue] = useState(0);
@@ -276,6 +312,8 @@ export default function Home({ user }) {
           filters
         })
       );
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('HomeFilters', JSON.stringify(filters));
       filters.page = 1;
       filters.numrows = num_results;
       filters.trade_date = 'NULL';
@@ -1467,6 +1505,8 @@ export default function Home({ user }) {
         filters
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('HomeFilters', JSON.stringify(filters));
     filters.page = 1;
     filters.numrows = 5;
     filters.trade_date = 'NULL';
@@ -1488,6 +1528,8 @@ export default function Home({ user }) {
     setSearchTickerValue('');
     setSelectedTickerValue('');
     await dispatch(getTradesStats());
+    handleFilterChange(filtersToQueryString({}));
+    window.localStorage.removeItem('HomeFilters');
     const filters = {};
     filters.page = 1;
     filters.numrows = 5;
