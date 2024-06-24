@@ -70,8 +70,10 @@ class Trade:
         logger.info("Entering Update Trade Model Function: " + "(trade_id: {}, changes: {})".format(str(tradeID),str(changes)))
         updates = []
         for key,value in changes.items():
-            if value:
+            if value is not None and value != 'NULL':
                 updates.append(f"{key}='{value}'")
+            if value == 'NULL':
+                updates.append(f"{key}=NULL")
         updates = ", ".join(updates)
         Query = """UPDATE trade SET {} WHERE trade_id = %s""".format(updates)
         Query += ';'

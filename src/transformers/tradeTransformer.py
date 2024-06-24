@@ -47,11 +47,11 @@ def transformEditTrade(request):
     for key in request:
         if request[key] != "" and request[key] != None:
             transformedRequest[key] = request[key]
-        if key == 'ticker_name':
+        if key == 'ticker_name' and request['ticker_name'] != '':
             transformedRequest['ticker_name'] = request['ticker_name'].upper()
     if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
-        transformedRequest['expiry'] = None
-        transformedRequest['strike'] = None
+        transformedRequest['expiry'] = 'NULL'
+        transformedRequest['strike'] = 'NULL'
     logger.info("Leaving Transform Edit Trade Transformer: " + "(transformed_request: {})".format(str(transformedRequest)))
     return transformedRequest
 

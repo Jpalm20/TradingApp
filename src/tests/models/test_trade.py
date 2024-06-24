@@ -111,12 +111,14 @@ class TestTrade(unittest.TestCase):
         self.assertEqual(response[0][0]['ticker_name'], "SPY")
         trade_id = response[0][0]['trade_id']
         changes = {
-            "ticker_name": "QQQ"
+            "ticker_name": "QQQ",
+            "pnl": "NULL"
         }
         response = Trade.updateTrade(trade_id,changes)
-        self.assertEqual(response[0], '\n')
+        self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM trade WHERE comments = %s", ("updatetradeunittest",))
         self.assertEqual(response[0][0]['ticker_name'], "QQQ")
+        self.assertEqual(response[0][0]['pnl'], None)
         response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("updatetradeunittest@gmail.com",))
 
