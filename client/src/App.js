@@ -76,11 +76,26 @@ export default function App() {
     evaluateError();
   }, [authError, tradeError]); 
 
+  const handleDeleteLocal = () => {
+    window.localStorage.removeItem('userInfo');
+    window.localStorage.removeItem('journalInfo');
+    window.localStorage.removeItem('tradeInfo');
+    window.localStorage.removeItem('feedbackInfo');
+    window.localStorage.removeItem('updateTradeInfo');
+    window.localStorage.removeItem('updateBulkTradeInfo');
+    window.localStorage.removeItem('updateUserInfo');
+    window.localStorage.removeItem('HomeFilters');
+    window.localStorage.removeItem('CalendarFilters');
+    window.localStorage.removeItem('SummaryFilters');
+  }
+
   const evaluateError = async () => {
     if(authError === true && info.response.data.result === "Auth Token Has Expired"){
+      handleDeleteLocal();
       await dispatch(expiredLogout());
     }
     if(tradeError === true && tradeInfo.response.data.result === "Auth Token Has Expired"){
+      handleDeleteLocal();
       await dispatch(expiredLogout());
     }
   }
