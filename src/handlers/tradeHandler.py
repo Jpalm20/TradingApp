@@ -340,19 +340,46 @@ def importCsv(file, user_id):
             return {
                 "result": response
             }, 400  
+        """
         eval, response = trade.Trade.addTrades(result)
         if not eval:
             logger.warning("Leaving Import CSV Handler: " + str(response))
             return {
                 "result": response
             }, 400
-        else:
-            response = {
-                "result": "Trades Imported Successfully", 
-                "trades": result
-            } 
-            logger.info("Leaving Import CSV Handler: " + str(response))
-            return response
+        """
+        for trade_entry in result:
+            newImportTrade = trade.Trade(None,trade_entry['user_id'],trade_entry['trade_type'],trade_entry['security_type'],
+                        trade_entry['ticker_name'],trade_entry['trade_date'],trade_entry['expiry'],trade_entry['strike'],
+                        trade_entry['buy_value'],trade_entry['units'],trade_entry['rr'],trade_entry['pnl'],
+                        trade_entry['percent_wl'],trade_entry['comments'])
+            response = trade.Trade.addTrade(newImportTrade)
+            if response[0]:
+                logger.warning("Leaving Import CSV Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400
+            else:
+                if ('trade_date' in trade_entry and trade_entry['trade_date'] is not None) and ('pnl' in trade_entry and trade_entry['pnl'] is not None):
+                    if (datetime.strptime(trade_entry['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                        fdresponse = accountvalue.Accountvalue.insertFutureDay(user_id,trade_entry['trade_date'])
+                        if fdresponse[0]:
+                            logger.warning("Leaving Import CSV Handler: " + str(fdresponse))
+                            return {
+                            "result": fdresponse
+                        }, 400
+                    avresponse = accountvalue.Accountvalue.handleAddTrade(response[1])
+                    if avresponse[0]:
+                        logger.warning("Leaving Import CSV Handler: " + str(avresponse))
+                        return {
+                            "result": avresponse
+                        }, 400
+        response = {
+            "result": "Trades Imported Successfully", 
+            "trades": result
+        } 
+        logger.info("Leaving Import CSV Handler: " + str(response))
+        return response
     else:
         logger.warning("Leaving Import CSV Handler: " + str(result))
         return {
