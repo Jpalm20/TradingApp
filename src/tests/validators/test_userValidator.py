@@ -295,6 +295,27 @@ class TestUserValidator(unittest.TestCase):
         request = ['email_optin','account_value_optins']
         response = validateToggleFeatureFlags(request)
         self.assertEqual(response[0]['result'], "Please provide only valid feature flags in your request")
+        
+    
+    def test_validate_update_preferred_currency(self):
+        # 1 good path
+        request = {
+            'preferred_currency': "JPY"
+        }
+        response = validateUpdatePreferredCurrency(request)
+        self.assertEqual(response, True)
+        # 2 fail invalid currency code
+        request = {
+            'preferred_currency': "JPYY"
+        }
+        response = validateUpdatePreferredCurrency(request)
+        self.assertEqual(response[0]['result'], "New Currency Code is Invalid")
+        # 3 fail bad request body
+        request = {
+            'preferred_currencyy': "JPY"
+        }
+        response = validateUpdatePreferredCurrency(request)
+        self.assertEqual(response[0]['result'], "New Currency Code Missing")
     
         
     #def tearDown(self):

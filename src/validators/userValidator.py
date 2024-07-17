@@ -3,6 +3,7 @@ import sys
 import re
 from datetime import date, datetime, timedelta
 import logging
+from forex_python.converter import CurrencyCodes
 
 logger = logging.getLogger(__name__)
 
@@ -176,4 +177,22 @@ def validateToggleFeatureFlags(request):
                 "result": response
             }, 400
     logger.info("Leaving Validate Toggle Feature Flags Validator: ")
+    return True
+
+def validateUpdatePreferredCurrency(request):
+    logger.info("Entering Validate Update Preferred Currency Validator: " + "(request: {})".format(str(request)))
+    currency_codes = CurrencyCodes()
+    if 'preferred_currency' not in request or request['preferred_currency'] == '':
+        response = "New Currency Code Missing"
+        logger.warning("Leaving Validate Update Preferred Currency Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    if len(request['preferred_currency']) != 3 or currency_codes.get_symbol(request['preferred_currency']) is None:
+        response = "New Currency Code is Invalid"
+        logger.warning("Leaving Validate Update Preferred Currency Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    logger.info("Leaving Validate Update Preferred Currency Validator: ")
     return True

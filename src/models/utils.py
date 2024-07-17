@@ -14,11 +14,11 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 
 # Database configuration
 db_config = {
-    "user": DB_USERNAME,
-    "password": DB_PASSWORD,
-    "host": DB_HOST,
-    "database": DB_NAME,
-    "port": DB_PORT,
+    "user": "jp",
+    "password": "Jpalmieri20!",
+    "host": "localhost",
+    "database": "TradingApp",
+    "port": 3306,
     "connection_timeout": 300,  # Set the connection timeout to 5 minutes (300 seconds)
     "pool_name": "mypool",
     "pool_size": 5,

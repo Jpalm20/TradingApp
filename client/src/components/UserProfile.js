@@ -45,10 +45,11 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, toggleFeatureFlags } from '../store/auth';
+import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, toggleFeatureFlags, updatePreferredCurrency } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import states from "../data/states";
+import currencies from "../data/currencies";
 
 
 const CFaUserAlt = chakra(FaUserAlt);
@@ -248,6 +249,16 @@ export default function UserProfile({ user }) {
     );
   }
 
+  const handleToggleCurrencyCode = async (currencyCode) => {
+    //await dispatch(toggleEmailOptin());
+    const preferred_currency = currencyCode;
+    await dispatch(
+      updatePreferredCurrency({
+        preferred_currency
+      })
+    );
+  }
+
   const handleLogout = async () => {
     setSelectPage(true);
     selectUpdateInfo(false);
@@ -407,6 +418,14 @@ export default function UserProfile({ user }) {
                       <FormLabel display="flex" alignItems="center">
                         <Text>Email Alerts {hasPreferences && preferences.email_optin === 1 ? 'On' : 'Off'}</Text>
                         <Switch marginLeft={3} isChecked={hasPreferences && preferences.email_optin === 1 ? true : false} onChange={handleToggleEmailOptin}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
+                        <Text>Currency</Text>
+                        <Select marginLeft={3} value={hasPreferences && preferences.preferred_currency ? preferences.preferred_currency : 'None'} onChange={(e) => handleToggleCurrencyCode(e.target.value)}>
+                          <option value="" disabled selected>{preferences.preferred_currency}</option>
+                          {currencies.map((currency) => (<option key={currency}>{currency}</option>))}
+                        </Select>
                       </FormLabel>
                     </SimpleGrid>
                     </AlertDialogBody>

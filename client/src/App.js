@@ -160,6 +160,7 @@ export default function App() {
             filters.numrows = 100;
             await dispatch(getTradesPage({ filters }));
           }
+          await dispatch(getPreferences());
         }
       }else if (isLoggedIn && user.user_id === undefined){
         await dispatch(getUserFromSession());

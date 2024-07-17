@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../store/auth';
+import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered, getPreferences } from '../store/auth';
 import { searchTicker } from '../store/trade'
 import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import monthsString from "../data/months";
@@ -80,6 +80,7 @@ export default function PnlCalendar({ user }) {
   const dispatch = useDispatch();
   const query = useQuery();
   const { pnlYTD } = useSelector((state) => state.auth);
+  const { preferences } = useSelector((state) => state.auth);
   const trades = useSelector((state) => state.auth.tradesOfDay);
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const toast = useToast();
@@ -88,6 +89,7 @@ export default function PnlCalendar({ user }) {
   const hasPnLInfo = ((pnlYTD && Object.keys(pnlYTD).length > 0 && pnlYTD.months && Object.keys(pnlYTD.months).length > 0) ? (true):(false));
   const hasTradesofDay = ((trades && Object.keys(trades).length > 0 && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const hasStats = ((trades && Object.keys(trades).length > 0 && trades.stats && Object.keys(trades.stats).length > 0) ? (true):(false));
+  const hasPreferences = ((preferences && Object.keys(preferences).length > 0) ? (true):(false)); //need to look into this for home error
 
   const [toggleFilter, setToggleFilter] = useState(false);
 
@@ -243,11 +245,19 @@ export default function PnlCalendar({ user }) {
   };
 
 
-
+  /*
   var formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   });
+  */
+
+  const formatter = (currencyCode) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    });
+  };
 
   var percent = new Intl.NumberFormat('default', {
     style: 'percent',
@@ -573,7 +583,7 @@ export default function PnlCalendar({ user }) {
                     {weekCounts[i]} Trade(s)
                   </Center>
                   <Center fontWeight='bold' isNumeric>
-                    {pnlValue(formatter.format(weekTotals[i]))}
+                    {pnlValue(formatter(preferences.preferred_currency).format(weekTotals[i]))}
                   </Center>
                 </GridItem>);
     }
@@ -644,7 +654,7 @@ export default function PnlCalendar({ user }) {
                 {pnl['count']} Trade(s)
               </Center>
               <Center fontWeight='bold' isNumeric>
-                {pnlValue(formatter.format(pnl['pnl']))}
+                {pnlValue(formatter(preferences.preferred_currency).format(pnl['pnl']))}
               </Center>
             </GridItem>
           );
@@ -936,7 +946,7 @@ export default function PnlCalendar({ user }) {
               w='full'
               overflowX="auto"
             >
-            {hasPnLInfo ? (
+            {hasPnLInfo && hasPreferences ? (
               /*
             <div>
               <Text>
@@ -1107,7 +1117,7 @@ export default function PnlCalendar({ user }) {
                     </Stat>
                     <Stat flex="1" textAlign="right">
                       <StatLabel>Total PnL</StatLabel>
-                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0)}>{pnlValue(formatter.format(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0))}</StatNumber>
+                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0)}>{pnlValue(formatter(preferences.preferred_currency).format(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0))}</StatNumber>
                     </Stat>
                   </Flex>
                   </AlertDialogFooter>
@@ -1209,7 +1219,7 @@ export default function PnlCalendar({ user }) {
                     </Stat>
                     <Stat flex="1" textAlign="right">
                       <StatLabel>Total PnL</StatLabel>
-                      <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter.format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
+                      <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter(preferences.preferred_currency).format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
                     </Stat>
                   </Flex>
                   </AlertDialogFooter>
@@ -1224,7 +1234,7 @@ export default function PnlCalendar({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Monthly PnL</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(getMonthlyTotal()))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(getMonthlyTotal()))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1303,7 +1313,7 @@ export default function PnlCalendar({ user }) {
                       </Stat>
                       <Stat flex="1" textAlign="right">
                         <StatLabel>Total PnL</StatLabel>
-                        <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter.format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
+                        <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter(preferences.preferred_currency).format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
                       </Stat>
                     </Flex>
                     </AlertDialogFooter>

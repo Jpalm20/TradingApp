@@ -120,3 +120,11 @@ UPDATE user SET email_optin = true;
 ALTER TABLE resetcode ADD COLUMN validated BOOLEAN DEFAULT FALSE;
 
 UPDATE resetcode SET validated = false;
+
+
+-- 06-27-2024 (1.1.0)
+
+-- Add the new column with a default value of 'USD'
+ALTER TABLE user ADD COLUMN preferred_currency VARCHAR(3) DEFAULT 'USD';
+-- Update existing users to set 'USD' as the default for existing records
+UPDATE user SET preferred_currency = 'USD' WHERE preferred_currency IS NULL;

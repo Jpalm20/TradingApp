@@ -21,6 +21,7 @@
     "chart.js": "^3.9.1",
     "ckeditor5-custom-build": "file:ckeditor5-39.0.2-mevye4rj880p",
     "ckeditor5-custom-build-light": "file:ckeditor5-39.0.2-mevye4rj880p-light",
+    "currency-symbol-map": "^5.1.0",
     "dotenv": "^16.0.3",
     "framer-motion": "^7.2.1",
     "jsonwebtoken": "^8.5.1",

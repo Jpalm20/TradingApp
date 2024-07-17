@@ -13,6 +13,7 @@ import '../styles/home.css';
 import Lottie from "lottie-react";
 import animationData from "../lotties/no-data-animation.json";
 import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
+import getSymbolFromCurrency from 'currency-symbol-map';
 import {
   Flex,
   Text,
@@ -135,8 +136,18 @@ export default function Home({ user }) {
   const [optInAlertDialog, setOptInAlertDialog] = useState(false);
   const [accountvalue, setAccountvalue] = useState("0");
 
-  const format = (val) => `$` + val
-  const parse = (val) => val.replace(/^\$/, '')
+  // Function to format a value with the currency symbol
+  const format = (val, currencyCode) => {
+    const currencySymbol = getSymbolFromCurrency(currencyCode);
+    return currencySymbol + val;
+  };
+
+  // Function to parse a value and remove the currency symbol
+  const parse = (val, currencyCode) => {
+    const currencySymbol = getSymbolFromCurrency(currencyCode);
+    const regex = new RegExp(`^\\${currencySymbol}`);
+    return val.replace(regex, '');
+  };
 
   const returnInTZ = (utcDate) => {
     const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -466,11 +477,12 @@ export default function Home({ user }) {
   };
 
 
-
-  var formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
+  const formatter = (currencyCode) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    });
+  };
 
   var percent = new Intl.NumberFormat('default', {
     style: 'percent',
@@ -588,7 +600,8 @@ export default function Home({ user }) {
         color: '#636363',
         bold: true,
       },
-      format: 'currency',
+      format: 'decimal',
+      //currency: hasPreferences ? preferences.preferred_currency : 'USD',
       gridlines: {
         color: 'none', // Remove vertical axis gridlines
       },
@@ -710,7 +723,8 @@ export default function Home({ user }) {
         color: '#dfdfdf', 
         bold: true,
       },
-      format: 'currency',
+      format: 'decimal',
+      //currency: hasPreferences ? preferences.preferred_currency : 'INR',
       gridlines: {
         color: 'none', // Remove vertical axis gridlines
       },
@@ -1667,7 +1681,7 @@ export default function Home({ user }) {
                     <div>
                     {featureFlag ? (
                     <StatNumber style={{ display: 'flex', alignItems: 'center' }}>
-                      {format(todayAccountValue)} 
+                      {format(todayAccountValue,preferences.preferred_currency)} 
                     <IconButton
                       marginLeft={2}
                       colorScheme='gray'
@@ -1693,7 +1707,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Total PNL</StatLabel>
-                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.total_pnl))}</StatNumber>
+                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.total_pnl))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1701,7 +1715,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Avergae PNL Per Trade</StatLabel>
-                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.avg_pnl))}</StatNumber>
+                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.avg_pnl))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1773,7 +1787,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Largest Win</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.largest_win))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.largest_win))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1781,7 +1795,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Largest Loss</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.largest_loss))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.largest_loss))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1789,7 +1803,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Average Win</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.avg_win))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.avg_win))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1797,7 +1811,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Average Loss</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.avg_loss))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.avg_loss))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1979,7 +1993,7 @@ export default function Home({ user }) {
                           {!featureFlag ? (
                           <NumberInput
                             onChange={(valueString) => setAccountvalue(parse(valueString))}
-                            value={format(accountvalue)}
+                            value={format(accountvalue,preferences.preferred_currency)}
                             min={0}
                           >
                             <NumberInputField />
@@ -1991,7 +2005,7 @@ export default function Home({ user }) {
                           ) : (
                           <NumberInput
                             onChange={(valueString) => setAccountvalue(parse(valueString))}
-                            value={format(accountvalue)}
+                            value={format(accountvalue,preferences.preferred_currency)}
                             min={0}
                           >
                             <NumberInputField />

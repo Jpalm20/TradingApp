@@ -74,7 +74,7 @@ def registerUser(requestBody):
     requestTransformed = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
                         requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
-                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None)
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None,None)
     response = user.User.addUser(newUser)
     if response[0]:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -207,7 +207,8 @@ def getUserPreferences(user_id):
     if 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Get User Preferences Handler: " + str(response))
         return response
@@ -230,7 +231,8 @@ def toggleAvTracking(user_id):
     if 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Toggle Account Value Tracking Handler: " + str(response))
         return response
@@ -253,7 +255,8 @@ def toggleEmailOptInHandler(user_id):
     if 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Toggle Email Opt In Handler: " + str(response))
         return response
@@ -289,12 +292,42 @@ def toggleFeatureFlagsHandler(user_id,requestBody):
     if 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Toggle Feature Flags Handler: " + str(response))
         return response
     else:
         logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+        return {
+            "result": response
+        }, 400
+        
+        
+def updatePreferredCurrencyHandler(user_id,requestBody):
+    logger.info("Entering Update Preferred Currency Handler: " + "(user_id: {})".format(str(user_id)))
+    response = userValidator.validateUpdatePreferredCurrency(requestBody)
+    if response != True:
+        logger.warning("Leaving Update Preferred Currency Handler: " + str(response))
+        return response
+    if 'preferred_currency' in requestBody:
+        response = user.User.updateUserCurrency(user_id,requestBody['preferred_currency']) 
+        if response[0]:
+            logger.warning("Leaving Update Preferred Currency Handler: " + str(response))
+            return {
+                "result": response
+            }, 400
+    response = user.User.getPreferences(user_id)
+    if 'account_value_optin' in response[0][0]:
+        response = {
+            "account_value_optin": response[0][0]['account_value_optin'],
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
+        }
+        logger.info("Leaving Update Preferred Currency Handler: " + str(response))
+        return response
+    else:
+        logger.warning("Leaving Update Preferred Currency Handler: " + str(response))
         return {
             "result": response
         }, 400
