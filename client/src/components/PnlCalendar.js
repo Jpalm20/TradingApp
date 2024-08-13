@@ -1,8 +1,8 @@
 import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered } from '../store/auth';
+import { getPnlByYear, getPnlByYearFiltered, getTradesOfDateFiltered, getPreferences } from '../store/auth';
 import { searchTicker } from '../store/trade'
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import monthsString from "../data/months";
 import { BsFilter } from "react-icons/bs";
 import '../styles/filter.css';
@@ -70,11 +70,17 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 export default function PnlCalendar({ user }) {
   const btnRef = React.useRef()
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = useQuery();
   const { pnlYTD } = useSelector((state) => state.auth);
+  const { preferences } = useSelector((state) => state.auth);
   const trades = useSelector((state) => state.auth.tradesOfDay);
   const [toastErrorMessage, setToastErrorMessage] = useState(undefined);
   const toast = useToast();
@@ -82,6 +88,8 @@ export default function PnlCalendar({ user }) {
   const { info } = useSelector((state) => state.auth);
   const hasPnLInfo = ((pnlYTD && Object.keys(pnlYTD).length > 0 && pnlYTD.months && Object.keys(pnlYTD.months).length > 0) ? (true):(false));
   const hasTradesofDay = ((trades && Object.keys(trades).length > 0 && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
+  const hasStats = ((trades && Object.keys(trades).length > 0 && trades.stats && Object.keys(trades.stats).length > 0) ? (true):(false));
+  const hasPreferences = ((preferences && Object.keys(preferences).length > 0) ? (true):(false)); //need to look into this for home error
 
   const [toggleFilter, setToggleFilter] = useState(false);
 
@@ -89,7 +97,9 @@ export default function PnlCalendar({ user }) {
   const year = today.getFullYear();
   const month = today.getMonth();
 
-  const [calDay, setCalDay] = useState(0)
+  const [calDay, setCalDay] = useState(0);
+  const [calStartWeek, setCalStartWeek] = useState(0);
+  const [calEndWeek, setCalEndWeek] = useState(0);
   const [calMonth, setCalMonth] = useState(month);
   const [calYear, setCalYear] = useState(year);
 
@@ -101,6 +111,9 @@ export default function PnlCalendar({ user }) {
   const [filterDrawer, setFilterDrawer] = useState(false);
 
   const [tradesOfDayPopUp, setTradesOfDayPopUp] = useState(false);
+  const [tradesOfWeekPopUp, setTradesOfWeekPopUp] = useState(false);
+  const [tradesOfMonthPopUp, setTradesOfMonthPopUp] = useState(false);
+
 
   const [filter_trade_type, setFilterTradeType] = useState("");
   const [filter_security_type, setFilterSecurityType] = useState("");
@@ -121,6 +134,36 @@ export default function PnlCalendar({ user }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [filters, setFilters] = useState({});
+
+  const handleFilterChange = (newFilter) => {
+    query.set('filter', newFilter);
+    navigate(`?${query.toString()}`);
+  };
+
+  function filtersToQueryString(filters) {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      if (filters[key] !== '') {
+        params.append(key, filters[key]);
+      }
+    }
+    return params.toString();
+  }
+
+  useEffect(() => {
+    const savedCalendarFilters = window.localStorage.getItem('CalendarFilters');
+    if (savedCalendarFilters) {
+      const CalendarFilters = JSON.parse(savedCalendarFilters);
+      setFilterTradeType(CalendarFilters.trade_type || "");
+      setFilterSecurityType(CalendarFilters.security_type || "");
+      setFilterTickerName(CalendarFilters.ticker_name || "");
+      setSelectedTickerValue(CalendarFilters.ticker_name || "");
+      setFilters(CalendarFilters);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  
+
 
 
   useEffect(() => {
@@ -202,11 +245,19 @@ export default function PnlCalendar({ user }) {
   };
 
 
-
+  /*
   var formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   });
+  */
+
+  const formatter = (currencyCode) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    });
+  };
 
   var percent = new Intl.NumberFormat('default', {
     style: 'percent',
@@ -217,7 +268,6 @@ export default function PnlCalendar({ user }) {
   const handleTradesOfDay = async (e, cal_day) => {
     e.preventDefault();
     setTradesOfDayPopUp(true);
-    onOpen();
     setCalDay(cal_day);
     const cal_date = new Date(calYear,calMonth,cal_day);
     const filters = {};
@@ -236,10 +286,118 @@ export default function PnlCalendar({ user }) {
         filters
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
+  };
+
+  function getWeekDateRange(year, month, week) {
+    // Start with the first day of the given month
+    const firstDayOfMonth = new Date(year, month, 1);
+
+    // Get the day of the week for the first day of the month
+    const firstDayOfWeek = firstDayOfMonth.getDay();
+
+    // Calculate the date of the first day of the given week
+    let startDate = new Date(
+        year,
+        month,
+        1 + (week - 1) * 7 - firstDayOfWeek
+    );
+
+    // Calculate the date of the last day of the given week
+    let endDate = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate() + 6
+    );
+
+    // Ensure the startDate is not earlier than the first day of the month
+    if (startDate < firstDayOfMonth) {
+      startDate = firstDayOfMonth;
+    }
+
+    // Get the last day of the given month
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Ensure the endDate is not later than the last day of the month
+    if (endDate > lastDayOfMonth) {
+        endDate = lastDayOfMonth;
+    }
+
+    return { startDate, endDate };
+  }
+
+  const handleTradesOfWeek = async (e, week_index) => {
+    e.preventDefault();
+    setTradesOfWeekPopUp(true);
+    const { startDate, endDate } = getWeekDateRange(calYear,calMonth,week_index);
+    setCalStartWeek(startDate);
+    setCalEndWeek(endDate);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.from_date = startDate.toISOString().split('T')[0]
+    filters.to_date = endDate.toISOString().split('T')[0]
+    await dispatch(
+      getTradesOfDateFiltered({
+        filters
+      })
+    );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
+  };
+
+  const handleTradesOfMonth = async (e) => {
+    e.preventDefault();
+    setTradesOfMonthPopUp(true);
+    let startDate = new Date(calYear,calMonth, 1);
+    let endDate = new Date(calYear,calMonth+1, 0);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    filters.from_date = startDate.toISOString().split('T')[0]
+    filters.to_date = endDate.toISOString().split('T')[0]
+    await dispatch(
+      getTradesOfDateFiltered({
+        filters
+      })
+    );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
   };
 
   const handleCancelTradesOfDay = (e) => {
     setTradesOfDayPopUp(false);
+    setTradesOfWeekPopUp(false);
+    setTradesOfMonthPopUp(false);
+    onClose();
+  };
+
+  const handleCancelTradesOfWeek = (e) => {
+    setTradesOfWeekPopUp(false);
+    setTradesOfDayPopUp(false);
+    setTradesOfMonthPopUp(false);
+    onClose();
+  };
+
+  const handleCancelTradesOfMonth = (e) => {
+    setTradesOfWeekPopUp(false);
+    setTradesOfDayPopUp(false);
+    setTradesOfMonthPopUp(false);
     onClose();
   };
 
@@ -293,7 +451,7 @@ export default function PnlCalendar({ user }) {
     let content = [];
     let totalDays = getDays(calYear, calMonth+1);
     let firstDay = new Date(calYear, calMonth, 1).getDay();
-    let spotsLeft = 42-totalDays-1-firstDay-(30-totalDays);
+    let spotsLeft = 42-totalDays-firstDay;
     for (let i = 0; i < spotsLeft; i++) {
       content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                 </GridItem>);
@@ -397,36 +555,45 @@ export default function PnlCalendar({ user }) {
     let dayCount = 0;
     let pnlDayCount = 0;
     let firstDay = new Date(calYear, calMonth, 1).getDay();
-    while (weekCount <= 6) {
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    const totalDays = firstDay + daysInMonth;
+    const numberOfWeeks = Math.ceil(totalDays / 7);
+
+    while (weekCount < numberOfWeeks) {
       if(dayCount !== 0 && dayCount%7 === 0){
         weekCount += 1;
       }
       if (weekCount === 0 && dayCount === 0 && firstDay !== 0) {
         dayCount += firstDay;
       }
-      if(pnlYTD.months[calMonth][calMonth][pnlDayCount]?.pnl !== 0.0 && pnlDayCount < 31){
+      if(pnlYTD.months[calMonth][calMonth][pnlDayCount]?.pnl !== 0.0 && pnlDayCount < daysInMonth){
         weekTotals[weekCount] += pnlYTD.months[calMonth][calMonth][pnlDayCount]?.pnl ?? 0;
       }
-      if(pnlYTD.months[calMonth][calMonth][pnlDayCount]?.count !== 0.0 && pnlDayCount < 31){
+      if(pnlYTD.months[calMonth][calMonth][pnlDayCount]?.count !== 0.0 && pnlDayCount < daysInMonth){
         weekCounts[weekCount] += pnlYTD.months[calMonth][calMonth][pnlDayCount]?.count ?? 0;
       }
       dayCount += 1;
       pnlDayCount += 1;
     }
-    for (let i = 0; i < weekTotals.length; i++) {
-      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorChange(weekTotals[i])} >
+    for (let i = 0; i < numberOfWeeks; i++) {
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(weekTotals[i])} onClick={e => handleTradesOfWeek(e, i+1)}>
                   <Text fontWeight='bold'>-</Text>
                   <Center padding={1}>
                     {weekCounts[i]} Trade(s)
                   </Center>
                   <Center fontWeight='bold' isNumeric>
-                    {pnlValue(formatter.format(weekTotals[i]))}
+                    {pnlValue(formatter(preferences.preferred_currency).format(weekTotals[i]))}
                   </Center>
                 </GridItem>);
+    }
+    for (let i = numberOfWeeks; i < 6; i++) {
+      content.push(<GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100%' h='100%' bg={colorChange(0)}></GridItem>);
     }
     return content;
   };
 
+  /*
   const getPnlDays = () => {
     let content = pnlYTD.months[calMonth][calMonth].map((pnl, index) => ( 
       <GridItem key={index} boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' w='100px' h='100%' _hover={{ bg: "gray.400" }} bg={colorChange(pnl['pnl'])} onClick={e => handleTradesOfDay(e, index+1)}>
@@ -441,17 +608,84 @@ export default function PnlCalendar({ user }) {
     ));
     return content;
   }
+  */
+  
+  
+  const getPnlDays = () => {
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    
+    // Calculate the total number of days including the offset from the first day
+    const totalDays = firstDay + daysInMonth;
+    const numberOfWeeks = Math.ceil(totalDays / 7);
+  
+    // Initialize a 2D array to hold the days for each week
+    let weeks = Array.from({ length: numberOfWeeks }, () => []);
+  
+    // Populate the weeks array with days
+    for (let i = 0; i < daysInMonth; i++) {
+      const dayOfWeek = (firstDay + i) % 7;
+      const weekOfMonth = Math.floor((firstDay + i) / 7);
+      weeks[weekOfMonth][dayOfWeek] = i + 1;
+    }
+  
+    // Generate the content for each day, ensuring to skip the 6th week if it is empty
+    let content = [];
+    weeks.forEach((week, weekIndex) => {
+      week.forEach((day, dayIndex) => {
+        if (day) {
+          const pnl = pnlYTD.months[calMonth][calMonth][day - 1];
+          content.push(
+            <GridItem
+              key={`${weekIndex}-${dayIndex}`}
+              boxShadow='inner'
+              border='1px'
+              borderColor='darkgray'
+              rounded='md'
+              p='1'
+              w='100px'
+              h='100%'
+              _hover={{ bg: "gray.400" }}
+              bg={colorChange(pnl['pnl'])}
+              onClick={e => handleTradesOfDay(e, day)}
+            >
+              <Text fontWeight='bold'>{day}</Text>
+              <Center padding={1}>
+                {pnl['count']} Trade(s)
+              </Center>
+              <Center fontWeight='bold' isNumeric>
+                {pnlValue(formatter(preferences.preferred_currency).format(pnl['pnl']))}
+              </Center>
+            </GridItem>
+          );
+        }
+      });
+    });
+  
+    return content;
+  }
+  
+  function loadFiltersFromLocalStorage(page) {
+    const filters = localStorage.getItem(page+'Filters');
+    return filters ? JSON.parse(filters) : {};
+  }
 
   useEffect(() => {
     let year = calYear;
+    let filters = loadFiltersFromLocalStorage('Calendar');
+    const hasFilters = Object.keys(filters).length > 0;
     if(user.user_id != undefined){
-      dispatch(getPnlByYear({ year }));
+      if (hasFilters) {
+        dispatch(getPnlByYearFiltered({ filters, year }));
+      } else {
+        dispatch(getPnlByYear({ year }));
+      }
     }
-    setFilterTradeType('');
-    setFilterSecurityType('');
-    setFilterTickerName('');
-    setSearchTickerValue('');
-    setSelectedTickerValue('');
+    //setFilterTradeType('');
+    //setFilterSecurityType('');
+    //setFilterTickerName('');
+    //setSearchTickerValue('');
+    //setSelectedTickerValue('');
   }, [calYear, user]); 
 
   const getFilterComponent = () => {
@@ -609,6 +843,8 @@ export default function PnlCalendar({ user }) {
         year
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('CalendarFilters', JSON.stringify(filters));
     setFilters(filters);
     //setToggleFilter(!toggleFilter);
   }
@@ -623,6 +859,8 @@ export default function PnlCalendar({ user }) {
     setSelectedTickerValue('');
     let year = calYear;
     await dispatch(getPnlByYear({ year }));
+    handleFilterChange(filtersToQueryString({}));
+    window.localStorage.removeItem('CalendarFilters');
     setFilters({});
     //setToggleFilter(!toggleFilter);
   }
@@ -679,7 +917,7 @@ export default function PnlCalendar({ user }) {
           >
           
           <Box overflowX="auto" flexGrow="1" display="flex" borderWidth="1px" rounded="lg" alignItems="stretch">
-          {authLoading && !tradesOfDayPopUp ?
+          {authLoading && !tradesOfDayPopUp && !tradesOfWeekPopUp && !tradesOfMonthPopUp ?
             <Stack
             flex="auto"
             p="1rem"
@@ -708,7 +946,7 @@ export default function PnlCalendar({ user }) {
               w='full'
               overflowX="auto"
             >
-            {hasPnLInfo ? (
+            {hasPnLInfo && hasPreferences ? (
               /*
             <div>
               <Text>
@@ -806,7 +1044,7 @@ export default function PnlCalendar({ user }) {
               {tradesOfDayPopUp} ? (
               <AlertDialog
                 motionPreset='slideInBottom'
-                isOpen={isOpen}
+                isOpen={tradesOfDayPopUp}
                 leastDestructiveRef={cancelRef}
                 onClose={e => handleCancelTradesOfDay(e)}
                 isCentered={true}
@@ -879,7 +1117,7 @@ export default function PnlCalendar({ user }) {
                     </Stat>
                     <Stat flex="1" textAlign="right">
                       <StatLabel>Total PnL</StatLabel>
-                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0)}>{pnlValue(formatter.format(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0))}</StatNumber>
+                      <StatNumber color={colorChangeDay(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0)}>{pnlValue(formatter(preferences.preferred_currency).format(pnlYTD.months[calMonth][calMonth][calDay-1]?.pnl ?? 0))}</StatNumber>
                     </Stat>
                   </Flex>
                   </AlertDialogFooter>
@@ -905,17 +1143,184 @@ export default function PnlCalendar({ user }) {
               </Grid>
               </VStack>
               </HStack>
-              
+              {tradesOfWeekPopUp} ? (
+              <AlertDialog
+                motionPreset='slideInBottom'
+                isOpen={tradesOfWeekPopUp}
+                leastDestructiveRef={cancelRef}
+                onClose={e => handleCancelTradesOfWeek(e)}
+                isCentered={true}
+                closeOnOverlayClick={true}
+                size="xl"
+              >
+              {authLoading ?
+              <AlertDialogOverlay>
+                <AlertDialogContent>
+                <Center>
+                  <Spinner
+                      thickness='4px'
+                      speed='0.65s'
+                      emptyColor='gray.200'
+                      color='blue.500'
+                      size='xl'
+                  />
+                </Center>
+                </AlertDialogContent>
+              </AlertDialogOverlay>
+              :
+                <AlertDialogOverlay>
+                <AlertDialogContent>
+                  <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                  <Center>
+                    Trades Closed from {(new Date(calStartWeek)).toDateString()} to {(new Date(calEndWeek)).toDateString()}
+                  </Center>
+                  </AlertDialogHeader>
+
+                  <AlertDialogBody>
+                  {hasTradesofDay && hasStats ? (
+                  <TableContainer overflowY="auto" maxHeight="300px" rounded="lg">
+                    <Table size='sm' variant='striped' colorScheme={colorMode === 'light' ? 'whiteAlpha' : "gray.700"}>
+                      <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"}>
+                        <Tr>
+                          <Th>Trade<br></br>Type</Th>
+                          <Th>Security<br></br>Type</Th>
+                          <Th>Ticker</Th>
+                          <Th>PNL</Th>
+                          <Th>% W/L</Th>
+                        </Tr>
+                      </Thead>
+                          <Tbody>
+                            {trades.trades.map((trades, index) => (
+                              <Tr>
+                                <Td>{trades.trade_type}</Td>
+                                <Td>{trades.security_type}</Td>
+                                <Td>{trades.ticker_name}</Td>
+                                <Td isNumeric>{trades.pnl}</Td>
+                                <Td isNumeric>{trades.percent_wl}</Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                    </Table>
+                  </TableContainer>
+                  ) : (
+                  <Center>
+                    <Badge variant='subtle' colorScheme='red' fontSize='0.8em'>
+                      No Trades Closed in This Week
+                    </Badge>
+                  </Center>
+                  )}
+                  </AlertDialogBody>
+
+                  <AlertDialogFooter>
+                  <Flex width="100%" justifyContent="space-between">
+                    <Stat flex="1">
+                      <StatLabel>Total Trades</StatLabel>
+                      <StatNumber>{(trades?.stats?.num_trades ?? 0)}</StatNumber>
+                    </Stat>
+                    <Stat flex="1" textAlign="right">
+                      <StatLabel>Total PnL</StatLabel>
+                      <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter(preferences.preferred_currency).format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
+                    </Stat>
+                  </Flex>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialogOverlay>
+              }
+              </AlertDialog>
+              )
               <HStack spacing={8} overflowX="auto" w='100%'>
               <Grid overflowX='scroll' templateColumns='repeat(6, 1fr)' gap={6}>
-                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorChange(getMonthlyTotal())} >
+                <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%'  _hover={{ bg: "gray.400" }} bg={colorChange(getMonthlyTotal())} onClick={e => handleTradesOfMonth(e)}>
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Monthly PnL</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(getMonthlyTotal()))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(getMonthlyTotal()))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
+                <AlertDialog
+                  motionPreset='slideInBottom'
+                  isOpen={tradesOfMonthPopUp}
+                  leastDestructiveRef={cancelRef}
+                  onClose={e => handleCancelTradesOfMonth(e)}
+                  isCentered={true}
+                  closeOnOverlayClick={true}
+                  size="xl"
+                >
+                {authLoading ?
+                <AlertDialogOverlay>
+                  <AlertDialogContent>
+                  <Center>
+                    <Spinner
+                        thickness='4px'
+                        speed='0.65s'
+                        emptyColor='gray.200'
+                        color='blue.500'
+                        size='xl'
+                    />
+                  </Center>
+                  </AlertDialogContent>
+                </AlertDialogOverlay>
+                :
+                  <AlertDialogOverlay>
+                  <AlertDialogContent>
+                    <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                    <Center>
+                      Trades Closed in {monthsString[calMonth]}
+                    </Center>
+                    </AlertDialogHeader>
+
+                    <AlertDialogBody>
+                    {hasTradesofDay && hasStats ? (
+                    <TableContainer overflowY="auto" maxHeight="300px" rounded="lg">
+                      <Table size='sm' variant='striped' colorScheme={colorMode === 'light' ? 'whiteAlpha' : "gray.700"}>
+                        <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"}>
+                          <Tr>
+                            <Th>Trade<br></br>Type</Th>
+                            <Th>Security<br></br>Type</Th>
+                            <Th>Ticker</Th>
+                            <Th>PNL</Th>
+                            <Th>% W/L</Th>
+                          </Tr>
+                        </Thead>
+                            <Tbody>
+                              {trades.trades.map((trades, index) => (
+                                <Tr>
+                                  <Td>{trades.trade_type}</Td>
+                                  <Td>{trades.security_type}</Td>
+                                  <Td>{trades.ticker_name}</Td>
+                                  <Td isNumeric>{trades.pnl}</Td>
+                                  <Td isNumeric>{trades.percent_wl}</Td>
+                                </Tr>
+                              ))}
+                            </Tbody>
+                      </Table>
+                    </TableContainer>
+                    ) : (
+                    <Center>
+                      <Badge variant='subtle' colorScheme='red' fontSize='0.8em'>
+                        No Trades Closed in This Month
+                      </Badge>
+                    </Center>
+                    )}
+                    </AlertDialogBody>
+
+                    <AlertDialogFooter>
+                    <Flex width="100%" justifyContent="space-between">
+                      <Stat flex="1">
+                        <StatLabel>Total Trades</StatLabel>
+                        <StatNumber>{(trades?.stats?.num_trades ?? 0)}</StatNumber>
+                      </Stat>
+                      <Stat flex="1" textAlign="right">
+                        <StatLabel>Total PnL</StatLabel>
+                        <StatNumber color={colorChangeDay(trades?.stats?.total_pnl ?? 0)}>{pnlValue(formatter(preferences.preferred_currency).format(trades?.stats?.total_pnl ?? 0))}</StatNumber>
+                      </Stat>
+                    </Flex>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                  </AlertDialogOverlay>
+                }
+                </AlertDialog>
                 <GridItem boxShadow='inner' border='1px' borderColor='darkgray' rounded='md' p='1' minWidth='150px' maxWidth='150px' w='100%' h='100%' bg={colorMode === 'light' ? "gray.100" : "gray.700"} >
                   <Center fontWeight='bold'>
                   <Stat>

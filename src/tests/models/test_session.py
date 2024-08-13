@@ -1,6 +1,6 @@
 import unittest
-from models.session import *
-from models.utils import execute_db
+from src.models.session import *
+from src.models.utils import execute_db
 from datetime import datetime, timedelta
 
 class TestSession(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getsessionunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -35,7 +35,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","addsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","addsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("addsessionunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -54,7 +54,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","refreshexpirationunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","refreshexpirationunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("refreshexpirationunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -75,7 +75,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteusersessionsunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteusersessionsunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deleteusersessionsunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -96,7 +96,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","expiresessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","expiresessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("expiresessionunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -118,7 +118,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","expireprevioussessionsunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","expireprevioussessionsunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("expireprevioussessionsunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -139,7 +139,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserfromsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserfromsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getuserfromsessionunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -160,7 +160,7 @@ class TestSession(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getemailfromsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getemailfromsessionunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getemailfromsessionunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -182,27 +182,3 @@ class TestSession(unittest.TestCase):
         #self.transaction.rollback()
         #THIS SHOULD BE DELETING THE USER SO IT ALWAYS HAPPENS
         
-        
-#--------Tests--------# 
-
-#Testing addTrade       
-#testTrade = Trade(None,1,"Swing Trade","Options","TSLA","12-12-2022","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
-#response = Trade.addTrade(testTrade)
-
-#Testing updateTrade
-#testTradeID = 3;
-#testUpdateTradeInfo = {
-#    "ticker_name": "QQQ",
-#    "pnl": 250
-#}
-#response = Trade.updateTrade(testTradeID,testUpdateTradeInfo)
-
-#Testing deleteTrade
-#testTradeID = 7
-#response = Trade.deleteTrade(testTradeID)
-
-#Testing getTrade
-#testTradeID = 3
-#response = Trade.getTrade(testTradeID)
-
-#print(response)

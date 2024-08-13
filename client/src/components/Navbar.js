@@ -46,7 +46,7 @@ import logo from '../logo/mttlogo512.png';
 
 const API_URL = process.env.REACT_APP_API_URL;
 const SWAGGER_URL = API_URL+'apidocs/';
-const APP_VERSION = "1.0.9";
+const APP_VERSION = "1.1.0";
 
 const PAGE_NAME = [
   {page:"/home", text: "Home"}, 
@@ -190,7 +190,11 @@ export default function Navbar({ user }) {
     window.localStorage.removeItem('tradeInfo');
     window.localStorage.removeItem('feedbackInfo');
     window.localStorage.removeItem('updateTradeInfo');
+    window.localStorage.removeItem('updateBulkTradeInfo');
     window.localStorage.removeItem('updateUserInfo');
+    window.localStorage.removeItem('HomeFilters');
+    window.localStorage.removeItem('CalendarFilters');
+    window.localStorage.removeItem('SummaryFilters');
   } 
 
   

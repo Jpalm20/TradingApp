@@ -40,6 +40,11 @@ import resetcode
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
+import journalentry
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
 import utils
 
 script_dir = os.path.dirname( __file__ )
@@ -74,7 +79,7 @@ def registerUser(requestBody):
     requestTransformed = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
                         requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
-                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None)
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None,None)
     response = user.User.addUser(newUser)
     if response[0]:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -179,7 +184,7 @@ def changePassword(user_id, requestBody):
 def getExistingUser(user_id):
     logger.info("Entering Get User Handler: " + "(user_id: {})".format(str(user_id)))
     response = user.User.getUserbyID(user_id)
-    if 'user_id' in response[0][0]:
+    if len(response[0]) != 0 and 'user_id' in response[0][0]:
         response = {
             "user_id": response[0][0]['user_id'],
             "first_name": response[0][0]['first_name'],
@@ -204,10 +209,11 @@ def getExistingUser(user_id):
 def getUserPreferences(user_id):
     logger.info("Entering Get User Preferences Handler: " + "(user_id: {})".format(str(user_id)))
     response = user.User.getPreferences(user_id)
-    if 'account_value_optin' in response[0][0]:
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Get User Preferences Handler: " + str(response))
         return response
@@ -227,10 +233,11 @@ def toggleAvTracking(user_id):
             "result": response
         }, 400   
     response = user.User.getPreferences(user_id)
-    if 'account_value_optin' in response[0][0]:
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Toggle Account Value Tracking Handler: " + str(response))
         return response
@@ -250,10 +257,11 @@ def toggleEmailOptInHandler(user_id):
             "result": response
         }, 400   
     response = user.User.getPreferences(user_id)
-    if 'account_value_optin' in response[0][0]:
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Toggle Email Opt In Handler: " + str(response))
         return response
@@ -286,10 +294,11 @@ def toggleFeatureFlagsHandler(user_id,requestBody):
                     "result": response
                 }, 400   
     response = user.User.getPreferences(user_id)
-    if 'account_value_optin' in response[0][0]:
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
-            "email_optin": response[0][0]['email_optin']
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
         }
         logger.info("Leaving Toggle Feature Flags Handler: " + str(response))
         return response
@@ -299,11 +308,40 @@ def toggleFeatureFlagsHandler(user_id,requestBody):
             "result": response
         }, 400
         
+        
+def updatePreferredCurrencyHandler(user_id,requestBody):
+    logger.info("Entering Update Preferred Currency Handler: " + "(user_id: {})".format(str(user_id)))
+    response = userValidator.validateUpdatePreferredCurrency(requestBody)
+    if response != True:
+        logger.warning("Leaving Update Preferred Currency Handler: " + str(response))
+        return response
+    if 'preferred_currency' in requestBody:
+        response = user.User.updateUserCurrency(user_id,requestBody['preferred_currency']) 
+        if response[0]:
+            logger.warning("Leaving Update Preferred Currency Handler: " + str(response))
+            return {
+                "result": response
+            }, 400
+    response = user.User.getPreferences(user_id)
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
+        response = {
+            "account_value_optin": response[0][0]['account_value_optin'],
+            "email_optin": response[0][0]['email_optin'],
+            "preferred_currency": response[0][0]['preferred_currency'],
+        }
+        logger.info("Leaving Update Preferred Currency Handler: " + str(response))
+        return response
+    else:
+        logger.warning("Leaving Update Preferred Currency Handler: " + str(response))
+        return {
+            "result": response
+        }, 400
+        
     
 def getUserFromSession(auth_token):
     logger.info("Entering Get User From Session Handler: " + "(auth_token: {})".format(str(auth_token)))
     response = user.User.getUserBySessionToken(auth_token)
-    if 'user_id' in response[0][0]:
+    if len(response[0]) != 0 and 'user_id' in response[0][0]:
         response = {
             "user_id": response[0][0]['user_id'],
             "first_name": response[0][0]['first_name'],
@@ -333,7 +371,7 @@ def editExistingUser(user_id,requestBody):
     requestTransformed = userTransformer.transformEditUser(requestBody)
     response = user.User.updateUser(user_id,requestTransformed)
     response = user.User.getUserbyID(user_id)
-    if 'user_id' in response[0][0]:
+    if len(response[0]) != 0 and 'user_id' in response[0][0]:
         response = {
             "user_id": response[0][0]['user_id'],
             "first_name": response[0][0]['first_name'],
@@ -359,6 +397,9 @@ def deleteExistingUser(user_id):
     logger.info("Entering Delete User Handler: " + "(user_id: {})".format(str(user_id)))
     response = trade.Trade.deleteUserTrades(user_id)
     response = session.Session.deleteUserSessions(user_id)
+    response = resetcode.Resetcode.deleteUserResetCodes(user_id)
+    response = accountvalue.Accountvalue.deleteUserAccountValues(user_id)
+    response = journalentry.Journalentry.deleteUserJournalEntries(user_id)
     response = user.User.deleteUser(user_id)
     if response[0]:
         logger.warning("Leaving Delete User Handler: " + str(response))
@@ -397,9 +438,12 @@ def getUserTrades(user_id,filters=None):
     if not filters:
         response = user.User.getUserTrades(user_id)
     else:
-        filterBody = filters.to_dict()
+        filterBody = filters.to_dict() if hasattr(filters, 'to_dict') else filters
+        #filterBody = filters.to_dict()
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        if 'from_date' in filters and 'to_date' in filters:
+            filterBody['from_and_to_date'] = userTransformer.transformFromAndToDate(filters['from_date'],filters['to_date'])
         response = user.User.getUserTradesFilter(user_id,filterBody)
     if len(response[0]) != 0 and "trade_id" in response[0][0]:
         numTrades = 0
@@ -559,9 +603,12 @@ def getUserTradesStats(user_id,filters=None):
     if not filters:
         response = user.User.getUserTradesStats(user_id)
     else:
-        filterBody = filters.to_dict()
+        filterBody = filters.to_dict() if hasattr(filters, 'to_dict') else filters
+        #filterBody = filters.to_dict()
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        if 'from_date' in filters and 'to_date' in filters:
+            filterBody['from_and_to_date'] = userTransformer.transformFromAndToDate(filters['from_date'],filters['to_date'])
         response = user.User.getUserTradesStatsFilter(user_id,filterBody)
     if len(response[0]) != 0 and "numTrades" in response[0][0]:   
         avgWin = 0
@@ -644,7 +691,7 @@ def getUserTradesStats(user_id,filters=None):
         return response
         
         
-def getUserTradesPage(user_id,filters):
+def getUserTradesPage(user_id,filters=None):
     logger.info("Entering Get User Trades Page Handler: " + "(user_id: {}, filters: {})".format(str(user_id),str(filters)))
     if not filters:
         response = "Please include Page Number and Rows per Page"
@@ -655,10 +702,13 @@ def getUserTradesPage(user_id,filters):
     else:
         page = filters['page']
         numrows = filters['numrows']
-        filterBody = filters.to_dict()
+        filterBody = filters.to_dict() if hasattr(filters, 'to_dict') else filters
+        #filterBody = filters.to_dict()
         del filterBody['page'], filterBody['numrows']
         if 'date_range' in filters:
             filterBody['date_range'] = userTransformer.transformDateRange(filters['date_range'])
+        if 'from_date' in filters and 'to_date' in filters:
+            filterBody['from_and_to_date'] = userTransformer.transformFromAndToDate(filters['from_date'],filters['to_date'])
         count = user.User.getTotalTrades(user_id,filterBody)[0][0]['COUNT(*)']
         offset = (int(page)-1)*int(numrows)
         response = user.User.getUserTradesPage(user_id,int(numrows),offset,filterBody)
@@ -879,7 +929,7 @@ def setAccountValue(user_id,requestBody):
         logger.warning("Leaving Set Account Value Handler: " + str(response))
         return response
     response = user.User.getPreferences(user_id)
-    if 'account_value_optin' in response[0][0]:
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         if(response[0][0]['account_value_optin'] == 0):
             response = user.User.accountValueFeatureOptin(user_id) 
             if response[0]:
@@ -924,7 +974,7 @@ def getAccountValue(user_id,filters):
         logger.warning("Leaving Get Account Value Handler: " + str(response))
         return response
     response = user.User.getPreferences(user_id)
-    if 'account_value_optin' in response[0][0]:
+    if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         if(response[0][0]['account_value_optin'] == 0):
             date_range = [datetime.strptime(filters['date'], '%Y-%m-%d').date() - timedelta(days=i) for i in range(6, -1, -1)]
             result = [{'accountvalue': 0, 'date': date.strftime('%Y-%m-%d')} for date in date_range]
@@ -946,19 +996,13 @@ def getAccountValue(user_id,filters):
                 # Next is to get values from DB
                 response = accountvalue.Accountvalue.getAccountValuesTF(user_id,tfdaterange)
                 # Then check if all 7 got returned otherwise set to 0
-                if len(response[0]) != 0 and "accountvalue" in response[0][0]:
-                    data = {row['date'] : row['accountvalue'] for row in response[0]}
-                    result = [{'accountvalue': data.get(date, 0), 'date': date.strftime('%Y-%m-%d')} for date in tfdaterange]
-                    # format and return 7 values in response
-                    logger.info("Leaving Get Account Value Handler: " + str(result))
-                    return {
-                        "accountvalues": result
-                    }
-                else:
-                    logger.warning("Leaving Get Account Value Handler: " + str(response))
-                    return {
-                        "result": response
-                    }, 400
+                data = {row['date'] : row['accountvalue'] for row in response[0]}
+                result = [{'accountvalue': data.get(date, 0), 'date': date.strftime('%Y-%m-%d')} for date in tfdaterange]
+                # format and return 7 values in response
+                logger.info("Leaving Get Account Value Handler: " + str(result))
+                return {
+                    "accountvalues": result
+                }
             else:
                 response = accountvalue.Accountvalue.getAccountValues(user_id,datetime.strptime(filters['date'], '%Y-%m-%d').date())
                 if len(response[0]) != 0 and "accountvalue" in response[0][0]:
@@ -979,63 +1023,3 @@ def getAccountValue(user_id,filters):
         return {
             "result": response
         }, 400
-
-  
-
-#--------Tests--------# 
-
-#Testing registerUser()
-#testUserDict = {
-#    "first_name": "Stevie",
-#    "last_name": "Wonder",
-#    "birthday": "12-31-2014",
-#    "email": "xxxxxx@gmail.com",
-#    "password": "testpassword",
-#    "street_address": "25 Lenox Hill Rd",
-#    "city": "Brewster",
-#    "state": "MD",
-#    "country": "US",
-#}
-#response = registerUser(testUserDict)
-
-#Testing validateUser()
-#testUserDict = {
-#    "email": "alexi.bollella@gmail.com",
-#    "password": "Modperl1!",
-#}
-#response = validateUser(testUserDict)
-
-#Testing getExistingUser()
-#response = getExistingUser(1)
-
-#Testing editExistingUser()
-#testChanges = {
-#    "first_name": "Jonathan",
-#    "last_name": "Palmieri"
-#}
-#response = editExistingUser(62,testChanges)
-
-#Testing deleteExistingUser()
-#response = deleteExistingUser(62)
-
-#Testing getUserTrades()
-#response = getUserTrades(77)
-
-#Testing getUserTradesFilter
-#testUserID = 71
-#testFilters = {
-#   "ticker_name": "SPY",
-#   "trade_type": "Swing Trade",
-#   "security_type": "Options"
-#}
-#response = getUserTrades(testUserID,testFilters)
-
-#Testing getUserTradesPage
-#testUserID = 71
-#testFilters = {
-#   "page": "1",
-#   "numrows": "100",
-#}
-#response = getUserTradesPage(testUserID,testFilters)
-
-#print(response)

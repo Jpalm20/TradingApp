@@ -115,7 +115,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>📣 MyTradingTracker Release Notes - Version 1.0.9</h1>
+    <h1>📣 MyTradingTracker Release Notes - Version 1.1.0</h1>
     <p class="section">We are excited to present the latest update for MyTradingTracker!
 
       <br>This version comes packed with new features, improvements, and bug fixes to enhance your trading experience. Here are the highlights:<br> 
@@ -124,45 +124,40 @@
     <div class="section">
       <h2 class="section-title">New Features</h2>
       <ul>
-        <li><span class="emoji">⭐</span><span class="feature">TRADE-424 - Open Trades View - You can now view/close trades that have not yet been closed via the Home Screen.</span></li>
+        <li><span class="emoji">⭐</span><span class="feature">TRADE-193 - GitHub Actions - Automated Unit & Integration Tests Prior to Deployment.</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">Bug Fixes</h2>
       <ul>
-        <li><span class="emoji">🐛</span><span class="bug">TRADE-428 - Resolved Caching issues related to updating and deleting trades via the Trade Summary Page.</span></li>
-        <li><span class="emoji">🐛</span><span class="bug">TRADE-429 - Enhanced Bulk Delete Trades functionality to only return necesssary information.</span></li>
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-467 - Resolved Max DB Connection Issue that was occurring on Staging and Production Environments.</span></li>
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-469 - Fixed Error when trying to display r:r for Imported Trades with no Risk/Reward specified, backend logic now defaults to 1:1 when saving Trade entry instead of null.</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">Improvements</h2>
       <ul>
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-426 - Enhancement to calculation of Red/Green/Breakeven days on PnL Calendar Page.</span></li>
-        <li><span class="emoji">🚀</span><span class="improvement">TRADE-442 - Enhanced logic to add multiple trades at once (via Import) in order to decrease execution time for a large number of trades.</span></li>
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-431 - Enhanced Local Storage management to avoid issues with saved form fields.</span></li>      
-        <li><span class="emoji">🚀</span><span class="improvement">TRADE-433/TRADE-441 - Updates to Account Value Update CRON Job to avoid intermittent failures that were occurring.</span></li>      
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-434 - General Caching enhancements to improve efficiency and avoid pulling stale cache data.</span></li>            
-        <li><span class="emoji">🚀</span><span class="improvement">TRADE-335 - Added Swagger API Documentation.</span></li>            
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-432 - Spacing enhancements for Mobile Devices in light mode.</span></li>                  
-        <li><span class="emoji">🚀</span><span class="improvement">TRADE-464 - FE Accesspoint for users to view Swagger Docs, now make your own scripts or better understand the application!</span></li>                  
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-430 - Improving Session Token expiration and generation so each user only has one valid token at any time.</span></li>                                         
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-437 - Added Support for additional currencies and ability to update currency in User Preferences.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-443 - Enhanced Import Trade functionality so that imported trades affect Account Value balance.</span></li>
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-450 - Enhanced PnL Calendar to provide additional visbility at the weekly and monthly level.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-463 - Enhanced Trade Update Functionality so users can now Bulk Update/Overwrite Trade data on the Trade Summary Page.</span></li>      
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-466 - Enhanced Update Trade functionality so now Account Value updates will take place for Trades where PnL and Trade Close Date were initially null but now provided in update.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-472 - Implemented Connection Pooling DB to avoid possibility of Max Connection Issues.</span></li>    
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-477 - Added Date Range (From and To) Filters to the Home & Trade Summary Pages.</span></li>  
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-483 - Added applied Filter Parameters to URL at the top of Web Browser. </span></li>    
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-484 - Fixed Mobile spacing for Open Trades component, buttons were hidden and overlapping.</span></li>  
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">What's Coming Next</h2>
       <ul>
-        <li><span class="emoji">🧑‍💻</span><span class="next">Wrapping up the build out of our Frontend and Backend testing for a more robust and secure application, all tests will need to pass before releasing a new build to Production.</span></li>
         <li><span class="emoji">🧑‍💻</span><span class="next">Addition of commision/fees in each trade entry for more accurracy on accout value calculation, and opportunity for insight into long term spending on fees.</span></li>      
         <li><span class="emoji">🧑‍💻</span><span class="next">Additional classification for each trade entry with PUT/CALL for options and LONG/SHORT for equity trades.</span></li>      
         <li><span class="emoji">🧑‍💻</span><span class="next">Ability for Users to upload Profile Pictures to their profile.</span></li>      
         <li><span class="emoji">🧑‍💻</span><span class="next">Two-Factor Authentication Integration.</span></li>        
-        <li><span class="emoji">🧑‍💻</span><span class="next">Add Support for additional currencies.</span></li>    
-        <li><span class="emoji">🧑‍💻</span><span class="next">Enhance Import Trade functionality so that imported trades affect Account Value balance.</span></li>     
-        <li><span class="emoji">🧑‍💻</span><span class="next">Enhance PnL Calendar to provide additional visbility at the weekly and monthly level.</span></li>     
-        <li><span class="emoji">🧑‍💻</span><span class="next">Enhance Bulk Trade Update Functionality.</span></li>      
       </ul>
     </div>
     

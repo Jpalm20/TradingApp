@@ -1,18 +1,60 @@
 import os
+from dotenv import load_dotenv
 import random
 import mysql.connector
+from mysql.connector import pooling
 import logging
 
 logger = logging.getLogger(__name__)
 
-DB_HOST = os.environ.get('DB_HOST')
-DB_PORT = os.environ.get('DB_PORT')
-DB_NAME = os.environ.get('DB_NAME')
-DB_USERNAME = os.environ.get('DB_USERNAME')
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
 
+# Load environment variables from .env file
+load_dotenv()
 
-def execute_db(query,args):
+ENV = os.environ.get('ENV','prod')
+
+if ENV == 'test':
+    DB_HOST = os.environ.get('TEST_DB_HOST')
+    DB_PORT = os.environ.get('TEST_DB_PORT')
+    DB_NAME = os.environ.get('TEST_DB_NAME')
+    DB_USERNAME = os.environ.get('TEST_DB_USERNAME')
+    DB_PASSWORD = os.environ.get('TEST_DB_PASSWORD')
+else:
+    if ENV == 'docker':
+        DB_HOST = os.environ.get('DB_HOST_DOCKER')
+    else:
+        DB_HOST = os.environ.get('DB_HOST')
+    DB_PORT = os.environ.get('DB_PORT')
+    DB_NAME = os.environ.get('DB_NAME')
+    DB_USERNAME = os.environ.get('DB_USERNAME')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD')
+
+# Database configuration
+db_config = {
+    "user": DB_USERNAME,
+    "password": DB_PASSWORD,
+    "host": DB_HOST,
+    "database": DB_NAME,
+    "port": DB_PORT,
+    "connection_timeout": 300,  # Set the connection timeout to 5 minutes (300 seconds)
+    "pool_name": "mypool",
+    "pool_size": 5,
+    "pool_reset_session": True
+}
+
+# Set up connection pooling
+connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
+
+def get_db_connection():
+    connection = connection_pool.get_connection()
+    return connection
+
+def close_db_connection(connection):
+    if connection is not None and connection.is_connected():
+        connection.close()
+        logger.info("DB Connection Closed")
+
+def execute_db_old(query,args):
     logger.info("Entering Execute Database Query Util: " + "(query: {}, args: {})".format(str(query),str(args)))
     connection = None
     try:
@@ -39,6 +81,31 @@ def execute_db(query,args):
     logger.info("Leaving Execute Database Query Util: " + str(response))
     return response
 
+def execute_db(query, params=None):
+    logger.info("Entering Execute Database Query Util: " + "(query: {}, args: {})".format(str(query),str(params)))
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)  # Assuming you want results as dictionaries
+    try:
+        cursor.execute(query, params)
+        """
+        if query.strip().lower().startswith("select"):
+            result = cursor.fetchall()
+        else:
+            connection.commit()
+            result = cursor.rowcount
+        """
+        result = cursor.fetchall() 
+        id = cursor.lastrowid
+        connection.commit()
+        response = result,id
+    except mysql.connector.Error as err:
+        response = "Failed: {}".format(err)
+    finally:
+        cursor.close()
+        close_db_connection(connection)
+    logger.info("Leaving Execute Database Query Util: " + str(response))
+    return response
+
 
 def generate_code():
     logger.info("Entering Generate Code Util: ")
@@ -56,12 +123,14 @@ def add_filters_to_query_sring(query,filters):
         queryString += " AND "
         conditions = []
         for key, value in filters.items():
-            if key == 'date_range':
+            if key in ('date_range','from_and_to_date','from_date','to_date'):
                 continue
             if value:
                 conditions.append(f"{key}='{value}'")
         if 'date_range' in filters: 
             conditions.append(filters['date_range'])
+        if 'from_and_to_date' in filters:
+            conditions.append(filters['from_and_to_date'])
         queryString += " AND ".join(conditions)
     logger.info("Leaving Add Filters to Query String Util: " + str(queryString))
     return queryString

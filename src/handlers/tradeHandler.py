@@ -113,10 +113,7 @@ def getExistingTrade(trade_id):
 def searchUserTicker(user_id, filter=None):
     logger.info("Entering Search User Ticker Handler: " + "(user_id: {}, filter: {})".format(str(user_id), str(filter)))
     if filter:
-        if isinstance(filter, dict):
-            filterBody = filter  # 'filter' is already a dictionary
-        else:
-            filterBody = filter.to_dict() 
+        filterBody = filter.to_dict() if hasattr(filter, 'to_dict') else filter
         eval, response = tradeValidator.validateSearchTicker(filterBody)
         if eval == False:
             logger.warning("Leaving Search User Ticker Handler: " + str(response))
@@ -199,6 +196,20 @@ def editExistingTrade(user_id,trade_id,requestBody):
                         "result": avresponse
                     }, 400
         elif ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is None): #trade_date was null originally, need to set all days with pnl fully as normal
+            if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
+                if fdresponse[0]:
+                    logger.warning("Leaving Edit Trade Handler: " + str(fdresponse))
+                    return {
+                        "result": fdresponse
+                    }, 400
+            avresponse = accountvalue.Accountvalue.handleAddTrade(trade_id)
+            if avresponse[0]:
+                logger.warning("Leaving Edit Trade Handler: " + str(avresponse))
+                return {
+                    "result": avresponse
+                }, 400
+        elif ('pnl' in og_trade_info and og_trade_info['pnl'] is None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is None): #when closing trade that originally has no pnl or trade_date
             if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                 fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
                 if fdresponse[0]:
@@ -326,19 +337,46 @@ def importCsv(file, user_id):
             return {
                 "result": response
             }, 400  
+        """
         eval, response = trade.Trade.addTrades(result)
         if not eval:
             logger.warning("Leaving Import CSV Handler: " + str(response))
             return {
                 "result": response
             }, 400
-        else:
-            response = {
-                "result": "Trades Imported Successfully", 
-                "trades": result
-            } 
-            logger.info("Leaving Import CSV Handler: " + str(response))
-            return response
+        """
+        for trade_entry in result:
+            newImportTrade = trade.Trade(None,trade_entry['user_id'],trade_entry['trade_type'],trade_entry['security_type'],
+                        trade_entry['ticker_name'],trade_entry['trade_date'],trade_entry['expiry'],trade_entry['strike'],
+                        trade_entry['buy_value'],trade_entry['units'],trade_entry['rr'],trade_entry['pnl'],
+                        trade_entry['percent_wl'],trade_entry['comments'])
+            response = trade.Trade.addTrade(newImportTrade)
+            if response[0]:
+                logger.warning("Leaving Import CSV Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400
+            else:
+                if ('trade_date' in trade_entry and trade_entry['trade_date'] is not None) and ('pnl' in trade_entry and trade_entry['pnl'] is not None):
+                    if (datetime.strptime(trade_entry['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
+                        fdresponse = accountvalue.Accountvalue.insertFutureDay(user_id,trade_entry['trade_date'])
+                        if fdresponse[0]:
+                            logger.warning("Leaving Import CSV Handler: " + str(fdresponse))
+                            return {
+                            "result": fdresponse
+                        }, 400
+                    avresponse = accountvalue.Accountvalue.handleAddTrade(response[1])
+                    if avresponse[0]:
+                        logger.warning("Leaving Import CSV Handler: " + str(avresponse))
+                        return {
+                            "result": avresponse
+                        }, 400
+        response = {
+            "result": "Trades Imported Successfully", 
+            "trades": result
+        } 
+        logger.info("Leaving Import CSV Handler: " + str(response))
+        return response
     else:
         logger.warning("Leaving Import CSV Handler: " + str(result))
         return {
@@ -370,40 +408,3 @@ def exportCsv(requestBody):
     response.headers['Content-Type'] = 'text/csv'
     logger.info("Leaving Export CSV Handler: " + str(response))
     return response
-
-        
-        
-#--------Tests--------# 
-
-#Testing logUser()
-#testTradeDict = {
-#    "user_id": 1,
-#   "trade_type": "Day Trade",
-#    "security_type": "Options",
-#    "ticker_name": "SPY",
-#    "trade_date": "12-12-2022",
-#    "expiry": "8-30-1998",
-#    "strike": 420,
-#    "buy_value": 50,
-#    "units": 10,
-#    "rr": "3:1",
-#    "pnl": 150,
-#    "percent_wl": 54.4,
-#    "comments": "Test Comment"
-#}
-#response = logTrade(testTradeDict)
-
-#Testing getExistingTrade()
-#response = getExistingTrade(11)
-
-#Testing editExistingTrade()
-#testChanges = {
-#    "pnl": 500,
-#    "ticker_name": "MSFT"
-#}
-#response = editExistingTrade(11,testChanges)
-
-#Testing deleteExistingTrade()
-#response = deleteExistingTrade(9)
-
-#print(response)

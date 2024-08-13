@@ -1,11 +1,11 @@
-import utils as utils
+import src.models.utils as utils
 import logging
 
 logger = logging.getLogger(__name__)
 
 class User:
     
-    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin):
+    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin,preferredCurrency):
         self.userID = userID
         self.firstName = firstName
         self.lastName = lastName
@@ -18,6 +18,7 @@ class User:
         self.country = country
         self.accountValueOptin = accountValueOptin
         self.emailOptin = emailOptin
+        self.preferredCurrency = preferredCurrency
     
     def getUserbyID(userID):
         
@@ -31,7 +32,7 @@ class User:
     def getPreferences(userID):
         
         logger.info("Entering Get User Preferences Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """SELECT account_value_optin, email_optin FROM user WHERE user_id = %s"""
+        Query = """SELECT account_value_optin, email_optin, preferred_currency FROM user WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Preferences Model Function: " + str(response))
@@ -46,7 +47,7 @@ class User:
             Query += " AND "
             conditions = []
             for key, value in filters.items():
-                if key == 'date_range':
+                if key in ('date_range','from_and_to_date','from_date','to_date'):
                     continue
                 if key == 'trade_date' and value == 'NULL':
                     conditions.append(f"{key} IS NULL")
@@ -55,6 +56,8 @@ class User:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
                 conditions.append(filters['date_range'])
+            if 'from_and_to_date' in filters:
+                conditions.append(filters['from_and_to_date'])
             Query += " AND ".join(conditions)
         Args = (userID,)
         response = utils.execute_db(Query,Args)
@@ -96,12 +99,14 @@ class User:
             Query += " AND "
             conditions = []
             for key, value in filters.items():
-                if key == 'date_range':
+                if key in ('date_range','from_and_to_date','from_date','to_date'):
                     continue
                 if value:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
                 conditions.append(filters['date_range'])
+            if 'from_and_to_date' in filters:
+                conditions.append(filters['from_and_to_date'])
             Query += " AND ".join(conditions)
         Args = (userID,)
         response = utils.execute_db(Query,Args)
@@ -178,7 +183,7 @@ class User:
             Query += " AND "
             conditions = []
             for key, value in filters.items():
-                if key == 'date_range':
+                if key in ('date_range','from_and_to_date','from_date','to_date'):
                     continue
                 if key == 'trade_date' and value == 'NULL':
                     conditions.append(f"{key} IS NULL")
@@ -187,6 +192,8 @@ class User:
                     conditions.append(f"{key}='{value}'")
             if 'date_range' in filters: 
                 conditions.append(filters['date_range'])
+            if 'from_and_to_date' in filters:
+                conditions.append(filters['from_and_to_date'])
             Query += " AND ".join(conditions)
         Query += " LIMIT %s OFFSET %s"
         Args = (userID,limit,offset)
@@ -242,7 +249,7 @@ class User:
     def addUser(newUser):
 
         logger.info("Entering Add User Model Function: " + "(new_user: {})".format(str(newUser)))
-        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)"""
+        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)"""
         Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)
@@ -309,6 +316,15 @@ class User:
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Toggle Email Alerts Feature Flag Model Function: " + str(response))
+        return response 
+    
+    def updateUserCurrency(userID,newCurrencyCode):
+        
+        logger.info("Entering Update User Currency Model Function: " + "(user_id: {}, new_currency: {})".format(str(userID),str(newCurrencyCode)))
+        Query = """UPDATE user SET preferred_currency = %s WHERE user_id = %s"""
+        Args = (newCurrencyCode,userID)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Update User Currency Model Function: " + str(response))
         return response 
  
  

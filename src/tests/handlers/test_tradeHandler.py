@@ -1,6 +1,6 @@
 import unittest
-from handlers.tradeHandler import *
-from models.utils import execute_db
+from src.handlers.tradeHandler import *
+from src.models.utils import execute_db
 from datetime import datetime, date, timedelta
 
 
@@ -12,7 +12,7 @@ class TestTradeHandler(unittest.TestCase):
     
     def test_log_trade(self):
         # setup queries
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","logtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","logtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("logtradetradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -67,7 +67,7 @@ class TestTradeHandler(unittest.TestCase):
         
     
     def test_get_existing_trade(self):
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getexistingtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getexistingtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getexistingtradetradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -91,7 +91,7 @@ class TestTradeHandler(unittest.TestCase):
 
 
     def test_search_user_ticker(self):
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","searchusertickertradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","searchusertickertradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("searchusertickertradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -138,7 +138,7 @@ class TestTradeHandler(unittest.TestCase):
 
     def test_edit_existing_trade(self):
         # setup queries
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","editexistingtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","editexistingtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("editexistingtradetradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -313,6 +313,33 @@ class TestTradeHandler(unittest.TestCase):
 
         # 6c fail updating trade date - trade_date was null originally, need to set all days with pnl fully as normal, fail on handleAddTrade (TODO)
         
+        #good path close trade - both trade_date and pnl were originally null
+        response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY",None,"2023-01-01",410,400,1,"1:3",None,None,"editexistingtradetradehandlerunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_id = response[0][0]['trade_id']
+        
+        requestBody = {
+            "trade_type": "",
+            "security_type": "",
+            "ticker_name": "",
+            "trade_date": "2023-01-01",
+            "expiry": "",
+            "strike": "",
+            "buy_value": "",
+            "units": "",
+            "rr": "",
+            "pnl": 25,
+            "percent_wl": 10,
+            "comments": ""
+        }
+        
+        response = editExistingTrade(user_id,trade_id,requestBody)
+        self.assertEqual(response['trade_id'], trade_id)
+        self.assertEqual(response['trade_date'], "2023-01-01")
+        self.assertEqual(response['pnl'], 25)
+        
         # 7 fail on not found trade_id, fail on validator pt 2(doesnt exist)
         response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
         requestBody = {
@@ -341,7 +368,7 @@ class TestTradeHandler(unittest.TestCase):
         
     def test_delete_existing_trade(self):
         # setup queries
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteexistingtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteexistingtradetradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deleteexistingtradetradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -379,7 +406,7 @@ class TestTradeHandler(unittest.TestCase):
         
     def test_delete_trades(self):
         # setup queries
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteexistingtradestradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteexistingtradestradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deleteexistingtradestradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -421,7 +448,7 @@ class TestTradeHandler(unittest.TestCase):
     
     def test_import_csv(self):
         # setup queries
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","importcsvtradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","importcsvtradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("importcsvtradehandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']

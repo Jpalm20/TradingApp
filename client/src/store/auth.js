@@ -454,6 +454,32 @@ export const toggleFeatureFlags = createAsyncThunk(
   }
 );
 
+export const updatePreferredCurrency = createAsyncThunk(
+  "auth/updatePreferredCurrency",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { preferred_currency } = formInfo;
+        const res = await axios.post(API_URL + `user/preferences/updatecurrency`,{
+          preferred_currency
+        },{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 
 export const changePassword = createAsyncThunk(
   "auth/changePassword",
@@ -811,6 +837,23 @@ const authSlice = createSlice({
       state.info = action.payload;
       state.loading = false;
     },
+    [updatePreferredCurrency.fulfilled]: (state, action) => {
+      state.preferences = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [updatePreferredCurrency.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [updatePreferredCurrency.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [getAccountValues.fulfilled]: (state, action) => {
       state.accountValues = action.payload;
       state.success = true;
@@ -953,6 +996,7 @@ const authSlice = createSlice({
       state.error = false;
     },
     [getTradesOfDateFiltered.pending]: (state) => {
+      state.tradesOfDay = null;
       state.loading = true;
       state.error = false;
       state.success = false;

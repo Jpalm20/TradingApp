@@ -1,6 +1,6 @@
 import unittest
-from transformers.userTransformer import *
-from models.utils import execute_db
+from src.transformers.userTransformer import *
+from src.models.utils import execute_db
 from datetime import datetime, date
 
 
@@ -76,7 +76,7 @@ class TestUserTransformer(unittest.TestCase):
             "fields": {
                 "project":
                 { 
-                    "id": 'None' #Will need to resolve this so env var is read this should be 10000
+                    "id": '10000'
                 },
                 "summary": "Test Page" + " - " + "Test Transform Report Bug",
                 "description": "transformreportbugunittest" + " \n\nSubmitted By: " + "transformreportbugunittest@gmail.com",
@@ -105,6 +105,14 @@ class TestUserTransformer(unittest.TestCase):
         date_range = 'Day' 
         query = transformDateRange(date_range)
         self.assertEqual(query, "trade_date >= DATE_ADD(NOW(), INTERVAL -1 DAY)")
+        
+    
+    def test_transform_from_and_to_date(self):
+        # 1 Year
+        from_date = '2024-01-10' 
+        to_date = '2024-01-20'
+        query = transformFromAndToDate(from_date,to_date)
+        self.assertEqual(query, "trade_date >= '2024-01-10' AND trade_date <= '2024-01-20'")
         
     
     def test_transform_av_tf(self):

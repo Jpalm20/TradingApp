@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered , getTradesPage, expiredLogout} from '../store/auth'
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation} from "react-router-dom";
 import '../styles/summary.css';
 import '../styles/logtrade.css';
 import '../styles/filter.css';
+import moment from 'moment'; 
+import 'moment-timezone';
 import { BsFilter } from "react-icons/bs";
 import axios from "axios";
 import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
@@ -69,11 +71,15 @@ import {
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCsv } from '../store/trade';
+import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCsv, updateTrades } from '../store/trade';
 
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 export default function Summary({ user }) {
   const btnRef = React.useRef()
@@ -81,6 +87,7 @@ export default function Summary({ user }) {
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = useQuery();
   const { trade } = useSelector((state) => state.trade);
   const { success } = useSelector((state) => state.trade);
   const { trades } = useSelector((state) => state.auth);
@@ -109,6 +116,36 @@ export default function Summary({ user }) {
 
   const [filters, setFilters] = useState({});
 
+  const handleFilterChange = (newFilter) => {
+    query.set('filter', newFilter);
+    navigate(`?${query.toString()}`);
+  };
+
+  function filtersToQueryString(filters) {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      if (filters[key] !== '') {
+        params.append(key, filters[key]);
+      }
+    }
+    return params.toString();
+  }
+
+  useEffect(() => {
+    const savedSummaryFilters = window.localStorage.getItem('SummaryFilters');
+    if (savedSummaryFilters) {
+      const SummaryFilters = JSON.parse(savedSummaryFilters);
+      setFilterTradeType(SummaryFilters.trade_type || "");
+      setFilterSecurityType(SummaryFilters.security_type || "");
+      setFilterTickerName(SummaryFilters.ticker_name || "");
+      setSelectedTickerValue(SummaryFilters.ticker_name || "");
+      setFilterFromDate(SummaryFilters.from_date || "");
+      setFilterToDate(SummaryFilters.to_date || "");
+      setFilters(SummaryFilters);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [numRows, setNumRows] = useState(0);
@@ -123,13 +160,17 @@ export default function Summary({ user }) {
       setPage(parseInt(trades.page));
       setTotalCount(parseInt(trades.count));
       setNumRows(parseInt(trades.numrows));
+    } else if (trades && 'count' in trades && trades.count === 0){
+      setPage(trades.page);
+      setTotalCount(trades.count);
+      setNumRows(trades.numrows);
     }
   }, [trades]); 
 
   useEffect(() => {
-    if (hasTrade) {
-      setRisk(trade.rr.split(":")[0]);
-      setReward(trade.rr.split(":")[1]);
+    if (hasTrade && 'rr' in trade && trade.rr != null) {
+      setRisk(trade.rr.split(":")[0] || '1');
+      setReward(trade.rr.split(":")[1] || '1');
     }
   }, [trade]); 
 
@@ -151,6 +192,16 @@ export default function Summary({ user }) {
   const [filter_trade_type, setFilterTradeType] = useState("");
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
+  const [filter_from_date, setFilterFromDate] = useState("");
+  const [filter_to_date, setFilterToDate] = useState("");
+
+  const returnInTZ = (utcDate) => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzDate = moment.utc(utcDate).tz(userTZ);
+    return tzDate.format('YYYY-MM-DD')
+  }
+
+  const today = returnInTZ(new Date().toISOString());
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -244,12 +295,67 @@ export default function Summary({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
+      }
       filters.page = 1;
       filters.numrows = num_results;
       await dispatch(getTradesPage({ filters }));
       dispatch(
         reset()      
       );
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
+      clearFormStates();
+      setSelectedRow([]);
+      setTradeID(null);
+      setSearchValue('');
+      setIsDropdownOpen(false);
+    }
+    if(success === true && trade && trade.result && trade.result.includes("Trades Updated Successfully")){
+      setEditTrade(false);
+      setToastMessage(trade.result);
+      const filters = {};
+      if(filter_trade_type !== ''){
+        filters.trade_type = filter_trade_type;
+      }
+      if(filter_security_type !== ''){
+        filters.security_type = filter_security_type;
+      }
+      if(filter_ticker_name !== ''){
+        filters.ticker_name = filter_ticker_name;
+      }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
+      }
+      filters.page = 1;
+      filters.numrows = num_results;
+      await dispatch(getTradesPage({ filters }));
+      dispatch(
+        reset()      
+      );
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
       clearFormStates();
       setSelectedRow([]);
       setTradeID(null);
@@ -329,6 +435,7 @@ export default function Summary({ user }) {
 
   useEffect(() => {
     const savedUpdateTradeInfo = window.localStorage.getItem('updateTradeInfo');
+    const savedUpdateBulkTradeInfo = window.localStorage.getItem('updateBulkTradeInfo');
     if (savedUpdateTradeInfo) {
       const updateTradeInfo = JSON.parse(savedUpdateTradeInfo);
       setTradeType(updateTradeInfo.trade_type || "");
@@ -343,6 +450,23 @@ export default function Summary({ user }) {
       setPNL(updateTradeInfo.pnl || "");
       setPercentWL(updateTradeInfo.percent_wl || "");
       setComments(updateTradeInfo.comments || "");
+      // Clear the saved info after loading it
+      //window.localStorage.removeItem('userInfo');
+    }
+    if (savedUpdateBulkTradeInfo) {
+      const updateBulkTradeInfo = JSON.parse(savedUpdateBulkTradeInfo);
+      setTradeType(updateBulkTradeInfo.trade_type || "");
+      setSecurityType(updateBulkTradeInfo.security_type || "");
+      setTickerName(updateBulkTradeInfo.ticker_name || "");
+      setTradeDate(updateBulkTradeInfo.trade_date || "");
+      setExpiry(updateBulkTradeInfo.expiry || "");
+      setStrike(updateBulkTradeInfo.strike || "");
+      setBuyValue(updateBulkTradeInfo.buy_value || "");
+      setUnits(updateBulkTradeInfo.units || "");
+      setRR(updateBulkTradeInfo.rr || "");
+      setPNL(updateBulkTradeInfo.pnl || "");
+      setPercentWL(updateBulkTradeInfo.percent_wl || "");
+      setComments(updateBulkTradeInfo.comments || "");
       // Clear the saved info after loading it
       //window.localStorage.removeItem('userInfo');
     }
@@ -363,9 +487,10 @@ export default function Summary({ user }) {
     setPNL("");
     setPercentWL("");
     setComments("");
-    setRisk(trade.rr.split(":")[0] || "1");
-    setReward(trade.rr.split(":")[1] || "1");
+    setRisk(hasTrade && 'rr' in trade && trade.rr != null ? trade.rr.split(":")[0] : "1");
+    setReward(hasTrade && 'rr' in trade && trade.rr != null ? trade.rr.split(":")[1] : "1");
     window.localStorage.removeItem('updateTradeInfo');
+    window.localStorage.removeItem('updateBulkTradeInfo');
   }
 
   const keysToSkip = ['page', 'numrows'];
@@ -380,7 +505,7 @@ export default function Summary({ user }) {
 
   const appliedFiltersComponent = () => {
     let content = [];
-    if(Object.keys(filters).length !== 0){
+    if(Object.keys(filters).length !== 0 && Object.keys(filters).some(key => ['trade_type','security_type','ticker_name','from_date','to_date'].includes(key))){
       content.push(
         <TableContainer>
           <Table variant='simple' size='sm'>
@@ -427,19 +552,526 @@ export default function Summary({ user }) {
     }
   }
 
-  const handleGotoEdit = async (e, trade_id, index) => {
+  const handleGotoEdit = async (e) => {
     e.preventDefault();
-    setEditLoading(true);
-    setEditButtonInstance(index);
-    const res = await dispatch(
-      getTrade({
-        trade_id
-      })
-    );
-    checkVisbility(res.payload);
-    setTradeID(trade_id);
-    setEditTrade(true);
-    setEditLoading(false);
+    if (selectedRow.length === 1){
+      setEditLoading(true);
+      setEditButtonInstance(selectedRow);
+      const res = await dispatch(
+        getTrade({
+          trade_id
+        })
+      );
+      checkVisbility(res.payload);
+      setTradeID(trade_id);
+      setEditTrade(true);
+      setEditLoading(false);
+    } else if (selectedRow.length > 1){
+      setSelectedTradeIds(selectedRow.map(index => trades.trades[index].trade_id));
+      setEditTrade(true);
+      //set trade ids like delete trades - DONE
+      //logic in html to look at selected rows length
+      //html for this update trades bulk update
+      //API call logic
+      //API in store file
+      //Handle API response
+      //Caching stuff
+    }
+    
+  };
+
+  const getEditComponent = () => {
+    let content = [];
+    if (selectedRow.length === 1){
+      content.push(
+        <>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Trade</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
+          {tradeLoading ? 
+            <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
+                boxShadow="md"
+              >
+              <Center>
+              <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+              />
+              </Center>
+            </Stack>
+          :
+          <form>
+            <Stack
+              spacing={4}
+              p="1rem"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
+              boxShadow="md"
+            >
+              <Box display="flex">
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select value={trade_type} onChange={(e) => setTradeType(e.target.value)}>
+                    <option value="" disabled selected>{trade.trade_type}</option>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select id="optionsSelection" value={security_type} onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value);}}>
+                    <option value="" disabled selected>{trade.security_type}</option>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <div class="ticker-search">
+                    <Input type="text" placeholder={trade.ticker_name} value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange} onClick={handleInputClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                </FormControl>
+              </Box>
+              
+              <Box style={{display: visib ? "flex" : "none"}}>
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Expiry (Options Only) *
+                </FormHelperText>
+                <Input
+                    value={expiry}
+                    placeholder={trade.expiry}
+                    onFocus={(e) => (e.target.type = "date")}
+                    onBlur={(e) => (e.target.type = "text")}
+                    max="3900-12-31"
+                    min="1900-01-01"
+                    onChange={(e) => setExpiry(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Strike Price (Options Only) *
+                </FormHelperText>
+                <InputGroup>
+                  <Input
+                    value={strike}
+                    type="name"
+                    placeholder={trade.strike}
+                    onChange={(e) => setStrike(e.target.value)}
+                  />
+                </InputGroup>
+              </FormControl>
+              </Box>
+
+              <Box display="flex">
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Date Trade was Closed *
+                </FormHelperText>
+                <Input
+                    value={trade_date}
+                    placeholder={trade.trade_date}
+                    onFocus={(e) => (e.target.type = "date")}
+                    onBlur={(e) => (e.target.type = "text")}
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setTradeDate(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Average Cost *
+                  </FormHelperText>
+                  <Input
+                    value={buy_value}
+                    type="name"
+                    placeholder={trade.buy_value}
+                    onChange={(e) => setBuyValue(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    # of Units *
+                  </FormHelperText>
+                  <Input
+                    value={units}
+                    type="name"
+                    placeholder={trade.units}
+                    onChange={(e) => setUnits(e.target.value)}
+                  />
+              </FormControl>
+              </Box>
+
+              <Box display="flex">
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Risk/Reward Ratio (R:R) *
+                  </FormHelperText>
+                  <HStack>
+                  <NumberInput
+                    value={risk}
+                    onChange={(stringValue) => setRisk(stringValue)}
+                    //defaultValue = {trade.rr.split(":")[0]}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  <Text>
+                    :
+                  </Text>
+                  <NumberInput
+                    value={reward}
+                    onChange={(stringValue) => setReward(stringValue)}
+                    //defaultValue = {trade.rr.split(":")[1]}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  </HStack>
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    PNL *
+                  </FormHelperText>
+                  <Input
+                    value={pnl}
+                    type="name"
+                    placeholder={trade.pnl}
+                    onChange={(e) => setPNL(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    % Win or Loss *
+                  </FormHelperText>
+                  <Input
+                    value={percent_wl}
+                    type="name"
+                    readOnly
+                    placeholder={trade.percent_wl}
+                    defaultValue={percent_wl}
+                  />
+              </FormControl>
+              </Box>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Comments *
+                  </FormHelperText>
+                  <Textarea value={comments} placeholder={trade.comments} onChange={(e) => setComments(e.target.value)}/>
+              </FormControl>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleDoneEdit}
+              >
+                Update
+              </Button>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="gray"
+                width="full"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          </form>
+        }
+        </Box>
+        </>
+      );
+    }else if (selectedRow.length > 1){
+      content.push(
+        <>
+        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Bulk Update Trades</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
+          {tradeLoading ? 
+            <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
+                boxShadow="md"
+              >
+              <Center>
+              <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+              />
+              </Center>
+            </Stack>
+          :
+          <form>
+            <Stack
+              spacing={4}
+              p="1rem"
+              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
+              boxShadow="md"
+            >
+              <Box display="flex">
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Trade Type *
+                  </FormHelperText>
+                  <Select value={trade_type} placeholder='Select Trade Type' onChange={(e) => setTradeType(e.target.value)}>
+                    <option>Swing Trade</option>
+                    <option>Day Trade</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Security Type *
+                  </FormHelperText>
+                  <Select id="optionsSelection" value={security_type} placeholder='Select Security Type' onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value)}}>
+                    <option>Options</option>
+                    <option>Shares</option>
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Ticker *
+                  </FormHelperText>
+                  <div class="ticker-search">
+                    <Input type="text" value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange} onClick={handleInputClick}/>
+                    {isDropdownOpen && (
+                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
+                        {isLoading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          searchResultItems
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                </FormControl>
+              </Box>
+              
+              <Box style={{display: visib ? "flex" : "none"}}>
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Expiry (Options Only) *
+                </FormHelperText>
+                <Input
+                    value={expiry}
+                    type="date"
+                    max="3900-12-31"
+                    min="1900-01-01"
+                    onChange={(e) => setExpiry(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Strike Price (Options Only) *
+                </FormHelperText>
+                <InputGroup>
+                  <Input
+                    value={strike}
+                    type="name"
+                    onChange={(e) => setStrike(e.target.value)}
+                  />
+                </InputGroup>
+              </FormControl>
+              </Box>
+
+              <Box display="flex">
+              <FormControl>
+                <FormHelperText mb={2} ml={1}>
+                  Date Trade was Closed *
+                </FormHelperText>
+                <Input
+                    value={trade_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setTradeDate(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Average Cost *
+                  </FormHelperText>
+                  <Input
+                    value={buy_value}
+                    type="name"
+                    onChange={(e) => setBuyValue(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    # of Units *
+                  </FormHelperText>
+                  <Input
+                    value={units}
+                    type="name"
+                    onChange={(e) => setUnits(e.target.value)}
+                  />
+              </FormControl>
+              </Box>
+
+              <Box display="flex">
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Risk/Reward Ratio (R:R) *
+                  </FormHelperText>
+                  <HStack>
+                  <NumberInput
+                    onChange={(stringValue) => setRisk(stringValue)}
+                    value = {risk}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  <Text>
+                    :
+                  </Text>
+                  <NumberInput
+                    onChange={(stringValue) => setReward(stringValue)}
+                    value = {reward}
+                    min={1}
+                    max={200}
+                    inputMode='text'
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  </HStack>
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    PNL *
+                  </FormHelperText>
+                  <Input
+                    value={pnl}
+                    type="name"
+                    onChange={(e) => setPNL(e.target.value)}
+                  />
+              </FormControl>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    % Win or Loss *
+                  </FormHelperText>
+                  <Input
+                    value={percent_wl}
+                    type="name"
+                    readOnly
+                    placeholder={"0.00"}
+                    value={percent_wl}
+                  />
+              </FormControl>
+              </Box>
+
+              <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    Comments *
+                  </FormHelperText>
+                  <Textarea value={comments} placeholder='Reflect on your Trade...' onChange={(e) => setComments(e.target.value)}/>
+              </FormControl>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme='blue'
+                width="full"
+                onClick={handleDoneEditBulk}
+              >
+                Update
+              </Button>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="gray"
+                width="full"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          </form>
+        }
+        </Box>
+        </>
+      );
+    }
+    return content
   };
 
   const handleExport = async (e) => {
@@ -485,9 +1117,24 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
     dispatch(
       reset()      
     );
@@ -540,6 +1187,47 @@ export default function Summary({ user }) {
     window.localStorage.setItem('updateTradeInfo', JSON.stringify(updateTradeInfo));
   };
 
+  const handleDoneEditBulk = async (e) => {
+    e.preventDefault();
+    const ids = trade_ids;
+    const updateBulkTradeInfo = {
+      trade_ids,
+      trade_type,
+      security_type,
+      ticker_name,
+      trade_date,
+      expiry,
+      strike,
+      buy_value,
+      units,
+      rr,
+      pnl,
+      percent_wl,
+      comments
+    };
+    let update_info = {
+      trade_type,
+      security_type,
+      ticker_name,
+      trade_date,
+      expiry,
+      strike,
+      buy_value,
+      units,
+      rr,
+      pnl,
+      percent_wl,
+      comments
+    }
+    await dispatch(
+      updateTrades({
+          ids,
+          update_info
+        })
+      );
+    window.localStorage.setItem('updateBulkTradeInfo', JSON.stringify(updateBulkTradeInfo));
+  };
+
   const handleCancel = (e) => {
     e.preventDefault();
     dispatch(
@@ -575,9 +1263,24 @@ export default function Summary({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
+      }
       filters.page = page+1;
       filters.numrows = num_results;
-      await dispatch(getTradesPage({ filters }));  
+      await dispatch(getTradesPage({ filters }));
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
       setSelectedRow([]);
     }
   }
@@ -594,9 +1297,24 @@ export default function Summary({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
+      if(filter_from_date !== '' || filter_to_date !== ''){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
+      }
       filters.page = page-1;
       filters.numrows = num_results;
       await dispatch(getTradesPage({ filters }));  
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
       setSelectedRow([]);
     }
   }
@@ -614,9 +1332,24 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
     filters.page = 1;
     filters.numrows = new_num_results;
     await dispatch(getTradesPage({ filters }));  
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters));
     setSelectedRow([]);
   }
 
@@ -673,6 +1406,30 @@ export default function Summary({ user }) {
                       </ul>
                     )}
                   </div>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                />
                 </FormControl>
               </Box>
                   <Button size="sm" backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} width="full" onClick={handleSubmitFilter} >
@@ -741,6 +1498,30 @@ export default function Summary({ user }) {
                     )}
                   </div>               
                 </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                />
+                </FormControl>
                 {appliedFiltersComponent()}
           </DrawerBody>
 
@@ -772,9 +1553,24 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
     filters.page = 1;
     filters.numrows = num_results;
-    await dispatch(getTradesPage({ filters }));  
+    await dispatch(getTradesPage({ filters })); 
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters)); 
     setSelectedRow([]);
     setFilters(filters);
     //setToggleFilter(!toggleFilter);
@@ -788,10 +1584,14 @@ export default function Summary({ user }) {
     setFilterTickerName('');
     setSearchTickerValue('');
     setSelectedTickerValue('');
+    setFilterFromDate('');
+    setFilterToDate('');
     const filters = {};
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString({}));
+    window.localStorage.removeItem('SummaryFilters');
     setFilters({});
     setSelectedRow([]);
     //setToggleFilter(!toggleFilter);
@@ -811,17 +1611,17 @@ export default function Summary({ user }) {
     const unitsFloat=parseFloat(units);
     if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0) {
       setPercentWL(((pnlFloat/(buyValueFloat*unitsFloat))*100).toFixed(2));
-    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value)) && !isNaN(unitsFloat) && unitsFloat !== 0){
+    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade?.buy_value)) && !isNaN(unitsFloat) && unitsFloat !== 0){
       setPercentWL(((pnlFloat/(trade.buy_value*unitsFloat))*100).toFixed(2));
-    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0 && !isNaN(trade.pnl)){
+    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && !isNaN(unitsFloat) && unitsFloat !== 0 && !isNaN(trade?.pnl)){
       setPercentWL(((trade.pnl/(buyValueFloat*unitsFloat))*100).toFixed(2));
-    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value)) && isNaN(unitsFloat) && !isNaN(trade.units)){
+    }else if (!isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade?.buy_value)) && isNaN(unitsFloat) && !isNaN(trade?.units)){
       setPercentWL(((pnlFloat/(trade.buy_value*trade.units))*100).toFixed(2));
-    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && isNaN(unitsFloat) && !isNaN(trade.units) && !isNaN(trade.pnl)){
+    }else if (isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && isNaN(unitsFloat) && !isNaN(trade?.units) && !isNaN(trade?.pnl)){
       setPercentWL(((trade.pnl/(buyValueFloat*trade.units))*100).toFixed(2));
-    }else if (isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade.buy_value)) && !isNaN(unitsFloat) && unitsFloat !== 0 && !isNaN(trade.pnl)){
+    }else if (isNaN(pnlFloat) && isNaN(buyValueFloat && !isNaN(trade?.buy_value)) && !isNaN(unitsFloat) && unitsFloat !== 0 && !isNaN(trade?.pnl)){
       setPercentWL(((trade.pnl/(trade.buy_value*unitsFloat))*100).toFixed(2));
-    }else if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && isNaN(unitsFloat) && !isNaN(trade.units)){
+    }else if (!isNaN(pnlFloat) && !isNaN(buyValueFloat) && buyValueFloat !== 0 && isNaN(unitsFloat) && !isNaN(trade?.units)){
       setPercentWL(((pnlFloat/(buyValueFloat*trade.units))*100).toFixed(2));
     }else{
       setPercentWL("");
@@ -864,9 +1664,24 @@ export default function Summary({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
     filters.page = 1;
     filters.numrows = num_results;
     await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters)); 
     setSelectedFile(null);
   };
 
@@ -1154,7 +1969,7 @@ export default function Summary({ user }) {
                 </Center>
               </Button>
             :
-            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue' isDisabled={selectedRow.length !== 1} onClick={e => handleGotoEdit(e, trade_id, selectedRow)}>
+            <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="sm" marginLeft={3} marginBottom={2} width='75px' colorScheme='blue' isDisabled={selectedRow.length === 0} onClick={e => handleGotoEdit(e)}>
               Edit
             </Button>
             }
@@ -1337,251 +2152,7 @@ export default function Summary({ user }) {
         <Stack
           class='profilestack'
         >
-        <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Trade</Heading>
-        <Box minW={{ base: "90%", md: "468px" }} maxW="650px" rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
-          {tradeLoading ? 
-            <Stack
-                spacing={4}
-                p="1rem"
-                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
-                boxShadow="md"
-              >
-              <Center>
-              <Spinner
-                  thickness='4px'
-                  speed='0.65s'
-                  emptyColor='gray.200'
-                  color='blue.500'
-                  size='xl'
-              />
-              </Center>
-            </Stack>
-          :
-          <form>
-            <Stack
-              spacing={4}
-              p="1rem"
-              backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
-              boxShadow="md"
-            >
-              <Box display="flex">
-                <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Trade Type *
-                  </FormHelperText>
-                  <Select value={trade_type} onChange={(e) => setTradeType(e.target.value)}>
-                    <option value="" disabled selected>{trade.trade_type}</option>
-                    <option>Swing Trade</option>
-                    <option>Day Trade</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Security Type *
-                  </FormHelperText>
-                  <Select id="optionsSelection" value={security_type} onChange={(e) => {changeShowOptions(e.target.value); setSecurityType(e.target.value);}}>
-                    <option value="" disabled selected>{trade.security_type}</option>
-                    <option>Options</option>
-                    <option>Shares</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Ticker *
-                  </FormHelperText>
-                  <div class="ticker-search">
-                    <Input type="text" placeholder={trade.ticker_name} value={selectedValue ? selectedValue : searchValue} onChange={handleInputChange} onClick={handleInputClick}/>
-                    {isDropdownOpen && (
-                      <ul class={colorMode === 'light' ? "search-dropdown" : "search-dropdowndark"}>
-                        {isLoading ? (
-                          <div>Loading...</div>
-                        ) : (
-                          searchResultItems
-                        )}
-                      </ul>
-                    )}
-                  </div>
-                </FormControl>
-              </Box>
-              
-              <Box style={{display: visib ? "flex" : "none"}}>
-              <FormControl>
-                <FormHelperText mb={2} ml={1}>
-                  Expiry (Options Only) *
-                </FormHelperText>
-                <Input
-                    value={expiry}
-                    placeholder={trade.expiry}
-                    onFocus={(e) => (e.target.type = "date")}
-                    onBlur={(e) => (e.target.type = "text")}
-                    max="3900-12-31"
-                    min="1900-01-01"
-                    onChange={(e) => setExpiry(e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormHelperText mb={2} ml={1}>
-                  Strike Price (Options Only) *
-                </FormHelperText>
-                <InputGroup>
-                  <Input
-                    value={strike}
-                    type="name"
-                    placeholder={trade.strike}
-                    onChange={(e) => setStrike(e.target.value)}
-                  />
-                </InputGroup>
-              </FormControl>
-              </Box>
-
-              <Box display="flex">
-              <FormControl>
-                <FormHelperText mb={2} ml={1}>
-                  Date Trade was Closed *
-                </FormHelperText>
-                <Input
-                    value={trade_date}
-                    placeholder={trade.trade_date}
-                    onFocus={(e) => (e.target.type = "date")}
-                    onBlur={(e) => (e.target.type = "text")}
-                    max={maxDate}
-                    min="1900-01-01"
-                    onChange={(e) => setTradeDate(e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Average Cost *
-                  </FormHelperText>
-                  <Input
-                    value={buy_value}
-                    type="name"
-                    placeholder={trade.buy_value}
-                    onChange={(e) => setBuyValue(e.target.value)}
-                  />
-              </FormControl>
-
-              <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    # of Units *
-                  </FormHelperText>
-                  <Input
-                    value={units}
-                    type="name"
-                    placeholder={trade.units}
-                    onChange={(e) => setUnits(e.target.value)}
-                  />
-              </FormControl>
-              </Box>
-
-              <Box display="flex">
-              <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Risk/Reward Ratio (R:R) *
-                  </FormHelperText>
-                  <HStack>
-                  <NumberInput
-                    value={risk}
-                    onChange={(stringValue) => setRisk(stringValue)}
-                    //defaultValue = {trade.rr.split(":")[0]}
-                    min={1}
-                    max={200}
-                    inputMode='text'
-                  >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                  <Text>
-                    :
-                  </Text>
-                  <NumberInput
-                    value={reward}
-                    onChange={(stringValue) => setReward(stringValue)}
-                    //defaultValue = {trade.rr.split(":")[1]}
-                    min={1}
-                    max={200}
-                    inputMode='text'
-                  >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                  </HStack>
-              </FormControl>
-
-              <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    PNL *
-                  </FormHelperText>
-                  <Input
-                    value={pnl}
-                    type="name"
-                    placeholder={trade.pnl}
-                    onChange={(e) => setPNL(e.target.value)}
-                  />
-              </FormControl>
-
-              <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    % Win or Loss *
-                  </FormHelperText>
-                  <Input
-                    value={percent_wl}
-                    type="name"
-                    readOnly
-                    placeholder={trade.percent_wl}
-                    defaultValue={percent_wl}
-                  />
-              </FormControl>
-              </Box>
-
-              <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Comments *
-                  </FormHelperText>
-                  <Textarea value={comments} placeholder={trade.comments} onChange={(e) => setComments(e.target.value)}/>
-              </FormControl>
-              <Button
-                borderRadius={0}
-                type="submit"
-                variant="solid"
-                colorScheme="blue"
-                width="full"
-                onClick={handleDoneEdit}
-              >
-                Update
-              </Button>
-              <Button
-                borderRadius={0}
-                type="submit"
-                variant="solid"
-                colorScheme="blue"
-                width="full"
-                onClick={handleClear}
-              >
-                Clear
-              </Button>
-              <Button
-                borderRadius={0}
-                type="submit"
-                variant="solid"
-                colorScheme="gray"
-                width="full"
-                onClick={handleCancel}
-              >
-                Cancel
-              </Button>
-            </Stack>
-          </form>
-        }
-        </Box>
+        {getEditComponent()}
       </Stack>
     </Flex>
     ) 

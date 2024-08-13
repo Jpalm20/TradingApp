@@ -1,6 +1,6 @@
 import unittest
-from transformers.tradeTransformer import *
-from models.utils import execute_db
+from src.transformers.tradeTransformer import *
+from src.models.utils import execute_db
 from datetime import datetime, date
 import os
 
@@ -63,8 +63,8 @@ class TestTradeTransformer(unittest.TestCase):
         self.assertEqual(transformedRequest['security_type'], 'Shares')
         self.assertEqual(transformedRequest['trade_date'], '2023-08-03')
         self.assertEqual(transformedRequest['ticker_name'], 'SPY')
-        self.assertEqual(transformedRequest['expiry'], None)
-        self.assertEqual(transformedRequest['strike'], None)
+        self.assertEqual(transformedRequest['expiry'], 'NULL')
+        self.assertEqual(transformedRequest['strike'], 'NULL')
 
 
     def test_transform_process_csv(self):

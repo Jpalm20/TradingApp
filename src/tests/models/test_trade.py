@@ -1,6 +1,6 @@
 import unittest
-from models.trade import *
-from models.utils import execute_db
+from src.models.trade import *
+from src.models.utils import execute_db
 
 class TestTrade(unittest.TestCase):
     
@@ -13,7 +13,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","gettradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","gettradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("gettradeunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -33,7 +33,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","addtradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","addtradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("addtradeunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -52,7 +52,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","addtradesunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","addtradesunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("addtradesunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -101,7 +101,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","updatetradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","updatetradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("updatetradeunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -111,12 +111,14 @@ class TestTrade(unittest.TestCase):
         self.assertEqual(response[0][0]['ticker_name'], "SPY")
         trade_id = response[0][0]['trade_id']
         changes = {
-            "ticker_name": "QQQ"
+            "ticker_name": "QQQ",
+            "pnl": "NULL"
         }
         response = Trade.updateTrade(trade_id,changes)
-        self.assertEqual(response[0], '\n')
+        self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM trade WHERE comments = %s", ("updatetradeunittest",))
         self.assertEqual(response[0][0]['ticker_name'], "QQQ")
+        self.assertEqual(response[0][0]['pnl'], None)
         response = execute_db("DELETE FROM trade WHERE trade_id = %s", (trade_id,))
         response = execute_db("DELETE FROM user WHERE email = %s", ("updatetradeunittest@gmail.com",))
 
@@ -126,7 +128,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deletetradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deletetradeunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deletetradeunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -147,7 +149,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deletetradesbyidunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deletetradesbyidunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deletetradesbyidunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -170,7 +172,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteusertradesunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteusertradesunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deleteusertradesunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -192,7 +194,7 @@ class TestTrade(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertickerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertickerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getusertickerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -216,27 +218,3 @@ class TestTrade(unittest.TestCase):
         #self.transaction.rollback()
         #THIS SHOULD BE DELETING THE USER SO IT ALWAYS HAPPENS
         
-        
-#--------Tests--------# 
-
-#Testing addTrade       
-#testTrade = Trade(None,1,"Swing Trade","Options","TSLA","12-12-2022","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
-#response = Trade.addTrade(testTrade)
-
-#Testing updateTrade
-#testTradeID = 3;
-#testUpdateTradeInfo = {
-#    "ticker_name": "QQQ",
-#    "pnl": 250
-#}
-#response = Trade.updateTrade(testTradeID,testUpdateTradeInfo)
-
-#Testing deleteTrade
-#testTradeID = 7
-#response = Trade.deleteTrade(testTradeID)
-
-#Testing getTrade
-#testTradeID = 3
-#response = Trade.getTrade(testTradeID)
-
-#print(response)

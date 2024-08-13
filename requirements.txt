@@ -9,3 +9,5 @@ requests
 python-dateutil
 redis
 flasgger
+forex-python
+pytest
