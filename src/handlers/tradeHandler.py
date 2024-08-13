@@ -113,10 +113,7 @@ def getExistingTrade(trade_id):
 def searchUserTicker(user_id, filter=None):
     logger.info("Entering Search User Ticker Handler: " + "(user_id: {}, filter: {})".format(str(user_id), str(filter)))
     if filter:
-        if isinstance(filter, dict):
-            filterBody = filter  # 'filter' is already a dictionary
-        else:
-            filterBody = filter.to_dict() 
+        filterBody = filter.to_dict() if hasattr(filter, 'to_dict') else filter
         eval, response = tradeValidator.validateSearchTicker(filterBody)
         if eval == False:
             logger.warning("Leaving Search User Ticker Handler: " + str(response))
@@ -411,40 +408,3 @@ def exportCsv(requestBody):
     response.headers['Content-Type'] = 'text/csv'
     logger.info("Leaving Export CSV Handler: " + str(response))
     return response
-
-        
-        
-#--------Tests--------# 
-
-#Testing logUser()
-#testTradeDict = {
-#    "user_id": 1,
-#   "trade_type": "Day Trade",
-#    "security_type": "Options",
-#    "ticker_name": "SPY",
-#    "trade_date": "12-12-2022",
-#    "expiry": "8-30-1998",
-#    "strike": 420,
-#    "buy_value": 50,
-#    "units": 10,
-#    "rr": "3:1",
-#    "pnl": 150,
-#    "percent_wl": 54.4,
-#    "comments": "Test Comment"
-#}
-#response = logTrade(testTradeDict)
-
-#Testing getExistingTrade()
-#response = getExistingTrade(11)
-
-#Testing editExistingTrade()
-#testChanges = {
-#    "pnl": 500,
-#    "ticker_name": "MSFT"
-#}
-#response = editExistingTrade(11,testChanges)
-
-#Testing deleteExistingTrade()
-#response = deleteExistingTrade(9)
-
-#print(response)

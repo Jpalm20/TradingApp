@@ -76,6 +76,15 @@ class Accountvalue:
         logger.info("Leaving Delete Account Value Model Function: " + str(response))
         return response
     
+    def deleteUserAccountValues(user_id):
+        
+        logger.info("Entering Delete User Account Values Model Function: " + "(user_id: {})".format(str(user_id)))
+        Query = """DELETE FROM accountvalue WHERE user_id = %s"""
+        Args = (user_id,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Delete User Account Values Model Function: " + str(response))
+        return response
+    
     def insertFutureDay(user_id, date):
             
         logger.info("Entering Insert Future Day Model Function: " + "(user_id: {}, date: {})".format(str(user_id),str(date)))

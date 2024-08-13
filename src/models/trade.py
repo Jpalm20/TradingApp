@@ -127,27 +127,3 @@ class Trade:
             logger.info("Leaving Get User Ticker Model Function: " + str(response))
             return response
     
-    
-#--------Tests--------# 
-
-#Testing addTrade       
-#testTrade = Trade(None,1,"Swing Trade","Options","TSLA","12-12-2022","9-21-2023",1000,500,5,"3:1",2532.52,254.3,"Test for Sunny :)")
-#response = Trade.addTrade(testTrade)
-
-#Testing updateTrade
-#testTradeID = 3;
-#testUpdateTradeInfo = {
-#    "ticker_name": "QQQ",
-#    "pnl": 250
-#}
-#response = Trade.updateTrade(testTradeID,testUpdateTradeInfo)
-
-#Testing deleteTrade
-#testTradeID = 7
-#response = Trade.deleteTrade(testTradeID)
-
-#Testing getTrade
-#testTradeID = 3
-#response = Trade.getTrade(testTradeID)
-
-#print(response)

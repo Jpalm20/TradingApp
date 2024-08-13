@@ -46,7 +46,12 @@ swagger_config = {
 }
 Swagger(app, config=swagger_config)
 
-REDIS_HOST = os.environ.get('REDIS_HOST')
+ENV = os.environ.get('ENV','prod')
+
+if ENV == 'docker':
+  REDIS_HOST = os.environ.get('REDIS_HOST_DOCKER')
+else:
+  REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 
 if 'REDIS_PASSWORD' in os.environ:

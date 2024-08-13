@@ -84,11 +84,3 @@ class Session:
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Email from Session Model Function: " + str(response))
         return response
-    
-#--------Tests--------# 
-
-#Testing addSession      
-#testSession = Session(None,71,"testtoken",datetime.now())
-#response = Session.addSession(testSession)
-
-#print(response)

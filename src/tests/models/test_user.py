@@ -1,6 +1,6 @@
 import unittest
-from models.user import *
-from models.utils import execute_db
+from src.models.user import *
+from src.models.utils import execute_db
 
 class TestUser(unittest.TestCase):
     
@@ -525,50 +525,3 @@ class TestUser(unittest.TestCase):
     #def tearDown(self):
         #self.transaction.rollback()
         #THIS SHOULD BE DELETING THE USER SO IT ALWAYS HAPPENS
-        
-        
-#--------Tests--------# 
-
-#Testing addUser       
-#testUser = User(None,"Jon","Palmiery","08-30-2020","palmierijon@gmail.com","password","11 Danand Lane","Patterson","NY","USA",None)
-#response = User.addUser(testUser)
-
-#Testing updateUser
-#testUserID = 4;
-#testUpdateUserInfo = {
-#    "last_name": "Palmieri",
-#    "password": "testestest20"
-#}
-#response = User.updateUser(testUserID,testUpdateUserInfo)
-
-#Testing deleteUser
-#testUserID = 4
-#response = User.deleteUser(testUserID)
-
-#Testing getUserbyID
-#testUserID = 2
-#response = User.getUser(testUserID)
-
-#Test getUserbyEmail
-#testUserEmail = "testemail@gmail.com"   
-#response = User.getUserbyEmail(testUserEmail)
-
-#Testing getUserTrades
-#testUserID = 77
-#response = User.getUserTrades(testUserID)
-
-#Testing getUserTradesFilter
-#testUserID = 71
-#testFilters = {
-#   "ticker_name": "SPY",
-#   "trade_type": "Swing Trade",
-#   "security_type": "Options"
-#}
-#response = User.getUserTradesFilter(testUserID,testFilters)
-
-#Testing getUserTradesbyYear
-#testUserID = 77
-#testYear = 2022
-#response = User.getUserTrades(testUserID,testYear)
-
-#print(response)

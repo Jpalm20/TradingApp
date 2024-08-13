@@ -1,6 +1,6 @@
 import unittest
-from validators.userValidator import *
-from models.utils import execute_db
+from src.validators.userValidator import *
+from src.models.utils import execute_db
 from datetime import datetime, date, timedelta
 
 
@@ -55,11 +55,12 @@ class TestUserValidator(unittest.TestCase):
         response = validateNewUser(request)
         self.assertEqual(response[0]['result'], "Must Include a Valid Email Format, Please Try Again")
         # 4 fail on email existing check
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatenewuseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         request = {
             "first_name": "Test",
             "last_name": "Test",
             "birthday": "2023-01-01",
-            "email": "palmierijon@gmail.com",
+            "email": "validatenewuseruservalidatorunittest@gmail.com",
             "password": "password",
             "street_address": "10 Brewster Lane",
             "city": "New Jersey",
@@ -68,6 +69,7 @@ class TestUserValidator(unittest.TestCase):
         }
         response = validateNewUser(request)
         self.assertEqual(response[0]['result'], "A User with this Email Already Exist, Sign Up with a Different Email")
+        response = execute_db("DELETE FROM user WHERE email = %s", ("validatenewuseruservalidatorunittest@gmail.com",))
 
         
     def test_validate_edit_user(self):
@@ -112,11 +114,12 @@ class TestUserValidator(unittest.TestCase):
         response = validateEditUser(request)
         self.assertEqual(response[0]['result'], "Invalid Email Format, Try Upating Again")
         # 4 fail email existing
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateedituseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         request = {
             "first_name": "",
             "last_name": "",
             "birthday": "2023-01-01",
-            "email": "palmierijon@gmail.com",
+            "email": "validateedituseruservalidatorunittest@gmail.com",
             "street_address": "10 Brewster Lane",
             "city": "",
             "state": "",
@@ -124,6 +127,7 @@ class TestUserValidator(unittest.TestCase):
         }
         response = validateEditUser(request)
         self.assertEqual(response[0]['result'], "A User with this Email Already Exist, Try Updating with a Different Email")
+        response = execute_db("DELETE FROM user WHERE email = %s", ("validateedituseruservalidatorunittest@gmail.com",))
 
 
     def test_validate_change_password(self):

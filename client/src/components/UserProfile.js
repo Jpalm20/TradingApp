@@ -564,7 +564,9 @@ export default function UserProfile({ user }) {
                 </AlertDialogHeader>
 
                 <AlertDialogBody>
-                  Are you sure? <br></br> <br></br> You can't undo this action afterwards. All User data and Trade information will be lost. 
+                  <strong>Are you sure?</strong> <br /><br />
+                  <span style={{ fontWeight: 'bold' }}>You can't undo this action afterwards.</span> <br /><br />
+                  <em>All User data and Trade information will be lost.</em>
                 </AlertDialogBody>
 
                 <AlertDialogFooter>

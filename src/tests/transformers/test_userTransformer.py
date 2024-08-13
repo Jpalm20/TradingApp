@@ -1,6 +1,6 @@
 import unittest
-from transformers.userTransformer import *
-from models.utils import execute_db
+from src.transformers.userTransformer import *
+from src.models.utils import execute_db
 from datetime import datetime, date
 
 
@@ -76,7 +76,7 @@ class TestUserTransformer(unittest.TestCase):
             "fields": {
                 "project":
                 { 
-                    "id": 'None' #Will need to resolve this so env var is read this should be 10000
+                    "id": '10000'
                 },
                 "summary": "Test Page" + " - " + "Test Transform Report Bug",
                 "description": "transformreportbugunittest" + " \n\nSubmitted By: " + "transformreportbugunittest@gmail.com",

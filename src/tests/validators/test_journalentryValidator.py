@@ -1,6 +1,6 @@
 import unittest
-from validators.journalentryValidator import *
-from models.utils import execute_db
+from src.validators.journalentryValidator import *
+from src.models.utils import execute_db
 from datetime import datetime, date, timedelta
 
 

@@ -1,4 +1,4 @@
-#!/Users/jp/Documents/TradingApp/TradingApp/venv/bin/python3
+#!/Users/jp/Documents/TradingApp/TradingApp/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
