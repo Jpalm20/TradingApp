@@ -42,6 +42,8 @@ db_config = {
     "pool_reset_session": True
 }
 
+logging.info(f"DB Config: {db_config}")
+
 # Set up connection pooling
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
 
