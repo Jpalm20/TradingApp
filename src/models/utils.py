@@ -36,12 +36,8 @@ db_config = {
     "password": DB_PASSWORD,
     "host": DB_HOST,
     "database": DB_NAME,
-    "port": DB_PORT,
-    "pool_name": "mypool",
-    "pool_size": 5
+    "port": DB_PORT
 }
-
-logger.info(f"DB Config: {db_config}")
 
 # Set up connection pooling
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
