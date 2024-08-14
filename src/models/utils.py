@@ -36,7 +36,8 @@ db_config = {
     "password": DB_PASSWORD,
     "host": DB_HOST,
     "database": DB_NAME,
-    "port": DB_PORT
+    "port": DB_PORT,
+    "pool_name": "mypool"
 }
 
 # Set up connection pooling
