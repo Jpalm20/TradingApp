@@ -40,7 +40,11 @@ db_config = {
 }
 
 # Set up connection pooling
-connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
+connection_pool = mysql.connector.pooling.MySQLConnectionPool(
+    pool_name="mypool",  # Use a short pool name
+    pool_size=5,  # Reasonable default pool size
+    **db_config
+)
 
 def get_db_connection():
     connection = connection_pool.get_connection()
