@@ -61,8 +61,7 @@ try:
         password=db_config["password"],
         host=db_config["host"],
         database=db_config["database"],
-        port=db_config["port"],
-        connection_timeout=db_config["connection_timeout"]
+        port=db_config["port"]
     )
     logger.info("Test connection successful")
     test_connection.close()
