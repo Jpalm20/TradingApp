@@ -1,4 +1,5 @@
 import os
+import time
 from dotenv import load_dotenv
 import random
 import mysql.connector
@@ -47,8 +48,16 @@ connection_pool = mysql.connector.pooling.MySQLConnectionPool(
 )
 
 def get_db_connection():
-    connection = connection_pool.get_connection()
-    return connection
+    retries = 3
+    while retries > 0:
+        try:
+            connection = connection_pool.get_connection()
+            return connection
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting connection from pool: {err}")
+            retries -= 1
+            time.sleep(2)  # Wait before retrying
+    raise Exception("Failed to get connection after multiple attempts")
 
 def close_db_connection(connection):
     if connection is not None and connection.is_connected():
