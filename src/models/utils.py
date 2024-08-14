@@ -8,7 +8,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -37,8 +36,7 @@ db_config = {
     "password": DB_PASSWORD,
     "host": DB_HOST,
     "database": DB_NAME,
-    "port": DB_PORT,
-    "pool_name": "mypool"
+    "port": DB_PORT
 }
 
 # Set up connection pooling
