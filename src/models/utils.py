@@ -31,14 +31,6 @@ else:
     DB_PASSWORD = os.environ.get('DB_PASSWORD')
     
 
-# Log environment variable values
-logger.info(f"DB_HOST: {DB_HOST}")
-logger.info(f"DB_PORT: {DB_PORT}")
-logger.info(f"DB_NAME: {DB_NAME}")
-logger.info(f"DB_USERNAME: {DB_USERNAME}")
-logger.info(f"DB_PASSWORD: {'***' if DB_PASSWORD else 'Not Set'}")
-    
-
 # Database configuration
 db_config = {
     "user": DB_USERNAME,
@@ -50,33 +42,7 @@ db_config = {
 }
 
 # Set up connection pooling
-#connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
-
-# Log the db_config
-logger.info(f"DB Config: {db_config}")
-
-# Test the connection before creating the pool
-try:
-    test_connection = mysql.connector.connect(
-        user=db_config["user"],
-        password=db_config["password"],
-        host=db_config["host"],
-        database=db_config["database"],
-        port=db_config["port"]
-    )
-    logger.info("Test connection successful")
-    test_connection.close()
-except mysql.connector.Error as err:
-    logger.error(f"Test connection failed: {err}")
-    raise
-
-# Set up connection pooling
-try:
-    connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
-    logger.info("Connection pool created successfully")
-except mysql.connector.Error as err:
-    logger.error(f"Error creating connection pool: {err}")
-    raise
+connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
 
 def get_db_connection():
     connection = connection_pool.get_connection()
