@@ -36,14 +36,15 @@ db_config = {
     "user": DB_USERNAME,
     "password": DB_PASSWORD,
     "host": DB_HOST,
-    "database": DB_NAME,
-    "port": DB_PORT
+    "database": DB_NAME
+    #"port": DB_PORT
 }
 
 # Set up connection pooling
 connection_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",  # Use a short pool name
     pool_size=5,  # Reasonable default pool size
+    connection_timeout=50,
     **db_config
 )
 
