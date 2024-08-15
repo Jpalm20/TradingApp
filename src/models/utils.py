@@ -42,7 +42,6 @@ db_config = {
 connection_pool = None
 
 # Set up connection pooling
-
 def get_connection_pool():
     global connection_pool
     if connection_pool is None:
@@ -50,6 +49,7 @@ def get_connection_pool():
         connection_pool = mysql.connector.pooling.MySQLConnectionPool(
             pool_name="mypool",  # Use a short pool name
             pool_size=5,  # Reasonable default pool size
+            pool_reset_session=True,
             **db_config
         )
     return connection_pool
