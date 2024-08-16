@@ -13,6 +13,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Clear pytest cache and artifacts
+      run: |
+        rm -rf .pytest_cache
+        find . -type d -name '__pycache__' -exec rm -rf {} +
+        find . -type f -name '*.pyc' -delete
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
