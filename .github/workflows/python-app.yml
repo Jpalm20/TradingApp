@@ -47,7 +47,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v tests/unit
+        pytest -v src/tests/unit
 
     - name: Deploy to Heroku
       if: success()
@@ -83,4 +83,4 @@ jobs:
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         ENV: ${{ secrets.ENV }}
       run: |
-        pytest -v tests/integration
+        pytest -v src/tests/integration
