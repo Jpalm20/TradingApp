@@ -83,4 +83,4 @@ jobs:
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         ENV: ${{ secrets.ENV }}
       run: |
-        pytest -v src/tests/integration
+        pytest -v src/tests/integration 
