@@ -22,6 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest-xdist
 
     - name: Run unit tests
       env:
@@ -47,7 +48,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v src/tests/unit
+        pytest -v -n auto src/tests/unit
 
     - name: Deploy to Heroku
       if: success()
@@ -55,9 +56,9 @@ jobs:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
         echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
-        docker build -t registry.heroku.com/<your-heroku-app>/web .
-        docker push registry.heroku.com/<your-heroku-app>/web
-        heroku container:release web --app <your-heroku-app>
+        docker build -t registry.heroku.com/my-trading-app-staging/web .
+        docker push registry.heroku.com/my-trading-app-staging/web
+        heroku container:release web --app my-trading-app-staging
 
     - name: Run integration tests
       if: success()
