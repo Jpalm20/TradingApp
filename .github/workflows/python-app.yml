@@ -22,7 +22,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest-xdist
 
     - name: Run unit tests
       env:
@@ -48,7 +47,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v -n auto src/tests/unit
+        pytest -v src/tests/unit
 
     - name: Deploy to Heroku
       if: success()
