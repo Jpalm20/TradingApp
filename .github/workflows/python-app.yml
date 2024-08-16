@@ -6,29 +6,24 @@ on:
       - staging
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: [3.7]
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.7  # Adjust as needed
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests
+    - name: Run unit tests
       env:
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
         JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
@@ -52,4 +47,40 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v
+        pytest -v tests/unit
+
+    - name: Deploy to Heroku
+      if: success()
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
+        docker build -t registry.heroku.com/<your-heroku-app>/web .
+        docker push registry.heroku.com/<your-heroku-app>/web
+        heroku container:release web --app <your-heroku-app>
+
+    - name: Run integration tests
+      if: success()
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
+        JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+        JIRA_PROJECT_ID: ${{ secrets.JIRA_PROJECT_ID }}
+        JIRA_URL: ${{ secrets.JIRA_URL }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        TEST_DB_HOST: ${{ secrets.TEST_DB_HOST }}
+        TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
+        TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+        TEST_DB_USERNAME: ${{ secrets.TEST_DB_USERNAME }}
+        TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        REDIS_HOST: ${{ secrets.REDIS_HOST }}
+        REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
+        ENV: ${{ secrets.ENV }}
+      run: |
+        pytest -v tests/integration
