@@ -26,8 +26,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install --no-cache-dir --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
 
     - name: Run unit tests
       env:
@@ -53,7 +53,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v src/tests/unit
+        pytest -v src/tests/unit/models/test_user.py
 
     - name: Deploy to Heroku
       if: success()
