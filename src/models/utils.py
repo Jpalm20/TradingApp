@@ -36,7 +36,7 @@ db_config = {
     "password": DB_PASSWORD,
     "host": DB_HOST,
     "database": DB_NAME,
-    "port": DB_PORT
+    "port": DB_PORT,
 }
 
 connection_pool = None
@@ -46,12 +46,14 @@ def get_connection_pool():
     global connection_pool
     if connection_pool is None:
         logger.info("Initializing connection pool")
+        logger.info(f"DB Config: {db_config}")
         connection_pool = mysql.connector.pooling.MySQLConnectionPool(
             pool_name="mypool",  # Use a short pool name
             pool_size=5,  # Reasonable default pool size
             pool_reset_session=True,
             **db_config
         )
+        logger.info("Connection pool initialized")
     return connection_pool
 
 def get_db_connection():

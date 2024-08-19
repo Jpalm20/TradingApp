@@ -7,29 +7,25 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    timeout-minutes: 15
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Clear pytest cache and artifacts
-      run: |
-        rm -rf .pytest_cache
-        find . -type d -name '__pycache__' -exec rm -rf {} +
-        find . -type f -name '*.pyc' -delete
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9  # Adjust as needed
+        python-version: 3.7  # Adjust as needed
 
     - name: Install dependencies
       run: |
-        pip install --no-cache-dir --upgrade pip
-        pip install --no-cache-dir -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
     - name: Run unit tests
+      if: success()
       env:
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
         JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
@@ -53,7 +49,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v -o log_cli=true --log-level=DEBUG src/tests/unit/models/test_user.py
+        pytest -v src/tests/unit
 
     - name: Deploy to Heroku
       if: success()
