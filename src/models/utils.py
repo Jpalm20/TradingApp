@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 ENV = os.environ.get('ENV','prod')
+POOL_NAME = os.environ.get('POOL_NAME',"mypool")
 
 if ENV == 'test':
     DB_HOST = os.environ.get('TEST_DB_HOST')
@@ -47,7 +48,7 @@ def get_connection_pool():
     if connection_pool is None:
         logger.info("Initializing connection pool")
         connection_pool = mysql.connector.pooling.MySQLConnectionPool(
-            pool_name="mypool",  # Use a short pool name
+            pool_name=POOL_NAME,  # Use a short pool name
             pool_size=5,  # Reasonable default pool size
             pool_reset_session=True,
             **db_config
