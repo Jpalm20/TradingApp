@@ -46,6 +46,7 @@ jobs:
         REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
+        POOL_NAME: ${{ secrets.POOL_NAME }}
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
