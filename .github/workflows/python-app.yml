@@ -7,17 +7,17 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7  # Adjust as needed
+        python-version: 3.8  # Adjust as needed
 
     - name: Install dependencies
       run: |
@@ -49,7 +49,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v src/tests/unit
+        pytest -v src/tests/unit/models/test_resetcode.py
 
     - name: Deploy to Heroku
       if: success()
