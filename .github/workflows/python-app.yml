@@ -19,6 +19,11 @@ jobs:
       with:
         python-version: 3.8  # Adjust as needed
 
+    - name: Clear Python cache
+      run: |
+        find . -type d -name "__pycache__" -exec rm -r {} +
+        find . -type f -name "*.pyc" -delete
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -50,7 +55,7 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v src/tests/unit/models/test_resetcode.py
+        pytest -v --log-cli-level=INFO src/tests/unit/models/test_resetcode.py
 
     - name: Deploy to Heroku
       if: success()
