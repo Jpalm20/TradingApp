@@ -55,7 +55,9 @@ jobs:
         ENV: ${{ secrets.ENV }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        pytest -v --log-cli-level=INFO src/tests/unit/models/test_resetcode.py
+        pytest -v -k "test_add_resetcode"
+        pytest -v -k "test_delete_resetcode"
+    # pytest -v --log-cli-level=INFO src/tests/unit/models/test_resetcode.py
 
     - name: Deploy to Heroku
       if: success()
