@@ -59,7 +59,7 @@ def get_connection_pool():
 def get_db_connection():
     logger.info("Getting connection pool")
     pool = get_connection_pool()
-    logger.info(f"Connection pool status: {pool.status()}")
+    #logger.info(f"Connection pool status: {pool.status()}")
     logger.info("Getting database connection")
     connection = pool.get_connection()
     logger.info("Got database connection")
