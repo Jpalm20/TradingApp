@@ -57,6 +57,13 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
         pytest -v --log-cli-level=INFO src/tests/unit
 
+    - name: Set Heroku Stack to Container
+      if: success()
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        heroku stack:set container -a my-trading-app-staging
+
     - name: Deploy to Heroku
       if: success()
       env:
