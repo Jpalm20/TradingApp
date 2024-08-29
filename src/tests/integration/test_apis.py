@@ -1,5 +1,6 @@
 from cgitb import reset
 import unittest
+import time
 import requests
 import os
 from datetime import datetime, timedelta
@@ -841,7 +842,8 @@ class TestAPIs(unittest.TestCase):
 
     def tearDown(self):
         # Any cleanup actions that need to occur after each test can be performed here.
-        pass
+        # pass
+        time.sleep(2)
     
     
     @classmethod
