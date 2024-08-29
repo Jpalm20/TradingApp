@@ -10,8 +10,10 @@ import 'moment-timezone';
 import { BsFilter } from "react-icons/bs";
 import axios from "axios";
 import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
+import { IoFilter } from "react-icons/io5";
 import {
   Flex,
+  IconButton,
   Text,
   Table,
   Thead,
@@ -69,6 +71,7 @@ import {
   Badge,
   HStack
 } from "@chakra-ui/react";
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCsv, updateTrades } from '../store/trade';
@@ -1773,7 +1776,50 @@ export default function Summary({ user }) {
   // input max field must have 08 instead of 8
   month = month.length === 2 ? month : "0" + month;
   day = day.length === 2 ? day : "0" + day;
-  const maxDate = year + "-" + month + "-" + day;        
+  const maxDate = year + "-" + month + "-" + day;  
+  
+  //sorting logic
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedTrades = React.useMemo(() => {
+    if(hasTrades) {
+      let sortableItems = [...trades.trades];
+      if (sortConfig.key !== null) {
+        sortableItems.sort((a, b) => {
+          const aValue = a[sortConfig.key];
+          const bValue = b[sortConfig.key];
+  
+          // Handle null values
+          if (aValue === null) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (bValue === null) return sortConfig.direction === 'asc' ? 1 : -1;
+  
+          if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+          }
+          if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+      return sortableItems;
+    }
+  }, [trades, sortConfig]);
+
+  const requestSort = key => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? <TriangleUpIcon /> : <TriangleDownIcon />;
+    }
+    return <IoFilter />;
+  };
 
   return (
     !editTrade ? (
@@ -2004,22 +2050,167 @@ export default function Summary({ user }) {
               <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
                 <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
                   <Tr>
-                    <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
-                    <Th resize='horizontal' overflow='auto'>Security<br></br>Type</Th>
-                    <Th resize='horizontal' overflow='auto'>Ticker</Th>
-                    <Th resize='horizontal' overflow='auto'>Close<br></br>Date</Th>
-                    <Th resize='horizontal' overflow='auto'>Expiry</Th>
-                    <Th resize='horizontal' overflow='auto'>Strike</Th>
-                    <Th resize='horizontal' overflow='auto'>Avg<br></br>Price</Th>
-                    <Th resize='horizontal' overflow='auto'># of<br></br>Units</Th>
-                    <Th resize='horizontal' overflow='auto'>R/R</Th>
-                    <Th resize='horizontal' overflow='auto'>PNL</Th>
-                    <Th resize='horizontal' overflow='auto'>% W/L</Th>
-                    <Th resize='horizontal' overflow='hidden' textOverflow='ellipsis'>Comments</Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('trade_type')}*/>
+                      <HStack>
+                        <span>
+                          Trade<br></br>Type
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Trade Type"
+                          icon={getSortIcon('trade_type')}
+                          onClick={() => requestSort('trade_type')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('security_type')}*/>
+                      <HStack>
+                        <span>
+                          Security<br></br>Type
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Security Type"
+                          icon={getSortIcon('security_type')}
+                          onClick={() => requestSort('security_type')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('ticker_name')}*/>
+                      <HStack>
+                        <span>
+                          Ticker
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Ticker"
+                          icon={getSortIcon('ticker_name')}
+                          onClick={() => requestSort('ticker_name')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('trade_date')}*/>
+                      <HStack>
+                        <span>
+                          Close<br></br>Date
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Close Date"
+                          icon={getSortIcon('trade_date')}
+                          onClick={() => requestSort('trade_date')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('expiry')}*/>
+                      <HStack>
+                        <span>
+                          Expiry
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Expiry Date"
+                          icon={getSortIcon('expiry')}
+                          onClick={() => requestSort('expiry')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('strike')}*/>
+                      <HStack>
+                        <span>
+                          Strike
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Strike Price"
+                          icon={getSortIcon('strike')}
+                          onClick={() => requestSort('strike')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('buy_value')}*/>
+                      <HStack>
+                        <span>
+                          Avg<br></br>Price
+                        </span>
+                        <IconButton
+                          aria-label="Sort by Avg Price"
+                          icon={getSortIcon('buy_value')}
+                          onClick={() => requestSort('buy_value')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('units')}*/>
+                      <HStack>
+                        <span>
+                          # of<br></br>Units
+                        </span>
+                        <IconButton
+                          aria-label="Sort by # of Units"
+                          icon={getSortIcon('units')}
+                          onClick={() => requestSort('units')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('rr')}*/>
+                      <HStack>
+                        <span>
+                          R/R
+                        </span>
+                        <IconButton
+                          aria-label="Sort by r/r"
+                          icon={getSortIcon('rr')}
+                          onClick={() => requestSort('rr')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('pnl')}*/>
+                      <HStack>
+                        <span>
+                          PNL
+                        </span>
+                        <IconButton
+                          aria-label="Sort by pnl"
+                          icon={getSortIcon('pnl')}
+                          onClick={() => requestSort('pnl')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('percent_wl')}*/>
+                      <HStack>
+                        <span>
+                          % W/L
+                        </span>
+                        <IconButton
+                          aria-label="Sort by % W/L"
+                          icon={getSortIcon('percent_wl')}
+                          onClick={() => requestSort('percent_wl')}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Th>
+                    <Th resize='horizontal' overflow='hidden' textOverflow='ellipsis'>
+                      Comments
+                    </Th>
                   </Tr>
                 </Thead>
                     <Tbody zIndex={1}>
-                      {trades.trades.map((trade, index) => (
+                      {sortedTrades.map((trade, index) => (
                         <Tr
                         onClick={async () => {
                           if (selectedRow.includes(index)) {
