@@ -6,6 +6,7 @@ import { Link as RouterLink, useNavigate, useHistory, useLocation} from "react-r
 import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import { BiPencil } from "react-icons/bi";
+import { IoFilter } from "react-icons/io5";
 import moment from 'moment'; 
 import 'moment-timezone';
 import '../styles/filter.css';
@@ -13,6 +14,7 @@ import '../styles/home.css';
 import Lottie from "lottie-react";
 import animationData from "../lotties/no-data-animation.json";
 import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import getSymbolFromCurrency from 'currency-symbol-map';
 import {
   Flex,
@@ -1233,7 +1235,48 @@ export default function Home({ user }) {
     }
   }
 
+  //sorting logic
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedTrades = React.useMemo(() => {
+    if(hasTrades) {
+      let sortableItems = [...trades.trades];
+      if (sortConfig.key !== null) {
+        sortableItems.sort((a, b) => {
+          const aValue = a[sortConfig.key];
+          const bValue = b[sortConfig.key];
   
+          // Handle null values
+          if (aValue === null) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (bValue === null) return sortConfig.direction === 'asc' ? 1 : -1;
+  
+          if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+          }
+          if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+      return sortableItems;
+    }
+  }, [trades, sortConfig]);
+
+  const requestSort = key => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? <TriangleUpIcon /> : <TriangleDownIcon />;
+    }
+    return <IoFilter />;
+  };
 
   const getOpenTrades = () => {
     let content = [];
@@ -1369,15 +1412,80 @@ export default function Home({ user }) {
         <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
           <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
             <Tr>
-              <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
-              <Th resize='horizontal' overflow='auto'>Security<br></br>Type</Th>
-              <Th resize='horizontal' overflow='auto'>Ticker</Th>
-              <Th resize='horizontal' overflow='auto'># of<br></br>Units</Th>
-              <Th resize='horizontal' overflow='auto'>Avg<br></br>Price</Th>
+              <Th resize='horizontal' overflow='auto'>
+                <HStack>
+                  <span>
+                    Trade<br></br>Type
+                  </span>
+                  <IconButton
+                    aria-label="Sort by Trade Type"
+                    icon={getSortIcon('trade_type')}
+                    onClick={() => requestSort('trade_type')}
+                    size="xs"
+                    variant="ghost"
+                  />
+                </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+                <HStack>
+                  <span>
+                    Security<br></br>Type
+                  </span>
+                  <IconButton
+                    aria-label="Sort by Security Type"
+                    icon={getSortIcon('security_type')}
+                    onClick={() => requestSort('security_type')}
+                    size="xs"
+                    variant="ghost"
+                  />
+                </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+              <HStack>
+                <span>
+                  Ticker
+                </span>
+                <IconButton
+                  aria-label="Sort by Ticker"
+                  icon={getSortIcon('ticker_name')}
+                  onClick={() => requestSort('ticker_name')}
+                  size="xs"
+                  variant="ghost"
+                />
+              </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+              <HStack>
+                <span>
+                  # of<br></br>Units
+                </span>
+                <IconButton
+                  aria-label="Sort by # of Units"
+                  icon={getSortIcon('units')}
+                  onClick={() => requestSort('units')}
+                  size="xs"
+                  variant="ghost"
+                />
+              </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+              <HStack>
+                <span>
+                  Avg<br></br>Price
+                </span>
+                <IconButton
+                  aria-label="Sort by Avg Price"
+                  icon={getSortIcon('buy_value')}
+                  onClick={() => requestSort('buy_value')}
+                  size="xs"
+                  variant="ghost"
+                />
+              </HStack>
+              </Th>
             </Tr>
           </Thead>
               <Tbody zIndex={1}>
-                {trades.trades.map((trade, index) => (
+                {sortedTrades.map((trade, index) => (
                   <Tr
                   onClick={async () => {
                     if (selectedRow.includes(index)) {
