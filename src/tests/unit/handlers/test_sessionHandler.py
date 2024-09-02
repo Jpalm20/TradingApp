@@ -36,6 +36,7 @@ class TestSessionHandler(unittest.TestCase):
         self.assertEqual(response[1], "Auth Token Has Expired")
         
         response = execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
 
@@ -57,6 +58,7 @@ class TestSessionHandler(unittest.TestCase):
         self.assertEqual(response[0]['result'], "There was an issue expiring this Session, User not Logged Out")
 
         response = execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
 
@@ -80,6 +82,7 @@ class TestSessionHandler(unittest.TestCase):
         self.assertEqual(response[1], "No User Associated with this Session")
 
         response = execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
 
@@ -104,6 +107,7 @@ class TestSessionHandler(unittest.TestCase):
         self.assertEqual(response[1], "No Email Associated with this Session")
 
         response = execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
         

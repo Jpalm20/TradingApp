@@ -573,12 +573,12 @@ export default function Summary({ user }) {
       setSelectedTradeIds(selectedRow.map(index => trades.trades[index].trade_id));
       setEditTrade(true);
       //set trade ids like delete trades - DONE
-      //logic in html to look at selected rows length
-      //html for this update trades bulk update
-      //API call logic
-      //API in store file
-      //Handle API response
-      //Caching stuff
+      //logic in html to look at selected rows length - DONE
+      //html for this update trades bulk update - DONE
+      //API call logic - DONE
+      //API in store file - DONE
+      //Handle API response - DONE
+      //Caching stuff - DONE
     }
     
   };
