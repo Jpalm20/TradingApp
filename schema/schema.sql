@@ -1,4 +1,4 @@
-CREATE TABLE `User` (
+CREATE TABLE `user` (
   `user_id` int NOT NULL AUTO_INCREMENT,
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE `User` (
   PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
-CREATE TABLE `Session` (
+CREATE TABLE `session` (
   `session_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `token` varchar(500) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE `Session` (
   CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
-CREATE TABLE `Resetcode` (
+CREATE TABLE `resetcode` (
   `resetcode_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `code` varchar(255) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE `Resetcode` (
   CONSTRAINT `resetcode_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
-CREATE TABLE `Trade` (
+CREATE TABLE `trade` (
   `trade_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `trade_type` varchar(255) DEFAULT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `Trade` (
   CONSTRAINT `trade_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
-CREATE TABLE `Accountvalue` (
+CREATE TABLE `accountvalue` (
   `accountvalue_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `accountvalue` float NOT NULL,
@@ -97,7 +97,7 @@ UPDATE user SET created_at = UTC_TIMESTAMP();
 
 -- 08-15-2023 (1.0.6)
 
-CREATE TABLE `Journalentry` (
+CREATE TABLE `journalentry` (
   `journalentry_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `entrytext` mediumtext NOT NULL,
@@ -120,3 +120,11 @@ UPDATE user SET email_optin = true;
 ALTER TABLE resetcode ADD COLUMN validated BOOLEAN DEFAULT FALSE;
 
 UPDATE resetcode SET validated = false;
+
+
+-- 06-27-2024 (1.1.0)
+
+-- Add the new column with a default value of 'USD'
+ALTER TABLE user ADD COLUMN preferred_currency VARCHAR(3) DEFAULT 'USD';
+-- Update existing users to set 'USD' as the default for existing records
+UPDATE user SET preferred_currency = 'USD' WHERE preferred_currency IS NULL;

@@ -1,0 +1,117 @@
+name: CI Pipeline for MyTradingTracking
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    # timeout-minutes: 15
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8  # Adjust as needed
+
+    - name: Clear Python cache
+      run: |
+        find . -type d -name "__pycache__" -exec rm -r {} +
+        find . -type f -name "*.pyc" -delete
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run unit tests
+      if: success()
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
+        JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+        JIRA_PROJECT_ID: ${{ secrets.JIRA_PROJECT_ID }}
+        JIRA_URL: ${{ secrets.JIRA_URL }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        TEST_DB_HOST: ${{ secrets.TEST_DB_HOST }}
+        TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
+        TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+        TEST_DB_USERNAME: ${{ secrets.TEST_DB_USERNAME }}
+        TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        REDIS_HOST: ${{ secrets.REDIS_HOST }}
+        REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
+        POOL_NAME: ${{ secrets.POOL_NAME }}
+        ENV: ${{ secrets.ENV }}
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+        pytest -v --log-cli-level=INFO src/tests/unit
+
+    - name: Set Heroku Stack to Container
+      if: success()
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        heroku stack:set container -a my-trading-app-staging
+
+    - name: Deploy to Heroku
+      if: success()
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
+        docker build -t registry.heroku.com/my-trading-app-staging/web .
+        docker push registry.heroku.com/my-trading-app-staging/web
+        heroku container:release web --app my-trading-app-staging
+
+    - name: Run integration tests
+      if: success()
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
+        JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+        JIRA_PROJECT_ID: ${{ secrets.JIRA_PROJECT_ID }}
+        JIRA_URL: ${{ secrets.JIRA_URL }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        TEST_DB_HOST: ${{ secrets.TEST_DB_HOST }}
+        TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
+        TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+        TEST_DB_USERNAME: ${{ secrets.TEST_DB_USERNAME }}
+        TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        REDIS_HOST: ${{ secrets.REDIS_HOST }}
+        REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
+        ENV: ${{ secrets.ENV }}
+      run: |
+        pytest -v src/tests/integration 
+
+    - name: Run Release Notes Script
+      if: success()
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      run: |
+        heroku run "python scripts/releasenotes.py" --app my-trading-app-staging

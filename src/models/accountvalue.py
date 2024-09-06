@@ -1,4 +1,4 @@
-import utils as utils
+import src.models.utils as utils
 from datetime import date, datetime, timedelta
 import logging
 
@@ -74,6 +74,15 @@ class Accountvalue:
         Args = (accountvalue_id,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Delete Account Value Model Function: " + str(response))
+        return response
+    
+    def deleteUserAccountValues(user_id):
+        
+        logger.info("Entering Delete User Account Values Model Function: " + "(user_id: {})".format(str(user_id)))
+        Query = """DELETE FROM accountvalue WHERE user_id = %s"""
+        Args = (user_id,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Delete User Account Values Model Function: " + str(response))
         return response
     
     def insertFutureDay(user_id, date):

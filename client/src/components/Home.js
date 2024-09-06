@@ -2,10 +2,11 @@ import React, { useEffect, useState, Component } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { getTrades, getTradesFiltered, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues, setAccountValue, getTradesPage } from '../store/auth'
 import { searchTicker, update, reset, updateTrades } from '../store/trade'
-import { Link as RouterLink, useNavigate} from "react-router-dom";
+import { Link as RouterLink, useNavigate, useHistory, useLocation} from "react-router-dom";
 import { Chart } from "react-google-charts";
 import { BsFilter } from "react-icons/bs";
 import { BiPencil } from "react-icons/bi";
+import { IoFilter } from "react-icons/io5";
 import moment from 'moment'; 
 import 'moment-timezone';
 import '../styles/filter.css';
@@ -13,6 +14,8 @@ import '../styles/home.css';
 import Lottie from "lottie-react";
 import animationData from "../lotties/no-data-animation.json";
 import { VscTriangleLeft, VscTriangleRight } from "react-icons/vsc";
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import getSymbolFromCurrency from 'currency-symbol-map';
 import {
   Flex,
   Text,
@@ -95,6 +98,9 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 export default function Home({ user }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -105,6 +111,7 @@ export default function Home({ user }) {
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = useQuery();
   const { trade } = useSelector((state) => state.trade);
   const tradeSuccess = useSelector((state) => state.trade.success);
   const { trades } = useSelector((state) => state.auth);
@@ -131,14 +138,56 @@ export default function Home({ user }) {
   const [optInAlertDialog, setOptInAlertDialog] = useState(false);
   const [accountvalue, setAccountvalue] = useState("0");
 
-  const format = (val) => `$` + val
-  const parse = (val) => val.replace(/^\$/, '')
+  // Function to format a value with the currency symbol
+  const format = (val, currencyCode) => {
+    const currencySymbol = getSymbolFromCurrency(currencyCode);
+    return currencySymbol + val;
+  };
+
+  // Function to parse a value and remove the currency symbol
+  const parse = (val, currencyCode) => {
+    const currencySymbol = getSymbolFromCurrency(currencyCode);
+    const regex = new RegExp(`^\\${currencySymbol}`);
+    return val.replace(regex, '');
+  };
 
   const returnInTZ = (utcDate) => {
     const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const tzDate = moment.utc(utcDate).tz(userTZ);
     return tzDate.format('YYYY-MM-DD')
   }
+
+  const handleFilterChange = (newFilter) => {
+    query.set('filter', newFilter);
+    navigate(`?${query.toString()}`);
+  };
+
+  function filtersToQueryString(filters) {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      if (filters[key] !== '') {
+        params.append(key, filters[key]);
+      }
+    }
+    return params.toString();
+  }
+
+  useEffect(() => {
+    const savedHomeFilters = window.localStorage.getItem('HomeFilters');
+    if (savedHomeFilters) {
+      const HomeFilters = JSON.parse(savedHomeFilters);
+      setFilterTradeType(HomeFilters.trade_type || "");
+      setFilterSecurityType(HomeFilters.security_type || "");
+      setFilterTickerName(HomeFilters.ticker_name || "");
+      setSelectedTickerValue(HomeFilters.ticker_name || "");
+      setFilterSwitchDate(HomeFilters.date_range || "");
+      setFilterFromDate(HomeFilters.from_date || "");
+      setFilterToDate(HomeFilters.to_date || "");
+      setFilters(HomeFilters);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  
 
   const today = returnInTZ(new Date().toISOString());
   const [todayAccountValue, setTodayAccountValue] = useState(0);
@@ -255,14 +304,29 @@ export default function Home({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
-      if(filter_switch_time !== ''){
+      if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
         filters.date_range = filter_switch_time;
+      }
+      if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       await dispatch(
         getTradesStatsFiltered({
           filters
         })
       );
+      handleFilterChange(filtersToQueryString(filters));
+      window.localStorage.setItem('HomeFilters', JSON.stringify(filters));
       filters.page = 1;
       filters.numrows = num_results;
       filters.trade_date = 'NULL';
@@ -298,6 +362,25 @@ export default function Home({ user }) {
   const [filter_security_type, setFilterSecurityType] = useState("");
   const [filter_ticker_name, setFilterTickerName] = useState("");
   const [filter_switch_time, setFilterSwitchDate] = useState("");
+  const [filter_from_date, setFilterFromDate] = useState("");
+  const [filter_to_date, setFilterToDate] = useState("");
+  const [isFromToDisabled, setIsFromToDisabled] = useState(false);
+  const [isDateRangeDisabled, setIsDateRangeDisabled] = useState(false);
+
+  // Your logic to enable or disable the input
+  useEffect(() => {
+    if (filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')) {
+      setIsFromToDisabled(true);
+      setIsDateRangeDisabled(false);
+    } else if ((filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== ''))){
+      setIsFromToDisabled(false);
+      setIsDateRangeDisabled(true);
+    } else if ((filter_switch_time === '' && filter_from_date === '' && filter_to_date === '')){
+      setIsFromToDisabled(false);
+      setIsDateRangeDisabled(false);
+    }
+  }, [filter_switch_time,filter_from_date,filter_to_date]);
+
 
   const authLoading = useSelector((state) => state.auth.loading);
   const tradeLoading = useSelector((state) => state.trade.loading);
@@ -396,11 +479,12 @@ export default function Home({ user }) {
   };
 
 
-
-  var formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
+  const formatter = (currencyCode) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    });
+  };
 
   var percent = new Intl.NumberFormat('default', {
     style: 'percent',
@@ -518,7 +602,8 @@ export default function Home({ user }) {
         color: '#636363',
         bold: true,
       },
-      format: 'currency',
+      format: 'decimal',
+      //currency: hasPreferences ? preferences.preferred_currency : 'USD',
       gridlines: {
         color: 'none', // Remove vertical axis gridlines
       },
@@ -640,7 +725,8 @@ export default function Home({ user }) {
         color: '#dfdfdf', 
         bold: true,
       },
-      format: 'currency',
+      format: 'decimal',
+      //currency: hasPreferences ? preferences.preferred_currency : 'INR',
       gridlines: {
         color: 'none', // Remove vertical axis gridlines
       },
@@ -720,12 +806,38 @@ export default function Home({ user }) {
                   <FormHelperText mb={2} ml={1}>
                     Time Frame
                   </FormHelperText>
-                  <Select placeholder='Select Time Frame' value={filter_switch_time} onChange={(e) => setFilterSwitchDate(e.target.value)}>
+                  <Select placeholder='Select Time Frame' value={filter_switch_time} onChange={(e) => setFilterSwitchDate(e.target.value)} disabled={isDateRangeDisabled}>
                     <option>Year</option>
                     <option>Month</option>
                     <option>Week</option>
                     <option>Day</option>
                   </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
                 </FormControl>
 
               </Box>
@@ -804,6 +916,32 @@ export default function Home({ user }) {
                     <option>Week</option>
                     <option>Day</option>
                   </Select>
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    From Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_from_date}
+                    type="date"
+                    max={maxDate}
+                    min="1900-01-01"
+                    onChange={(e) => setFilterFromDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
+                </FormControl>
+                <FormControl>
+                  <FormHelperText mb={2} ml={1}>
+                    To Date
+                  </FormHelperText>
+                  <Input
+                    value={filter_to_date}
+                    type="date"
+                    max={maxDate}
+                    min={filter_from_date !== '' ? filter_from_date : "1900-01-01"}
+                    onChange={(e) => setFilterToDate(e.target.value)}
+                    disabled={isFromToDisabled}
+                />
                 </FormControl>
                 {appliedFiltersComponent()}
           </DrawerBody>
@@ -922,8 +1060,21 @@ export default function Home({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
-      if(filter_switch_time !== ''){
+      if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
         filters.date_range = filter_switch_time;
+      }
+      if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       filters.page = page+1;
       filters.numrows = num_results;
@@ -947,8 +1098,21 @@ export default function Home({ user }) {
       if(filter_ticker_name !== ''){
         filters.ticker_name = filter_ticker_name;
       }
-      if(filter_switch_time !== ''){
+      if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
         filters.date_range = filter_switch_time;
+      }
+      if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+        if (filter_from_date !== '' && filter_to_date !== ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = filter_to_date;
+        }else if (filter_from_date !== '' && filter_to_date === ''){
+          filters.from_date = filter_from_date;
+          filters.to_date = today;
+        }
+        else if (filter_from_date === '' && filter_to_date !== ''){
+          filters.from_date = "1900-01-01";
+          filters.to_date = filter_to_date;
+        }
       }
       filters.page = page-1;
       filters.numrows = num_results;
@@ -972,6 +1136,22 @@ export default function Home({ user }) {
     }
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
+      filters.date_range = filter_switch_time;
+    }
+    if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
     }
     filters.page = 1;
     filters.numrows = new_num_results;
@@ -1055,7 +1235,48 @@ export default function Home({ user }) {
     }
   }
 
+  //sorting logic
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedTrades = React.useMemo(() => {
+    if(hasTrades) {
+      let sortableItems = [...trades.trades];
+      if (sortConfig.key !== null) {
+        sortableItems.sort((a, b) => {
+          const aValue = a[sortConfig.key];
+          const bValue = b[sortConfig.key];
   
+          // Handle null values
+          if (aValue === null) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (bValue === null) return sortConfig.direction === 'asc' ? 1 : -1;
+  
+          if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+          }
+          if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+      return sortableItems;
+    }
+  }, [trades, sortConfig]);
+
+  const requestSort = key => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? <TriangleUpIcon /> : <TriangleDownIcon />;
+    }
+    return <IoFilter />;
+  };
 
   const getOpenTrades = () => {
     let content = [];
@@ -1090,17 +1311,17 @@ export default function Home({ user }) {
         w="full"
       >
       <HStack justifyContent='space-between'>
-      <HStack justifyContent='space-between'>
+      <HStack justifyContent='space-between' flexWrap='wrap' overflowX="scroll">
       <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='75px' backgroundColor='gray.300' color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleSelectAll(e.target.value)}>
         Select All
       </Button>
       <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='50px' backgroundColor='gray.300'  color={colorMode === 'light' ? "none" : "gray.800"} onClick={(e) => handleClearSelected(e.target.value)}>
         Clear
       </Button>
-      </HStack>
       <Button style={colorMode === 'light' ? { boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' } : { boxShadow: '2px 4px 4px rgba(256,256,256,0.2)' }} size="xs" marginLeft={1} marginBottom={1} width='50px' colorScheme='blue' isDisabled={selectedRow.length <= 0} onClick={e => handleGotoClose(e)}>
         Close
       </Button>
+      </HStack>
       <AlertDialog
         motionPreset='slideInBottom'
         isOpen={closeTradePopup}
@@ -1191,15 +1412,80 @@ export default function Home({ user }) {
         <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
           <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
             <Tr>
-              <Th resize='horizontal' overflow='auto'>Trade<br></br>Type</Th>
-              <Th resize='horizontal' overflow='auto'>Security<br></br>Type</Th>
-              <Th resize='horizontal' overflow='auto'>Ticker</Th>
-              <Th resize='horizontal' overflow='auto'># of<br></br>Units</Th>
-              <Th resize='horizontal' overflow='auto'>Avg<br></br>Price</Th>
+              <Th resize='horizontal' overflow='auto'>
+                <HStack>
+                  <span>
+                    Trade<br></br>Type
+                  </span>
+                  <IconButton
+                    aria-label="Sort by Trade Type"
+                    icon={getSortIcon('trade_type')}
+                    onClick={() => requestSort('trade_type')}
+                    size="xs"
+                    variant="ghost"
+                  />
+                </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+                <HStack>
+                  <span>
+                    Security<br></br>Type
+                  </span>
+                  <IconButton
+                    aria-label="Sort by Security Type"
+                    icon={getSortIcon('security_type')}
+                    onClick={() => requestSort('security_type')}
+                    size="xs"
+                    variant="ghost"
+                  />
+                </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+              <HStack>
+                <span>
+                  Ticker
+                </span>
+                <IconButton
+                  aria-label="Sort by Ticker"
+                  icon={getSortIcon('ticker_name')}
+                  onClick={() => requestSort('ticker_name')}
+                  size="xs"
+                  variant="ghost"
+                />
+              </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+              <HStack>
+                <span>
+                  # of<br></br>Units
+                </span>
+                <IconButton
+                  aria-label="Sort by # of Units"
+                  icon={getSortIcon('units')}
+                  onClick={() => requestSort('units')}
+                  size="xs"
+                  variant="ghost"
+                />
+              </HStack>
+              </Th>
+              <Th resize='horizontal' overflow='auto'>
+              <HStack>
+                <span>
+                  Avg<br></br>Price
+                </span>
+                <IconButton
+                  aria-label="Sort by Avg Price"
+                  icon={getSortIcon('buy_value')}
+                  onClick={() => requestSort('buy_value')}
+                  size="xs"
+                  variant="ghost"
+                />
+              </HStack>
+              </Th>
             </Tr>
           </Thead>
               <Tbody zIndex={1}>
-                {trades.trades.map((trade, index) => (
+                {sortedTrades.map((trade, index) => (
                   <Tr
                   onClick={async () => {
                     if (selectedRow.includes(index)) {
@@ -1239,26 +1525,29 @@ export default function Home({ user }) {
         flex="auto"
         w="full"
       >
-      <HStack justifyContent='end' paddingEnd='1' paddingTop='1'>
-        <Text class='numresults'>
-          No. of Rows:
-        </Text>
-        <Select maxW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-        </Select>
-        <Divider orientation="vertical" colorScheme="gray"/>
-        <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
+      <HStack justifyContent='end' paddingEnd='1' paddingTop='1' flexWrap='wrap' overflowX="scroll">
+        <HStack flexWrap='wrap'>
+          <Text class='numresults'>
+            No. of Rows:
+          </Text>
+          <Select maxW={65} minW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </Select>
+        </HStack>
+        <HStack>
+          <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
 
-        </VscTriangleLeft>
-        <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
+          </VscTriangleLeft>
+          <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
 
-        </VscTriangleRight>
-        <Text class='pagenumbers'>
-          {pageStartOffset}-{pageEndOffset} of {totalCount}
-        </Text>
+          </VscTriangleRight>
+          <Text class='pagenumbers'>
+            {pageStartOffset}-{pageEndOffset} of {totalCount}
+          </Text>
+        </HStack>
       </HStack>
       </Stack>
       </>
@@ -1277,26 +1566,29 @@ export default function Home({ user }) {
           </Thead>
         </Table>
       </TableContainer>
-      <HStack justifyContent='end' paddingEnd='1' paddingTop='1'>
-        <Text class='numresults'>
-          No. of Rows:
-        </Text>
-        <Select maxW={50} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-        </Select>
-        <Divider orientation="vertical" colorScheme="gray"/>
-        <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
+      <HStack justifyContent='end' paddingEnd='1' paddingTop='1' flexWrap='wrap' overflowX="scroll">
+        <HStack flexWrap='wrap'>
+          <Text class='numresults'>
+            No. of Rows:
+          </Text>
+          <Select maxW={65} minW={65} variant='filled' size="xs" defaultValue='5' value={num_results} onChange={(e) => handleChangeNumResults(e)}>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </Select>
+        </HStack>
+        <HStack>
+          <VscTriangleLeft isDisabled={!backPageEnable} class='pagearrowssmall' onClick={e => handleBackPage(e)}>
 
-        </VscTriangleLeft>
-        <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
+          </VscTriangleLeft>
+          <VscTriangleRight isDisabled={!nextPageEnable} class='pagearrowssmall' onClick={e => handleNextPage(e)}>
 
-        </VscTriangleRight>
-        <Text class='pagenumbers'>
-          {pageStartOffset}-{pageEndOffset} of {totalCount}
-        </Text>
+          </VscTriangleRight>
+          <Text class='pagenumbers'>
+            {pageStartOffset}-{pageEndOffset} of {totalCount}
+          </Text>
+        </HStack>
       </HStack>
       </>
       }
@@ -1320,14 +1612,29 @@ export default function Home({ user }) {
     if(filter_ticker_name !== ''){
       filters.ticker_name = filter_ticker_name;
     }
-    if(filter_switch_time !== ''){
+    if(filter_switch_time !== '' && (filter_from_date === '' && filter_to_date === '')){
       filters.date_range = filter_switch_time;
+    }
+    if(filter_switch_time === '' && (filter_from_date !== '' || filter_to_date !== '')){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
     }
     await dispatch(
       getTradesStatsFiltered({
         filters
       })
     );
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('HomeFilters', JSON.stringify(filters));
     filters.page = 1;
     filters.numrows = 5;
     filters.trade_date = 'NULL';
@@ -1344,9 +1651,13 @@ export default function Home({ user }) {
     setFilterSecurityType('');
     setFilterTickerName('');
     setFilterSwitchDate('');
+    setFilterFromDate('');
+    setFilterToDate('');
     setSearchTickerValue('');
     setSelectedTickerValue('');
     await dispatch(getTradesStats());
+    handleFilterChange(filtersToQueryString({}));
+    window.localStorage.removeItem('HomeFilters');
     const filters = {};
     filters.page = 1;
     filters.numrows = 5;
@@ -1478,7 +1789,7 @@ export default function Home({ user }) {
                     <div>
                     {featureFlag ? (
                     <StatNumber style={{ display: 'flex', alignItems: 'center' }}>
-                      {format(todayAccountValue)} 
+                      {format(todayAccountValue,preferences.preferred_currency)} 
                     <IconButton
                       marginLeft={2}
                       colorScheme='gray'
@@ -1504,7 +1815,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Total PNL</StatLabel>
-                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.total_pnl))}</StatNumber>
+                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.total_pnl))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1512,7 +1823,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Avergae PNL Per Trade</StatLabel>
-                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter.format(stats.stats.avg_pnl))}</StatNumber>
+                    <StatNumber color={colorChange(stats.stats.total_pnl)}>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.avg_pnl))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1584,7 +1895,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Largest Win</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.largest_win))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.largest_win))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1592,7 +1903,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Largest Loss</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.largest_loss))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.largest_loss))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1600,7 +1911,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Average Win</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.avg_win))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.avg_win))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1608,7 +1919,7 @@ export default function Home({ user }) {
                   <Center fontWeight='bold'>
                   <Stat>
                     <StatLabel>Average Loss</StatLabel>
-                    <StatNumber>{pnlValue(formatter.format(stats.stats.avg_loss))}</StatNumber>
+                    <StatNumber>{pnlValue(formatter(preferences.preferred_currency).format(stats.stats.avg_loss))}</StatNumber>
                   </Stat>
                   </Center>
                 </GridItem>
@@ -1790,7 +2101,7 @@ export default function Home({ user }) {
                           {!featureFlag ? (
                           <NumberInput
                             onChange={(valueString) => setAccountvalue(parse(valueString))}
-                            value={format(accountvalue)}
+                            value={format(accountvalue,preferences.preferred_currency)}
                             min={0}
                           >
                             <NumberInputField />
@@ -1802,7 +2113,7 @@ export default function Home({ user }) {
                           ) : (
                           <NumberInput
                             onChange={(valueString) => setAccountvalue(parse(valueString))}
-                            value={format(accountvalue)}
+                            value={format(accountvalue,preferences.preferred_currency)}
                             min={0}
                           >
                             <NumberInputField />

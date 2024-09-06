@@ -1,4 +1,4 @@
-import utils as utils
+import src.models.utils as utils
 from datetime import date, datetime, timedelta
 import logging
 
@@ -65,4 +65,13 @@ class Resetcode:
         Args = (resetcode_id,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Validate Reset Code Model Function: " + str(response))
+        return response
+    
+    def deleteUserResetCodes(user_id):
+        
+        logger.info("Entering Delete User Reset Codes Model Function: " + "(user_id: {})".format(str(user_id)))
+        Query = """DELETE FROM resetcode WHERE user_id = %s"""
+        Args = (user_id,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Delete User Reset Codes Model Function: " + str(response))
         return response

@@ -1,4 +1,4 @@
-import utils as utils
+import src.models.utils as utils
 from datetime import date, datetime, timedelta
 import logging
 
@@ -57,9 +57,12 @@ class Journalentry:
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get Entries for Month Model Function: " + str(response))
         return response
-    
-    
-    
-#--------Tests--------# 
 
-#print(response)
+    def deleteUserJournalEntries(user_id):
+        
+        logger.info("Entering Delete User Journal Entries Model Function: " + "(user_id: {})".format(str(user_id)))
+        Query = """DELETE FROM journalentry WHERE user_id = %s"""
+        Args = (user_id,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Delete User Journal Entries Model Function: " + str(response))
+        return response
