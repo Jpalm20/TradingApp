@@ -49,7 +49,7 @@ jobs:
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
         REDIS_PORT: ${{ secrets.REDIS_PORT }}
         REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         POOL_NAME: ${{ secrets.POOL_NAME }}
         ENV: ${{ secrets.ENV }}
@@ -94,7 +94,7 @@ jobs:
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
         REDIS_PORT: ${{ secrets.REDIS_PORT }}
         REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         ENV: ${{ secrets.ENV }}
       run: |
