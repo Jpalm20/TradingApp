@@ -373,6 +373,19 @@ class TestTradeValidator(unittest.TestCase):
         with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
             response = validateCsv(file)
             self.assertEqual(response, False)
+            
+        
+    def test_validate_update_csv(self):
+        # 1 good path
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates_good.csv')
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            response = validateUpdateCsv(file)
+            self.assertEqual(response, True)
+        # 2 bad header
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates_bad.csv')
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            response = validateUpdateCsv(file)
+            self.assertEqual(response, False)
     
     
     def test_validate_new_trade_from_csv(self):

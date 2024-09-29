@@ -182,6 +182,32 @@ export const importCsv = createAsyncThunk(
   }
 );
 
+export const bulkUpdateCsv = createAsyncThunk(
+  "trade/bulkUpdateCsv",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { selectedFile } = formInfo;
+        const formData = new FormData();
+        formData.append("csv_file", selectedFile);
+        const res = await axios.post(API_URL + `trade/bulkUpdateCsv`, formData, {
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const exportCsv = createAsyncThunk(
   "trade/exportCsv",
   async (formInfo, { dispatch, rejectWithValue }) => {
@@ -352,18 +378,18 @@ const tradeSlice = createSlice({
         state.trade = null;
         state.loading = false;
       },
-      [importCsv.fulfilled]: (state, action) => {
+      [bulkUpdateCsv.fulfilled]: (state, action) => {
         state.loading = false;
         state.success = true;
         state.trade = action.payload;
         state.error = false;
       },
-      [importCsv.pending]: (state) => {
+      [bulkUpdateCsv.pending]: (state) => {
         state.loading = true;
         state.error = false;
         state.success = false;
       },
-      [importCsv.rejected]: (state, action) => {
+      [bulkUpdateCsv.rejected]: (state, action) => {
         state.error = true;
         state.info = action.payload;
         state.loading = false;

@@ -69,12 +69,14 @@ import {
   InputRightElement,
   ButtonGroup,
   Badge,
-  HStack
+  HStack,
+  VStack,
+  OrderedList
 } from "@chakra-ui/react";
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCsv, updateTrades } from '../store/trade';
+import { update, getTrade, reset, deleteTrade, searchTicker, importCsv, exportCsv, updateTrades, bulkUpdateCsv } from '../store/trade';
 
 
 const CFaUserAlt = chakra(FaUserAlt);
@@ -104,6 +106,7 @@ export default function Summary({ user }) {
   const hasTrade = ((trade && Object.keys(trade).length > 2) ? (true):(false));
 
   const [editTrade, setEditTrade] = useState(false);
+  const [bulkUpdateWithCSV, setBulkUpdateWithCSV] = useState(false);
   const [toggleFilter, setToggleFilter] = useState(false);
 
   const [filterDrawer, setFilterDrawer] = useState(false);
@@ -374,6 +377,17 @@ export default function Summary({ user }) {
     if(success === true && trade && trade.result === "Trades Imported Successfully"){
       setToastMessage(trade.trades.length.toString() + " " + trade.result);
     }
+    if(success === true && trade && trade.result && trade.result.includes("Trades Updates Imported Successfully")){
+      let toast_message = trade.updated_ids.length.toString() + " " + trade.result;
+      if(trade && trade.error_ids && trade.error_ids.length > 0){
+        //toast_message += "\nSome Errors Present, Downloading Errors...";
+        setToastErrorMessage("Some Errors Present, Downloading Errors...");
+      }
+      setToastMessage(toast_message);
+      dispatch(
+        reset()      
+      );
+    }
     if(success === true && trade && trade.result === "Trades Exported Successfully"){
       setToastMessage(trade.result);
     }
@@ -582,6 +596,79 @@ export default function Summary({ user }) {
     }
     
   };
+
+  const getBulkUpdateCSVComponent = () => {
+    let content = [];
+    content.push(
+      <>
+      <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>CSV Bulk Update</Heading>
+        <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="scroll" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
+          <VStack overflow="scroll">
+          <Stack
+                spacing={4}
+                p="1rem"
+                backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
+                boxShadow="md"
+              >
+            <HStack fontSize='lg' fontWeight='bold'>
+              <Text>
+                Instructions
+              </Text>
+            </HStack>
+            <HStack>
+              <OrderedList spacing={2} paddingTop={2}>
+                <ListItem>Export desired trades from Summary Table</ListItem>
+                <ListItem>Make necessary changes to each trade entry</ListItem>
+                <ListItem>*If you are clearing any columns, make the value None*</ListItem>
+                <ListItem>Delete any rows you are not making changes to</ListItem>
+                <ListItem>Add CSV file below and click submit</ListItem>
+              </OrderedList>
+            </HStack>
+            <Text paddingTop={5} paddingBottom={4}>Heres an example to show a file thats ready for import:{' '} 
+              <Link href="./csv/bulk_update_example.csv" download="example_bulk_trade_updates.csv" color='blue.500'>Download Example</Link>
+            </Text>
+            <HStack>
+              <Input
+                paddingTop={1}
+                type="file"
+                id="file"
+                accept=".csv" 
+                maxWidth="400px"
+                ml={3}
+                onChange={handleFileInputChange}/>
+            {tradeLoading ? <Text paddingLeft={3} color='red.500'>Loading your Trades...</Text> : ( <Text></Text>) }
+            </HStack>
+            <Flex justifyContent="flex-end">
+            <HStack paddingTop={10} >
+              <Button ref={cancelRef} minWidth='100px' onClick={e => handleCancelBulkUpdateCsv(e)}>
+                Cancel
+              </Button>
+              {tradeLoading ?
+                <Button colorScheme='blue' minWidth='100px' ml={3}>
+                  <Center>
+                    <Spinner
+                      thickness='2px'
+                      speed='0.65s'
+                      emptyColor='gray.200'
+                      color='grey.500'
+                      size='sm'
+                    />
+                  </Center>
+                </Button>
+              :
+                <Button colorScheme='blue' minWidth='100px' isDisabled={!selectedFile} onClick={e => handleConfirmBulkUpdateCsv(e)} ml={3}>
+                  Submit
+                </Button>
+              } 
+            </HStack>
+            </Flex>
+          </Stack>
+          </VStack>
+        </Box>
+      </>
+    );
+    return content
+  }
 
   const getEditComponent = () => {
     let content = [];
@@ -1053,6 +1140,16 @@ export default function Summary({ user }) {
                 variant="solid"
                 colorScheme="blue"
                 width="full"
+                onClick={handleGoToCSVUpdate}
+              >
+                Update w/ CSV
+              </Button>
+              <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="blue"
+                width="full"
                 onClick={handleClear}
               >
                 Clear
@@ -1243,6 +1340,25 @@ export default function Summary({ user }) {
     setIsLoading(false);
     setSearchValue('');
     setIsDropdownOpen(false);
+  }
+
+  const handleGoToCSVUpdate = (e) => {
+    e.preventDefault();
+    dispatch(
+      reset()
+    );
+    setEditTrade(false);
+    clearFormStates();
+    setSelectedRow([]);
+    setTradeID(null);
+    setIsLoading(false);
+    setSearchValue('');
+    setIsDropdownOpen(false);
+    setBulkUpdateWithCSV(true);
+  }
+
+  const handleCancelBulkUpdateCsv = (e) => {
+    setBulkUpdateWithCSV(false);
   }
 
   const handleClear = (e) => {
@@ -1688,6 +1804,87 @@ export default function Summary({ user }) {
     setSelectedFile(null);
   };
 
+  const downloadErrorCsv = (errorIds) => {
+    // Define CSV headers with trade_id first
+    const headers = ['trade_id', 'error_message'];
+  
+    // Function to properly escape any field with commas
+    const escapeCsvField = (field) => {
+      // Add double quotes around the field if it contains a comma
+      return field.includes(',') ? `"${field}"` : field;
+    };
+  
+    // Create CSV content with trade_id first and error_message second
+    const csvContent = [
+      headers.join(','),  // CSV headers as the first row
+      ...errorIds.map(row => 
+        [
+          row.trade_id,  // trade_id comes first
+          escapeCsvField(row.error_message)  // error_message comes second
+        ].join(',')
+      )  // Map each errorId into a row and handle comma escaping
+    ].join('\n');  // Join each row with a newline
+  
+    // Create a blob from the CSV content
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+  
+    // Create a temporary link to trigger file download
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'errors.csv';  // Filename for the downloaded CSV
+    document.body.appendChild(a);
+    a.click();
+    a.remove();  // Clean up the link after triggering the download
+  };
+
+  const handleConfirmBulkUpdateCsv = async (e) => {
+    const res = await dispatch(
+      bulkUpdateCsv({
+        selectedFile
+      })
+    );
+    const data = await res.payload;
+      
+    // Set the error IDs from the response
+    const error_ids = (data.error_ids);
+    // Automatically download CSV if there are error IDs
+    if (data.error_ids && data.error_ids.length > 0) {
+      downloadErrorCsv(data.error_ids);
+    }
+    setImportDialog(false);
+    const filters = {};
+    if(filter_trade_type !== ''){
+      filters.trade_type = filter_trade_type;
+    }
+    if(filter_security_type !== ''){
+      filters.security_type = filter_security_type;
+    }
+    if(filter_ticker_name !== ''){
+      filters.ticker_name = filter_ticker_name;
+    }
+    if(filter_from_date !== '' || filter_to_date !== ''){
+      if (filter_from_date !== '' && filter_to_date !== ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = filter_to_date;
+      }else if (filter_from_date !== '' && filter_to_date === ''){
+        filters.from_date = filter_from_date;
+        filters.to_date = today;
+      }
+      else if (filter_from_date === '' && filter_to_date !== ''){
+        filters.from_date = "1900-01-01";
+        filters.to_date = filter_to_date;
+      }
+    }
+    filters.page = 1;
+    filters.numrows = num_results;
+    await dispatch(getTradesPage({ filters }));
+    handleFilterChange(filtersToQueryString(filters));
+    window.localStorage.setItem('SummaryFilters', JSON.stringify(filters)); 
+    setSelectedFile(null);
+    setBulkUpdateWithCSV(false);
+  };
+
   const handleSelectAll = (e) => {
     if (hasTrades && trades.trades.length === 1) {
       setSelectedRow([]);
@@ -1822,7 +2019,7 @@ export default function Summary({ user }) {
   };
 
   return (
-    !editTrade ? (
+    !editTrade && !bulkUpdateWithCSV ? (
       <Flex           
         flexDirection="column"
         height="100vh"
@@ -2343,9 +2540,13 @@ export default function Summary({ user }) {
         <Stack
           class='profilestack'
         >
-        {getEditComponent()}
-      </Stack>
-    </Flex>
+          {!bulkUpdateWithCSV ? (
+            getEditComponent()
+          ) : (
+            getBulkUpdateCSVComponent()
+          )}
+        </Stack>
+      </Flex>
     ) 
   )
 }

@@ -1,4 +1,5 @@
 import unittest
+import csv
 from src.handlers.tradeHandler import *
 from src.models.utils import execute_db
 from datetime import datetime, date, timedelta
@@ -483,7 +484,88 @@ class TestTradeHandler(unittest.TestCase):
         response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
         
+    
+    def test_bulk_update_csv(self):
+        # setup queries
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","bulkupdatecsvtradehandlerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("bulkupdatecsvtradehandlerunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
         
+        # 1 Bad Path - Fail on csv validation
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates_bad.csv')
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            response = bulkUpdateCsv(file,user_id)
+            self.assertEqual(response[0]['result'], "Invalid CSV file. Missing required Headers or Empty CSV")
+        
+        # 2 Bad Path - Fail on processUpdateCsv
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates_bad_2.csv')
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            response = bulkUpdateCsv(file,user_id)
+            self.assertEqual(response[0]['result'], "No Valid Rows in CSV")
+        
+        # 3 Bad Path - No Valid updated_ids
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates_bad_3.csv')
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            response = bulkUpdateCsv(file,user_id)
+            self.assertEqual(response[0]['result'], "Unable to Update Any Trades Successfully")
+        
+        # 4 Good Path - Mix of updated_ids and error_ids
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"bulkupdatecsvtradehandlerunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Shares","SPY","","",410,400,1,"1:3",100,25,"bulkupdatecsvtradehandlerunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_ids = [trade['trade_id'] for trade in response[0]]
+        
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates_good.csv')
+        #with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            #response = bulkUpdateCsv(file,user_id)
+            #self.assertEqual(response[0]['result'], "Trades Updates Imported Successfully: 246, 1254")
+            # Step 3: Open and read the CSV file
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            csv_string = file.read()  # Read the whole CSV content as a string
+
+        # Step 4: Parse the CSV content and modify `trade_id` values
+        reader = csv.DictReader(csv_string.splitlines())
+        rows = list(reader)
+
+        # Replace trade_id values with the ones fetched from the database
+        for i, row in enumerate(rows):
+            if i < len(trade_ids):  # Ensure we have enough trade_ids
+                row['trade_id'] = trade_ids[i]  # Update the trade_id in each row
+
+        # Step 5: Convert the modified rows back into CSV format
+        # We'll use an in-memory string to handle the CSV data
+        from io import StringIO
+
+        output_csv = StringIO()
+        fieldnames = rows[0].keys()  # Get the header fields from the first row
+        writer = csv.DictWriter(output_csv, fieldnames=fieldnames)
+
+        writer.writeheader()  # Write the header
+        writer.writerows(rows)  # Write all modified rows
+        output_csv.seek(0)  # Reset the pointer to the start of the StringIO
+
+        # Step 6: Call `bulkUpdateCsv` with the updated CSV content
+        response = bulkUpdateCsv(output_csv, user_id)
+
+        # Step 7: Create the expected success message dynamically using the new trade_ids
+        expected_message = f"Trades Updates Imported Successfully: {', '.join(map(str, trade_ids))}"
+        self.assertEqual(response['result'], expected_message)
+        self.assertEqual(len(response['updated_ids']), 2)
+        self.assertEqual(len(response['error_ids']), 1)
+        self.assertEqual(response['error_ids'][0]['trade_id'], '1256')
+        self.assertEqual(response['error_ids'][0]['error_message'], "trade_id: 1256 does not exist")
+
+        # Step 8: Close the in-memory CSV file
+        output_csv.close()
+                
+        # Cleanup
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
+    
     
     def test_export_csv(self):
         requestBody = {

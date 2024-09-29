@@ -1,5 +1,6 @@
 import os
 import sys
+#from turtle import update
 from unittest import result
 from datetime import date, datetime, timedelta
 import csv
@@ -168,7 +169,7 @@ def editExistingTrade(user_id,trade_id,requestBody):
                 return {
                     "result": avresponse
                 }, 400
-    if('trade_date' in requestBody and requestBody['trade_date'] != ""):#if updating trade_date
+    if('trade_date' in requestBody and requestBody['trade_date'] != "" and requestBody['trade_date'] != None):#if updating trade_date
         if ('pnl' in og_trade_info and og_trade_info['pnl'] is not None) and ('trade_date' in og_trade_info and og_trade_info['trade_date'] is not None): #trade_date already exists, need to add to extra days or subtract from days dependng on if updated date is further back or closer to today
             if (datetime.strptime(requestBody['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                 fdresponse = accountvalue.Accountvalue.insertFutureDay(og_trade_info['user_id'],requestBody['trade_date'])
@@ -381,8 +382,54 @@ def importCsv(file, user_id):
         logger.warning("Leaving Import CSV Handler: " + str(result))
         return {
             "result": result
-        }, 400   
+        }, 400 
         
+
+def bulkUpdateCsv(file, user_id):
+    logger.info("Entering Bulk Update via CSV Handler: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))
+    if not tradeValidator.validateUpdateCsv(file):
+        response = "Invalid CSV file. Missing required Headers or Empty CSV"
+        logger.warning("Leaving Bulk Update via CSV Handler: " + response)
+        return {
+            "result": response
+        }, 400
+    eval,result = tradeTransformer.processUpdateCsv(file)
+    if eval:
+        updated_ids = []
+        error_ids = []
+        for trade in result:
+            trade_id = trade['trade_id']
+            trade_copy = trade.copy()
+            del trade_copy['trade_id']
+            trade_updates = trade_copy
+            response = editExistingTrade(user_id,trade_id,trade_updates)
+            if 'trade_id' in response:
+                updated_ids.append(trade_id)
+            else:
+                error_response = {
+                    "trade_id": trade_id,
+                    "error_message": response[0]['result']
+                }
+                error_ids.append(error_response)
+        if len(updated_ids) == 0:
+            response = "Unable to Update Any Trades Successfully"
+            logger.warning("Leaving Bulk Update via CSV Handler: " + str(response))
+            return {
+                "result": response,
+                "error_ids": error_ids
+            }, 400
+        response = {
+            "result": "Trades Updates Imported Successfully: {}".format(', '.join(map(str, updated_ids))),
+            "updated_ids": updated_ids,
+            "error_ids": error_ids
+        }
+        logger.info("Leaving Bulk Update via CSV Handler: " + str(response))
+        return response
+    else:
+        logger.warning("Leaving Bulk Update via CSV Handler: " + str(result))
+        return {
+            "result": result
+        }, 400 
 
 def exportCsv(requestBody):
     logger.info("Entering Export CSV Handler: " + "(request: {})".format(str(requestBody)))
@@ -400,7 +447,7 @@ def exportCsv(requestBody):
         
     final_trades = []    
     for row in table_data:
-        final_trades.append([row[9],row[11],row[6],row[8],row[0],row[12],row[2],row[7],row[4],row[3],row[5]])
+        final_trades.append([row[10],row[9],row[11],row[6],row[8],row[0],row[12],row[2],row[7],row[4],row[3],row[5]])
 
     csv_data = ''.join([','.join(row) + '\n' for row in final_trades])
     response = make_response(csv_data)

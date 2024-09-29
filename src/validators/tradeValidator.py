@@ -81,7 +81,7 @@ def validateEditTrade(user_id,trade_id,request):
         return {
             "result": response
         }, 400
-    elif (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
+    elif (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['expiry'] == None or request['strike'] == "" or request['strike'] == None):
         response = "Options require Strike Price and Expiry, Try Again"
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
         return {
@@ -105,7 +105,7 @@ def validateEditTrade(user_id,trade_id,request):
         return {
             "result": response
         }, 400
-    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
+    elif ('trade_date' in request and request['trade_date'] != "" and request['trade_date'] != None and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
         response = "Trade Closure Date Can't be in the Future"
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
         return {
@@ -150,6 +150,28 @@ def validateCsv(file):
             logger.warning("Leaving Validate CSV Validator: ")
             return False
     logger.info("Leaving Validate CSV Validator: ")
+    return True
+
+def validateUpdateCsv(file):
+    logger.info("Entering Validate Update CSV Validator: " + "(file: {})".format(str(file)))
+    if isinstance(file, FileStorage):
+        file.stream.seek(0)
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
+    reader = csv.DictReader(csv_string.splitlines())
+    headers = next(reader, None) 
+    required_headers = ["trade_id", "trade_date", "trade_type", "security_type", "ticker_name", "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"]
+    if headers is None:
+        logger.warning("Empty CSV")
+        return False
+    for header in required_headers:
+        if header not in headers:
+            logger.warning("Leaving Validate Update CSV Validator: ")
+            return False
+    logger.info("Leaving Validate Update CSV Validator: ")
     return True
 
 def validateNewTradeFromCsv(request):

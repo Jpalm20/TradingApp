@@ -578,14 +578,14 @@ class TestAPIs(unittest.TestCase):
 
         # Verify the headers
         expected_headers = [
-            "trade_date", "trade_type", "security_type", "ticker_name",
+            "trade_id", "trade_date", "trade_type", "security_type", "ticker_name",
             "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"
         ]
         self.assertEqual(csv_data[0], expected_headers)
 
         # Verify the first row of data (you can add more rows as needed)
         expected_first_row = [
-            "2023-07-04", "Day Trade", "Shares", "PSQ", "234", "4", "None", "None", "234", "25", "1:3"
+            "236", "2023-07-04", "Day Trade", "Shares", "PSQ", "234", "4", "None", "None", "234", "25", "1:3"
         ]
         self.assertEqual(csv_data[1], expected_first_row)
     
@@ -672,7 +672,42 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['ticker_name'],'QQQ')
     
     
-    def test_25_generate_reset_code(self):
+    def test_25_bulk_update_csv(self):
+        #/trade/bulkUpdateCsv
+    
+        boundary = '----WebKitFormBoundaryySqtS1tZeUD7xapy'
+        headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
+
+        # Overwrite the Content-Type to multipart/form-data
+        headers_copy['Content-Type'] = f'multipart/form-data; boundary={boundary}'
+        
+        global trade_ids
+        trade_id_0 = str(trade_ids[0])
+        
+        body = (
+            f'--{boundary}\r\n'
+            'Content-Disposition: form-data; name="csv_file"; filename="trades.csv"\r\n'
+            'Content-Type: text/csv\r\n'
+            '\r\n'
+            'trade_id,trade_date,trade_type,security_type,ticker_name,buy_value,units,expiry,strike,pnl,percent_wl,rr\n'
+            f'{trade_id_0},None,Day Trade,Shares,SPY,250,3,None,None,230,30.67,1:1\n'
+            f'0,None,Day Trade,Options,NVDA,120,3,13-Dec-22,393,25,6.94,1:1\n'
+            f'--{boundary}--\r\n'
+        )
+        
+        response = requests.post(f'{self.BASE_URL}/trade/bulkUpdateCsv', data=body, headers=headers_copy)
+
+        response_data = response.json()
+        trade_array = [trade_id_0]
+        expected_message = f"Trades Updates Imported Successfully: {', '.join(map(str, trade_array))}"
+        self.assertEqual(response_data['result'], expected_message)
+        self.assertEqual(len(response_data['updated_ids']), 1)
+        self.assertEqual(len(response_data['error_ids']), 1)
+        self.assertEqual(response_data['error_ids'][0]['trade_id'], '0')
+        self.assertEqual(response_data['error_ids'][0]['error_message'], "trade_id: 0 does not exist")
+        
+    
+    def test_26_generate_reset_code(self):
         #/user/generateResetCode
         
         request_body = {
@@ -688,7 +723,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response[0][0]['validated'],0)
         
     
-    def test_26_validate_reset_code(self):
+    def test_27_validate_reset_code(self):
         #/user/confirmResetCode
         
         global reset_code
@@ -706,7 +741,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response[0][0]['validated'],1)
     
     
-    def test_27_reset_password(self):
+    def test_28_reset_password(self):
         #/user/resetPassword
         
         global reset_code
@@ -722,7 +757,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['result'], "Password Reset Successfully")
         
     
-    def test_28_post_journal_entry(self):
+    def test_29_post_journal_entry(self):
         #/journal/<string:date>
         
         # Create Journal
@@ -737,7 +772,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['entry'], "TESTING")
         
     
-    def test_29_get_journal_entries(self):
+    def test_30_get_journal_entries(self):
         #/journal/<string:date>
         
         # Get Journal
@@ -758,7 +793,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['entries'][0]['entrytext'], "TESTING")
         
     
-    def test_30_delete_journal_entry(self):
+    def test_31_delete_journal_entry(self):
         #/journal/<string:date>
         
         # Delete Journal
@@ -769,7 +804,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['date'], "2024-01-01")
     
     
-    def test_31_delete_trade(self):
+    def test_32_delete_trade(self):
         #/trade/<int:trade_id>
         
         # Delete trade_id global variable
@@ -781,7 +816,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['user_id'], user_id)
 
     
-    def test_32_delete_trades(self):
+    def test_33_delete_trades(self):
         #/trade/deleteTrades
         
         # Delete all remaining trade_id by calling user_trades_page API
@@ -803,7 +838,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['user_id'], user_id)
         
     
-    def test_33_logout_use(self):
+    def test_34_logout_use(self):
         #/user/logout
         
         # Logout
@@ -814,7 +849,7 @@ class TestAPIs(unittest.TestCase):
         
         
     
-    def test_34_delete_user(self):
+    def test_35_delete_user(self):
         #/user 
         
         # Log back in to generate new token, logout expired the token

@@ -1435,6 +1435,84 @@ def import_csv():
         return {
             "result": error_message
         }, 400
+        
+      
+@app.route('/trade/bulkUpdateCsv',methods= ['POST'])
+def bulk_update_csv():
+    """
+    Import Bulk Trade Updates from a CSV file.
+    ---
+    tags:
+      - Trading Operations
+    consumes:
+      - multipart/form-data
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: formData
+        name: csv_file
+        description: CSV file containing trades to update.
+        required: true
+        type: file
+    responses:
+      200:
+        description: Trades updated successfully from the CSV.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
+    logger.info("Entering Bulk Updates via CSV - " + str(request.method))
+    try:
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+            eval,message = sessionHandler.validateToken(auth_token)
+            eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+            if eval and eval2:
+                if request.method == 'POST':
+                    file = request.files["csv_file"]
+                    user_id = message2
+                    response = tradeHandler.bulkUpdateCsv(file, user_id) 
+                    if 'updated_ids' in response:
+                        #delete all affected keys, too costly to update them
+                        top_level_keys = [
+                            'trades',
+                            'stats',
+                            'accountvalues',
+                            'tradespage',
+                            'tickersearch',
+                            'pnlyear'
+                        ]
+                        for key in top_level_keys:
+                            pattern = f'{key}:{user_id}:*'
+                            keys_to_delete = redis_client.keys(pattern)
+                            if keys_to_delete:
+                                redis_client.delete(*keys_to_delete)
+                    logger.info("Leaving Bulk Updates via CSV: " + str(response))
+                    return response
+            elif not eval:
+                logger.warning("Leaving Bulk Updates via CSV: " + str(message))
+                return {
+                    "result": message
+                }, 401
+            else:
+                logger.warning("Leaving Bulk Updates via CSV: " + str(message2))
+                return {
+                    "result": message2
+                }, 401
+        else:
+            response = "Authorization Header is Missing"
+            logger.warning("Leaving Bulk Updates via CSV: " + response)
+            return {
+                "result": response
+            }, 401
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        logger.error("Leaving Bulk Updates via CSV: " + error_message)
+        return {
+            "result": error_message
+        }, 400
   
 
 @app.route('/user/reportBug',methods= ['POST'])

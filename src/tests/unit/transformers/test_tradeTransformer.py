@@ -74,6 +74,14 @@ class TestTradeTransformer(unittest.TestCase):
             transformedRequest = processCsv(user_id, file)
             self.assertEqual(transformedRequest[0], True)
             self.assertEqual(len(transformedRequest[1]), 5)
+            
+    
+    def test_transform_process_update_csv(self):
+        csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_bulk_trade_updates.csv')
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
+            transformedRequest = processUpdateCsv(file)
+            self.assertEqual(transformedRequest[0], True)
+            self.assertEqual(len(transformedRequest[1]), 3)
 
         
     #def tearDown(self):

@@ -49,11 +49,66 @@ def transformEditTrade(request):
             transformedRequest[key] = request[key]
         if key == 'ticker_name' and request['ticker_name'] != '':
             transformedRequest['ticker_name'] = request['ticker_name'].upper()
+        if request[key] == None:
+            transformedRequest[key] = 'NULL'
     if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
         transformedRequest['expiry'] = 'NULL'
         transformedRequest['strike'] = 'NULL'
     logger.info("Leaving Transform Edit Trade Transformer: " + "(transformed_request: {})".format(str(transformedRequest)))
     return transformedRequest
+
+def processUpdateCsv(file):
+    #setup file to be ready for development
+    logger.info("Entering Process Update CSV Transformer: " + "(file: {})".format(str(file)))
+    trades_to_update = []
+    
+    if isinstance(file, FileStorage):
+        logger.info("FileStorage Type")
+        file.stream.seek(0)
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        logger.info("Standard File Type")
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
+    #loop through entries and setup updates
+    reader = csv.DictReader(csv_string.splitlines())
+    rows = list(reader)
+    
+    for row in rows:
+        #if not all(col in row for col in ["trade_id", "trade_date", "trade_type", "security_type", "ticker_name", "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"]):
+        if not all(col in row and row.get(col) not in [''] for col in ["trade_id", "trade_date", "trade_type", "security_type", "ticker_name", "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"]):
+            continue
+        logger.info("Row: {})".format(str(row)))
+        #just need to map row of csv to trade object and then sent all the trades back
+        trade = {
+            "trade_id": row['trade_id'],
+            "trade_type": row['trade_type'],
+            "security_type": row['security_type'],
+            "ticker_name": row['ticker_name'],
+            "trade_date": row['trade_date'],
+            "expiry": row['expiry'],
+            "strike": row['strike'],
+            "buy_value": row['buy_value'],
+            "units": row['units'],
+            "rr": row['rr'],
+            "pnl": row['pnl'],
+            "percent_wl": row['percent_wl'],
+            "comments": ""
+        }
+        for key in trade: 
+            if trade[key] == 'None':
+                trade[key] = None
+        if trade['security_type'] == "Shares" and trade['expiry'] == None and trade['strike'] == None:
+            trade['expiry'] = ''
+            trade['strike'] = ''
+        trades_to_update.append(trade)
+    if len(trades_to_update) == 0:
+        result = "No Valid Rows in CSV"
+        logger.warning("Leaving Process Update CSV Transformer: " + "(result: {})".format(str(result)))
+        return False, result
+    logger.info("Leaving Process Update CSV Transformer: " + "(trades_to_update: {})".format(str(trades_to_update)))
+    return True, trades_to_update
 
 def processCsv(user_id, file):
     logger.info("Entering Process CSV Transformer: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))
@@ -79,7 +134,8 @@ def processCsv(user_id, file):
     sorted_rows = sorted(rows, key=lambda row: (row['execution_time'], row['side']))
 
     for row in sorted_rows:
-        if not all(col in row for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
+        #if not all(col in row for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
+        if not all(col in row and row.get(col) not in [None, ''] for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
             continue
         logger.info("Row: {})".format(str(row)))
         if row['quantity'] == '' or row['security_type'] == '' or row['ticker_name'] == '' or row['execution_time'] == '' or row['side'] == '' or row['cost_basis'] == '':
