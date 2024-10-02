@@ -1489,6 +1489,12 @@ def bulk_update_csv():
                             keys_to_delete = redis_client.keys(pattern)
                             if keys_to_delete:
                                 redis_client.delete(*keys_to_delete)
+                        #Forgot to add this, so now after updated it will remove the key from trades cache object
+                        #Chose this over updating because it would be annoying to send update object and unecessary code changes
+                        #A request to server is easier given how much this feature would be realistically used
+                        for trade_id in response['updated_ids']:
+                            key = f'trade:{trade_id}'
+                            redis_client.delete(key)
                     logger.info("Leaving Bulk Updates via CSV: " + str(response))
                     return response
             elif not eval:
@@ -2139,6 +2145,7 @@ def update_trades():
                             "result": message
                         }, 400
                     updated_ids = []
+                    error_response = {}
                     for trade_id in request.json['ids']:
                         response = tradeHandler.editExistingTrade(user_id,trade_id,request.json['update_info'])
                         if 'trade_id' in response:
@@ -2148,6 +2155,8 @@ def update_trades():
                             response_copy.pop('result', None)
                             key = f'trade:{trade_id}'
                             redis_client.setex(key, 1200, json.dumps(response_copy))
+                        else:
+                            error_response = response
                     if anysuccess == True:
                         #delete all affected keys, too costly to update them
                         #TODO: get user_id from handler function and return to use here
@@ -2165,11 +2174,17 @@ def update_trades():
                             keys_to_delete = redis_client.keys(pattern)
                             if keys_to_delete:
                                 redis_client.delete(*keys_to_delete)
-                    response = {
-                        "result": "Trades Updated Successfully: {}".format(', '.join(map(str, updated_ids))),
-                    }
-                    logger.info("Leaving Update Trades: " + str(response))
-                    return response
+                        response = {
+                            "result": "Trades Updated Successfully: {}".format(', '.join(map(str, updated_ids))),
+                        }
+                        logger.info("Leaving Update Trades: " + str(response))
+                        return response
+                    else:
+                        response = {
+                            "result": "No Trades Updated Successfully: {}".format(str(error_response[0]['result'])),
+                        }
+                        logger.info("Leaving Update Trades: " + str(response))
+                        return response, 400
             else:
                 logger.warning("Leaving Update Trades: " + str(message))
                 return {

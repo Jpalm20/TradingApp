@@ -45,6 +45,12 @@ def validateNewTrade(request):
         return {
             "result": response
         }, 400
+    elif (('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != "")) and (request['security_type'] not in ["Options"]):
+        response = "Must Set Security Type as Options if adding Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate New Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
     elif ('ticker_name' not in request or request['ticker_name'] == "" or request['ticker_name'] == " " ):
         response = "Must Include a Valid Ticker Symbol"
         logger.warning("Leaving Validate New Trade Validator: " + response)
@@ -126,6 +132,21 @@ def validateEditTrade(user_id,trade_id,request):
         return {
             "result": formatted_string
         }, 400
+    #make sure below accounts for case where request is from bulk csv and None
+    if ('security_type' in request and request['security_type'] != 'Options') and (trade_info['security_type'] != 'Options') and ((('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != ""))):
+        response = "Must Update Security Type as Options if updating Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate Edit Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    '''
+    if (('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != "")) and (request['security_type'] not in ["Options"]):
+        response = "Must Set Security Type as Options if updating Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate Edit Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    '''
     logger.info("Leaving Validate Edit Trade Validator: ")
     return True
 
@@ -190,6 +211,12 @@ def validateNewTradeFromCsv(request):
         }, 400
     elif (request['security_type'] != "Shares" and request['security_type'] != "Options"):
         response = "Security Type is either Shares or Options, Try Again"
+        logger.warning("Leaving Validate New Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    elif (('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != "")) and (request['security_type'] not in ["Options"]):
+        response = "Must Set Security Type as Options if updating Expiry or Strike Price, Try Again"
         logger.warning("Leaving Validate New Trade Validator: " + response)
         return {
             "result": response

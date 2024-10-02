@@ -558,11 +558,11 @@ export default function Summary({ user }) {
       setExpiry("");
       setStrike("");
     }
-    if (choiceOptions.value === "" && trade.security_type === "Options"){
+    if (choiceOptions.value === "" && trade && trade.security_type && trade.security_type === "Options"){
       setVisib(true);
       setExpiry("");
       setStrike("");
-    }else if (choiceOptions.value === "" && trade.security_type === "Shares"){
+    }else if (choiceOptions.value === "" && trade && trade.security_type && trade.security_type === "Shares"){
       setVisib(false);
       setExpiry("");
       setStrike("");
@@ -2244,7 +2244,7 @@ export default function Summary({ user }) {
             </HStack>
             {hasTrades ? (
             <TableContainer overflowY="auto" overflowX="auto" rounded="lg">
-              <Table size='sm' variant='simple' colorScheme='gray' borderWidth="1px" borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
+              <Table size='sm' variant='simple' colorScheme='gray' borderColor={colorMode === 'light' ? "gray.100" : "gray.800"}>
                 <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.700"} zIndex={2}>
                   <Tr>
                     <Th resize='horizontal' overflow='auto' /*onClick={() => requestSort('trade_type')}*/>
