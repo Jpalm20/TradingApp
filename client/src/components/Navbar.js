@@ -116,7 +116,7 @@ export default function Navbar({ user }) {
         title: toastMessage,
         variant: 'solid',
         status: 'success',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }

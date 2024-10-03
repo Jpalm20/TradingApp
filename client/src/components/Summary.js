@@ -417,7 +417,7 @@ export default function Summary({ user }) {
         title: toastMessage,
         variant: 'solid',
         status: 'success',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -443,7 +443,7 @@ export default function Summary({ user }) {
         title: toastErrorMessage,
         variant: 'solid',
         status: 'error',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -2107,7 +2107,7 @@ export default function Summary({ user }) {
 
                 <AlertDialogBody>
                   Please make sure your .csv file:
-                  <UnorderedList spacing={5} paddingTop={3}>
+                  <UnorderedList spacing={2} paddingTop={2}>
                     <ListItem>Contains <strong>only</strong> your <strong>Buy</strong> and <strong>Sell</strong> Trade History</ListItem>
                     <ListItem>All Trades must be <strong>closed out</strong> (all Buys must have a matching Sell)</ListItem>
                     <ListItem>Have the <strong>minimum required</strong> columns with matching column name (all others shown in examples are prefferred but not required):
@@ -2135,6 +2135,49 @@ export default function Summary({ user }) {
                             <Th overflow='auto'>quantity</Th>
                           </Tr>
                         </Thead>
+                      </Table>
+                    </TableContainer>
+                    </ListItem>
+                    <ListItem>
+                      Accepted Date Formats for Expiry Field
+                    <TableContainer overflowY="auto" overflowX="auto" paddingTop={2} maxW="300px">
+                      <Table size='xs' variant='simple'>
+                        <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.800"} zIndex={2}>
+                          <Tr>
+                            <Th overflow='auto' fontSize='xs' paddingLeft={2}>Format</Th>
+                            <Th overflow='auto' fontSize='xs' paddingLeft={2}>Example</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%d-%b-%y"</Td>
+                            <Td overflow='auto' fontSize='sm'>21-Dec-22</Td>
+                          </Tr>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%Y-%m-%d"</Td>
+                            <Td overflow='auto' fontSize='sm'>2022-12-21</Td>
+                          </Tr>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%m/%d/%Y"</Td>
+                            <Td overflow='auto' fontSize='sm'>12/21/2022</Td>
+                          </Tr>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%d/%m/%Y"</Td>
+                            <Td overflow='auto' fontSize='sm'>21/12/2022</Td>
+                          </Tr>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%b %d, %Y"</Td>
+                            <Td overflow='auto' fontSize='sm'>Dec 21, 2022</Td>
+                          </Tr>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%d-%m-%Y"</Td>
+                            <Td overflow='auto' fontSize='sm'>21-12-2022</Td>
+                          </Tr>
+                          <Tr>
+                            <Td overflow='auto' fontSize='sm'>"%m-%d-%Y"</Td>
+                            <Td overflow='auto' fontSize='sm'>12-21-2022</Td>
+                          </Tr>
+                        </Tbody>
                       </Table>
                     </TableContainer>
                     </ListItem>

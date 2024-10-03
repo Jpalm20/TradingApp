@@ -90,7 +90,7 @@ export default function Login() {
         title: toastErrorMessage,
         variant: 'solid',
         status: 'error',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }

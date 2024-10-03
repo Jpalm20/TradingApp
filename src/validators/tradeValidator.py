@@ -233,6 +233,15 @@ def validateNewTradeFromCsv(request):
         return {
             "result": response
         }, 400
+    elif ('expiry' in request and request['expiry'] != ""):
+        try:
+            datetime.strptime(request['expiry'], "%Y-%m-%d")
+        except ValueError:
+            response = "Expiry {} is not an accepted Date Format, Try Again".format(str(request['expiry']))
+            logger.warning("Leaving Validate New Trade Validator: " + response)
+            return {
+                "result": response
+            }, 400
     logger.info("Leaving Validate New Trade Validator: ")
     return True
 

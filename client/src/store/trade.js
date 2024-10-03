@@ -378,6 +378,22 @@ const tradeSlice = createSlice({
         state.trade = null;
         state.loading = false;
       },
+      [importCsv.fulfilled]: (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.trade = action.payload;
+        state.error = false;
+      },
+      [importCsv.pending]: (state) => {
+        state.loading = true;
+        state.error = false;
+        state.success = false;
+      },
+      [importCsv.rejected]: (state, action) => {
+        state.error = true;
+        state.info = action.payload;
+        state.loading = false;
+      },
       [bulkUpdateCsv.fulfilled]: (state, action) => {
         state.loading = false;
         state.success = true;

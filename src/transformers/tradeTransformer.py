@@ -273,6 +273,16 @@ def processCsv(user_id, file):
             "user_id" : user_id
         }
         
+        accepted_formats = [
+            "%d-%b-%y",   # 21-Dec-22
+            "%Y-%m-%d",   # 2022-12-21
+            "%m/%d/%Y",   # 12/21/2022
+            "%d/%m/%Y",   # 21/12/2022
+            "%b %d, %Y",  # Dec 21, 2022
+            "%d-%m-%Y",   # 21-12-2022
+            "%m-%d-%Y",   # 12-21-2022
+        ]
+        
         if security_type == 'Options':
             if ('quantity' in buy_trades.get(ticker_name, {}).get(row['security_type'], {}).get(expiry, {}).get(strike, {})
                 and 'quantity' in sell_trades.get(ticker_name, {}).get(row['security_type'], {}).get(expiry, {}).get(strike, {})
@@ -283,7 +293,18 @@ def processCsv(user_id, file):
                 else:
                     trade['trade_type'] = "Day Trade"
                 trade['buy_value'] = buy_trades[ticker_name][row['security_type']][expiry][strike]['cost_basis']
-                trade['expiry'] = expiry
+                final_expiry = expiry
+                for fmt in accepted_formats:
+                    logger.info("Checking... Date: {}, Tested Format: {}".format(str(expiry),str(fmt)))
+                    try:
+                        parsed_date = datetime.strptime(expiry, fmt)
+                        final_expiry = parsed_date.strftime("%Y-%m-%d")  # Convert to standard format
+                        logger.info("Date Format Match Found... Date: {}, Format: {}".format(str(expiry),str(fmt)))
+                    except ValueError:
+                        logger.warning("Date Format Match Failed... Date: {}, Format: {}".format(str(expiry),str(fmt)))
+                        pass
+                logger.info("Final Expiry Date: {}".format(str(final_expiry)))
+                trade['expiry'] = final_expiry
                 trade['security_type'] = security_type
                 trade['strike'] = strike
                 trade['ticker_name'] = ticker_name
@@ -302,7 +323,7 @@ def processCsv(user_id, file):
                     sell_trades[ticker_name][row['security_type']][expiry][strike] = {}
                 else:
                     logger.warning("Leaving Process CSV Transformer: " + str(response))
-                    return False, response
+                    return False, response[0]['result']
         else:
             if 'quantity' in buy_trades[ticker_name][row['security_type']] and 'quantity' in sell_trades[ticker_name][row['security_type']] and buy_trades[ticker_name][row['security_type']]['quantity'] == sell_trades[ticker_name][row['security_type']]['quantity']:
                 # Determine if trade is a day trade or swing trade
@@ -330,7 +351,7 @@ def processCsv(user_id, file):
                     sell_trades[ticker_name][row['security_type']] = {}
                 else:
                     logger.warning("Leaving Process CSV Transformer: " + str(response))
-                    return False, response
+                    return False, response[0]['result']
         
     logger.info("Leaving Process CSV Transformer: " + str(trades))
     return True, trades
