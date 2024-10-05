@@ -48,6 +48,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom"
 import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, toggleFeatureFlags, updatePreferredCurrency } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import CurrencySelector from './CurrencySelector'; 
 import states from "../data/states";
 import currencies from "../data/currencies";
 
@@ -422,10 +423,11 @@ export default function UserProfile({ user }) {
 
                       <FormLabel display="flex" alignItems="center">
                         <Text>Currency</Text>
-                        <Select marginLeft={3} value={hasPreferences && preferences.preferred_currency ? preferences.preferred_currency : 'None'} onChange={(e) => handleToggleCurrencyCode(e.target.value)}>
-                          <option value="" disabled selected>{preferences.preferred_currency}</option>
-                          {currencies.map((currency) => (<option key={currency}>{currency}</option>))}
-                        </Select>
+                        <CurrencySelector
+                          currencies={currencies}  // Pass the currency options
+                          preferences={preferences}  // Pass the preferences (including selected currency)
+                          handleToggleCurrencyCode={handleToggleCurrencyCode}  // Function to update selected currency
+                        />
                       </FormLabel>
                     </SimpleGrid>
                     </AlertDialogBody>
