@@ -44,6 +44,17 @@ class TestTradeTransformer(unittest.TestCase):
         
         
     def test_transform_edit_trade(self):
+        #need to add support for trade_id now
+        # setup queries 
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","transformedittradetradetransformerunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("transformedittradetradetransformerunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"transformedittradetradetransformerunittest"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM trade WHERE user_id = %s", (user_id,))
+        trade_id = response[0][0]['trade_id']
+        
         request = {
             "trade_type": "",
             "security_type": "Shares",
@@ -58,13 +69,17 @@ class TestTradeTransformer(unittest.TestCase):
             "percent_wl": "",
             "comments": ""
         }
-        transformedRequest = transformEditTrade(request)
-        self.assertEqual(len(transformedRequest), 5)
+        transformedRequest = transformEditTrade(trade_id,request)
+        self.assertEqual(len(transformedRequest), 6)
         self.assertEqual(transformedRequest['security_type'], 'Shares')
         self.assertEqual(transformedRequest['trade_date'], '2023-08-03')
         self.assertEqual(transformedRequest['ticker_name'], 'SPY')
         self.assertEqual(transformedRequest['expiry'], 'NULL')
         self.assertEqual(transformedRequest['strike'], 'NULL')
+        self.assertEqual(transformedRequest['percent_wl'], 25.0)
+        
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
 
 
     def test_transform_process_csv(self):
@@ -82,7 +97,20 @@ class TestTradeTransformer(unittest.TestCase):
             transformedRequest = processUpdateCsv(file)
             self.assertEqual(transformedRequest[0], True)
             self.assertEqual(len(transformedRequest[1]), 3)
-
+        
+    
+    def test_transform_date_format(self):
+        
+        #1 - non-accepted date format
+        input_date = "21 December 2022"
+        final_date = transformDateFormart(input_date)
+        self.assertEqual(final_date, input_date)
+        
+        #2 - accepted date format
+        input_date = "4/18/23"
+        final_date = transformDateFormart(input_date)
+        self.assertEqual(final_date, "2023-04-18")
+        
         
     #def tearDown(self):
         #self.transaction.rollback()

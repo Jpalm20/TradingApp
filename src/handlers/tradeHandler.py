@@ -143,7 +143,7 @@ def editExistingTrade(user_id,trade_id,requestBody):
     if response != True:
         logger.warning("Leaving Edit Trade Handler: " + str(response))
         return response
-    requestTransformed = tradeTransformer.transformEditTrade(requestBody)
+    requestTransformed = tradeTransformer.transformEditTrade(trade_id,requestBody)
     response = trade.Trade.updateTrade(trade_id,requestTransformed)
     response = trade.Trade.getTrade(trade_id)
     if ('pnl' in requestBody and requestBody['pnl'] != ""): #if updating pnl

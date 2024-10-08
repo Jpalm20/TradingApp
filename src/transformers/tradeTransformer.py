@@ -20,6 +20,11 @@ mymodule_dir = os.path.join( script_dir, '..', 'validators',)
 sys.path.append( mymodule_dir )
 import tradeValidator
 
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'handlers',)
+sys.path.append( mymodule_dir )
+import tradeHandler
+
 def transformNewTrade(request):
     logger.info("Entering Transform New Trade Transformer: " + "(request: {})".format(str(request)))
     if request['security_type'] == "Shares":
@@ -33,17 +38,23 @@ def transformNewTrade(request):
         request['units'] = None
     if 'strike' in request and request['strike'] == "":
         request['strike'] = None
-    if 'percent_wl' in request and request['percent_wl'] == "":
-        request['percent_wl'] = None
     if 'buy_value' in request and request['buy_value'] == "":
         request['buy_value'] = None
+    if 'percent_wl' in request and request['percent_wl'] == "":
+        request['percent_wl'] = None
+        if ('pnl' in request and request['pnl'] not in ["",None]) and ('units' in request and request['units'] not in ["",None]) and ('buy_value' in request and request['buy_value'] not in ["",None]):
+            pnl_float = float(request['pnl'])
+            units_float = float(request['units'])
+            buy_value_float = float(request['buy_value'])
+            request['percent_wl'] = round((pnl_float / (buy_value_float * units_float)) * 100, 2)
     request['ticker_name'] = request['ticker_name'].upper()
     logger.info("Leaving Transform New Trade Transformer: " + "(transformed_request: {})".format(str(request)))
     return request
 
-def transformEditTrade(request):
+def transformEditTrade(trade_id,request):
     logger.info("Entering Transform Edit Trade Transformer: " + "(request: {})".format(str(request)))
     transformedRequest = {}
+                
     for key in request:
         if request[key] != "" and request[key] != None:
             transformedRequest[key] = request[key]
@@ -54,6 +65,38 @@ def transformEditTrade(request):
     if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
         transformedRequest['expiry'] = 'NULL'
         transformedRequest['strike'] = 'NULL'
+    
+    # Autocalculating perccent_wl
+    # Step 1: Check if '%wl' is missing in the request data
+    if 'percent_wl' not in request or request['percent_wl'] in ["", None]:
+        
+        # Step 2: Check if at least one of PNL, units, or buy_value is present in the new request
+        valid_pnl = 'pnl' in request and request['pnl'] not in [None]
+        valid_units = 'units' in request and request['units'] not in [None]
+        valid_buy_value = 'buy_value' in request and request['buy_value'] not in [None]
+        
+        if valid_pnl and valid_units and valid_buy_value:
+            # Step 3: Get the existing trade data (assume `trade_data` has previous values)
+            trade_info = tradeHandler.getExistingTrade(trade_id)
+            existing_pnl = trade_info.get('pnl') if trade_info.get('pnl') not in ["", None] else None
+            existing_units = trade_info.get('units') if trade_info.get('units') not in ["", None] else None
+            existing_buy_value = trade_info.get('buy_value') if trade_info.get('buy_value') not in ["", None] else None
+
+            # Step 4: Determine which fields are missing from the request and calculate the missing value
+            pnl = request.get('pnl') if request.get('pnl') not in ["", None] else existing_pnl
+            units = request.get('units') if request.get('units') not in ["", None] else existing_units
+            buy_value = request.get('buy_value') if request.get('buy_value') not in ["", None] else existing_buy_value
+            
+            # Ensure we have at least two fields to calculate the third
+            if pnl is not None and units is not None and buy_value is not None:
+                # Calculate the % win/loss
+                percent_wl = round((float(pnl) / (float(buy_value) * float(units))) * 100, 2)
+                
+                # Update the request data with the calculated % win/loss
+                transformedRequest['percent_wl'] = percent_wl
+        else:
+            transformedRequest['percent_wl'] = 'NULL'
+    
     logger.info("Leaving Transform Edit Trade Transformer: " + "(transformed_request: {})".format(str(transformedRequest)))
     return transformedRequest
 
@@ -102,6 +145,12 @@ def processUpdateCsv(file):
         if trade['security_type'] == "Shares" and trade['expiry'] == None and trade['strike'] == None:
             trade['expiry'] = ''
             trade['strike'] = ''
+        if trade['trade_date'] != None:
+            trade['trade_date'] = transformDateFormart(trade['trade_date'])
+        if trade['expiry'] != None:
+            trade['expiry'] = transformDateFormart(trade['expiry'])
+        if trade['pnl'] not in ["",None] and trade['units'] not in ["",None] and trade['buy_value'] not in ["",None]:
+            trade['percent_wl'] = None
         trades_to_update.append(trade)
     if len(trades_to_update) == 0:
         result = "No Valid Rows in CSV"
@@ -273,16 +322,6 @@ def processCsv(user_id, file):
             "user_id" : user_id
         }
         
-        accepted_formats = [
-            "%d-%b-%y",   # 21-Dec-22
-            "%Y-%m-%d",   # 2022-12-21
-            "%m/%d/%Y",   # 12/21/2022
-            "%d/%m/%Y",   # 21/12/2022
-            "%b %d, %Y",  # Dec 21, 2022
-            "%d-%m-%Y",   # 21-12-2022
-            "%m-%d-%Y",   # 12-21-2022
-        ]
-        
         if security_type == 'Options':
             if ('quantity' in buy_trades.get(ticker_name, {}).get(row['security_type'], {}).get(expiry, {}).get(strike, {})
                 and 'quantity' in sell_trades.get(ticker_name, {}).get(row['security_type'], {}).get(expiry, {}).get(strike, {})
@@ -293,17 +332,7 @@ def processCsv(user_id, file):
                 else:
                     trade['trade_type'] = "Day Trade"
                 trade['buy_value'] = buy_trades[ticker_name][row['security_type']][expiry][strike]['cost_basis']
-                final_expiry = expiry
-                for fmt in accepted_formats:
-                    logger.info("Checking... Date: {}, Tested Format: {}".format(str(expiry),str(fmt)))
-                    try:
-                        parsed_date = datetime.strptime(expiry, fmt)
-                        final_expiry = parsed_date.strftime("%Y-%m-%d")  # Convert to standard format
-                        logger.info("Date Format Match Found... Date: {}, Format: {}".format(str(expiry),str(fmt)))
-                    except ValueError:
-                        logger.warning("Date Format Match Failed... Date: {}, Format: {}".format(str(expiry),str(fmt)))
-                        pass
-                logger.info("Final Expiry Date: {}".format(str(final_expiry)))
+                final_expiry = transformDateFormart(expiry)
                 trade['expiry'] = final_expiry
                 trade['security_type'] = security_type
                 trade['strike'] = strike
@@ -355,3 +384,45 @@ def processCsv(user_id, file):
         
     logger.info("Leaving Process CSV Transformer: " + str(trades))
     return True, trades
+
+def transformDateFormart(input_date):
+    logger.info("Enter Transform Date Format - Input Date: {}".format(str(input_date)))
+    
+    accepted_formats = [
+        "%d-%b-%y",   # 21-Dec-22
+        "%Y-%m-%d",   # 2022-12-21
+        "%m/%d/%Y",   # 12/21/2022
+        "%d/%m/%Y",   # 21/12/2022
+        "%b %d, %Y",  # Dec 21, 2022
+        "%d-%m-%Y",   # 21-12-2022
+        "%m-%d-%Y",   # 12-21-2022
+        "%Y/%m/%d",   # 2022/12/21
+        "%Y.%m.%d",   # 2022.12.21
+        "%d.%m.%Y",   # 21.12.2022
+        "%m.%d.%Y",   # 12.21.2022
+        "%m/%d/%y",   # 12/21/22
+    ]
+    
+    parts = input_date.split('/')
+    if len(parts) == 3:
+        month, day, year = parts
+        # Check if month or day is a single digit (i.e., without leading zero)
+        if len(year) == 2 and year.isdigit() and month.isdigit() and day.isdigit() and (len(month) == 1 or len(day) == 1):
+            month = parts[0].zfill(2)  # Add leading zero to month if needed
+            day = parts[1].zfill(2)    # Add leading zero to day if needed
+            year = parts[2]
+            input_date = f"{month}/{day}/{year}"
+            
+    final_expiry = input_date
+    for fmt in accepted_formats:
+        logger.info("Checking... Date: {}, Tested Format: {}".format(str(input_date),str(fmt)))
+        try:
+            parsed_date = datetime.strptime(input_date, fmt)
+            final_expiry = parsed_date.strftime("%Y-%m-%d")  # Convert to standard format
+            logger.info("Date Format Match Found... Date: {}, Format: {}".format(str(input_date),str(fmt)))
+            break
+        except ValueError:
+            logger.warning("Date Format Match Failed... Date: {}, Format: {}".format(str(input_date),str(fmt)))
+            pass
+    logger.info("Leaving Transform Date Format - Final Expiry Date: {}".format(str(final_expiry)))
+    return final_expiry

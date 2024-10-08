@@ -2120,7 +2120,7 @@ export default function Summary({ user }) {
                         <ListItem>cost_basis</ListItem>
                       </UnorderedList>
                     </ListItem>
-                    <ListItem>Follow this layout (may require some formatting from you!)
+                    <ListItem>Follow this layout (may require some formatting from you)
                     <TableContainer overflowY="auto" overflowX="auto" paddingTop={2}>
                       <Table size='sm' variant='simple'>
                         <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.800"} zIndex={2}>
@@ -2139,50 +2139,11 @@ export default function Summary({ user }) {
                     </TableContainer>
                     </ListItem>
                     <ListItem>
-                      Accepted Date Formats for Expiry Field
-                    <TableContainer overflowY="auto" overflowX="auto" paddingTop={2} maxW="300px">
-                      <Table size='xs' variant='simple'>
-                        <Thead position="sticky" top={0} bgColor={colorMode === 'light' ? "lightgrey" : "gray.800"} zIndex={2}>
-                          <Tr>
-                            <Th overflow='auto' fontSize='xs' paddingLeft={2}>Format</Th>
-                            <Th overflow='auto' fontSize='xs' paddingLeft={2}>Example</Th>
-                          </Tr>
-                        </Thead>
-                        <Tbody>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%d-%b-%y"</Td>
-                            <Td overflow='auto' fontSize='sm'>21-Dec-22</Td>
-                          </Tr>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%Y-%m-%d"</Td>
-                            <Td overflow='auto' fontSize='sm'>2022-12-21</Td>
-                          </Tr>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%m/%d/%Y"</Td>
-                            <Td overflow='auto' fontSize='sm'>12/21/2022</Td>
-                          </Tr>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%d/%m/%Y"</Td>
-                            <Td overflow='auto' fontSize='sm'>21/12/2022</Td>
-                          </Tr>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%b %d, %Y"</Td>
-                            <Td overflow='auto' fontSize='sm'>Dec 21, 2022</Td>
-                          </Tr>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%d-%m-%Y"</Td>
-                            <Td overflow='auto' fontSize='sm'>21-12-2022</Td>
-                          </Tr>
-                          <Tr>
-                            <Td overflow='auto' fontSize='sm'>"%m-%d-%Y"</Td>
-                            <Td overflow='auto' fontSize='sm'>12-21-2022</Td>
-                          </Tr>
-                        </Tbody>
-                      </Table>
-                    </TableContainer>
+                      Accepted Date Formats for Expiry Field:{' '} 
+                      <Link href="./csv/accepted_date_formats.csv" download="example_trade_history.csv" color='blue.500'>Download Here</Link>
                     </ListItem>
                     <ListItem paddingBottom={4}>Heres an example to show a file thats ready for import:{' '} 
-                      <Link href="./csv/data.csv" download="example_trade_history.csv" color='blue.500'>Download Example</Link>
+                      <Link href="./csv/data.csv" download="example_trade_history.csv" color='blue.500'>Download Here</Link>
                     </ListItem>
                   </UnorderedList>
                 </AlertDialogBody>
