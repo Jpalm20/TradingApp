@@ -71,7 +71,8 @@ import {
   Badge,
   HStack,
   VStack,
-  OrderedList
+  OrderedList,
+  Checkbox
 } from "@chakra-ui/react";
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { FaUserAlt, FaLock } from "react-icons/fa";
@@ -238,6 +239,13 @@ export default function Summary({ user }) {
   const [selectedTickerValue, setSelectedTickerValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [accountValueImportEnable, setAccountValueImportEnable] = useState(true);
+
+  // Toggle the checkbox when the user clicks
+  const handleCheckboxChange = (e) => {
+    setAccountValueImportEnable(e.target.checked);  // Update the state based on the toggle
+  };
 
   const format = (val1,val2) => val1 + ":" + val2;
   const [risk, setRisk] = useState("1");
@@ -1748,6 +1756,7 @@ export default function Summary({ user }) {
   }
 
   const handleImportButton = (e) => {
+    setAccountValueImportEnable(true);
     setImportDialog(true);
   };
 
@@ -1769,6 +1778,7 @@ export default function Summary({ user }) {
   const handleConfirmImportCsv = async (e) => {
     await dispatch(
       importCsv({
+        accountValueImportEnable,
         selectedFile
       })
     );
@@ -2147,17 +2157,28 @@ export default function Summary({ user }) {
                     </ListItem>
                   </UnorderedList>
                 </AlertDialogBody>
-                <HStack>
+                <Stack
+                  direction={["column", "row"]}
+                  position="relative"
+                >
                 <Input
                     paddingTop={1}
                     type="file"
                     id="file"
                     accept=".csv" 
                     maxWidth="400px"
-                    ml={3}
+                    ml={5}
                     onChange={handleFileInputChange}/>
                 {tradeLoading ? <Text paddingLeft={3} color='red.500'>Loading your Trades...</Text> : ( <Text></Text>) }
-                </HStack>
+                <Checkbox 
+                  isChecked={accountValueImportEnable}  // Control checked/unchecked state
+                  onChange={handleCheckboxChange}  // Handle checkbox toggle
+                  paddingStart={6}
+                  paddingEnd={5}
+                >
+                  Imported Trades should Update Account Value
+                </Checkbox>
+                </Stack>
                 <AlertDialogFooter paddingTop={10}>
                   <Button ref={cancelRef} minWidth='150px' onClick={e => handleCancelImportCsv(e)}>
                     Cancel

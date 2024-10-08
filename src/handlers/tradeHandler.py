@@ -322,7 +322,7 @@ def deleteTrades(user_id,requestBody):
             logger.info("Leaving Delete Trades Handler: " + str(response))
             return response
 
-def importCsv(file, user_id):
+def importCsv(account_value_import_enable, file, user_id):
     logger.info("Entering Import CSV Handler: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))
     if not tradeValidator.validateCsv(file):
         response = "Invalid CSV file. Missing required Headers or Empty CSV"
@@ -357,7 +357,7 @@ def importCsv(file, user_id):
                 return {
                     "result": response
                 }, 400
-            else:
+            elif account_value_import_enable == 'true':
                 if ('trade_date' in trade_entry and trade_entry['trade_date'] is not None) and ('pnl' in trade_entry and trade_entry['pnl'] is not None):
                     if (datetime.strptime(trade_entry['trade_date'], '%Y-%m-%d').date() == datetime.now().date() + timedelta(days=1)):
                         fdresponse = accountvalue.Accountvalue.insertFutureDay(user_id,trade_entry['trade_date'])

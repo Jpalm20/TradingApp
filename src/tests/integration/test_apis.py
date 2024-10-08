@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from cgitb import reset
 import unittest
 import time
@@ -340,7 +341,9 @@ class TestAPIs(unittest.TestCase):
         
     
     def test_19_import_csv(self):
-        #/trade/importCsv
+        #/trade/importCsv/<string:account_value_import_enable>
+        
+        account_value_import_enable = 'true'
         
         boundary = '----WebKitFormBoundaryySqtS1tZeUD7xapy'
         headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
@@ -367,8 +370,7 @@ class TestAPIs(unittest.TestCase):
             f'--{boundary}--\r\n'
         )
         
-        response = requests.post(f'{self.BASE_URL}/trade/importCsv', data=body, headers=headers_copy)
-
+        response = requests.post(f'{self.BASE_URL}/trade/importCsv/{account_value_import_enable}', data=body, headers=headers_copy)
         response_data = response.json()
         self.assertEqual(response_data['result'],"Trades Imported Successfully")
         self.assertEqual(len(response_data['trades']),5)

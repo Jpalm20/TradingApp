@@ -162,10 +162,10 @@ export const importCsv = createAsyncThunk(
     const token = await window.localStorage.getItem(TOKEN);
     try {
       if (token) {
-        const { selectedFile } = formInfo;
+        const { accountValueImportEnable, selectedFile } = formInfo;
         const formData = new FormData();
         formData.append("csv_file", selectedFile);
-        const res = await axios.post(API_URL + `trade/importCsv`, formData, {
+        const res = await axios.post(API_URL + `trade/importCsv/${accountValueImportEnable}`, formData, {
           headers: {
             Authorization: "Bearer " + token,
           }

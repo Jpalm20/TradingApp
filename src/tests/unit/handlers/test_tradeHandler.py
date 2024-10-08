@@ -457,25 +457,25 @@ class TestTradeHandler(unittest.TestCase):
         # 1 fail on validation
         csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_trade_history_bad.csv')
         with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
-            response = importCsv(file,user_id)
+            response = importCsv('true',file,user_id)
             self.assertEqual(response[0]['result'], "Invalid CSV file. Missing required Headers or Empty CSV")
         
         # 2 fail during csv processing processCsv
         csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_trade_history_bad_2.csv')
         with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
-            response = importCsv(file,user_id)
+            response = importCsv('true',file,user_id)
             self.assertEqual(response[0]['result'], "No shares remaining for SPY but reporting another SELL Order")
             
         # 3 fail on number of valid trades to add is 0
         csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_trade_history_bad_3.csv')
         with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
-            response = importCsv(file,user_id)
+            response = importCsv('true',file,user_id)
             self.assertEqual(response[0]['result'], "No contracts remaining for QQQ 15-Dec-22 290 PUT but reporting another SELL Order")
             
         # 4 good path adding trades from csv addTrades
         csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example_trade_history_good.csv')
         with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
-            response = importCsv(file,user_id)
+            response = importCsv('true',file,user_id)
             self.assertEqual(response['result'], "Trades Imported Successfully")
         
         # 5 fail on addTrades (TODO)

@@ -1359,8 +1359,8 @@ def log_trade():
         }, 400
         
 
-@app.route('/trade/importCsv',methods= ['POST'])
-def import_csv():
+@app.route('/trade/importCsv/<string:account_value_import_enable>',methods= ['POST'])
+def import_csv(account_value_import_enable):
     """
     Import trades from a CSV file.
     ---
@@ -1373,6 +1373,11 @@ def import_csv():
     security:
       - Bearer: []
     parameters:
+      - in: path
+        name: trade_id
+        type: string
+        required: true
+        description: Enable boolean for imported trades to impact account value.
       - in: formData
         name: csv_file
         description: CSV file containing trades to import.
@@ -1395,7 +1400,7 @@ def import_csv():
                 if request.method == 'POST':
                     file = request.files["csv_file"]
                     user_id = message2
-                    response = tradeHandler.importCsv(file, user_id) 
+                    response = tradeHandler.importCsv(account_value_import_enable,file, user_id) 
                     if 'trades' in response:
                         #delete all affected keys, too costly to update them
                         top_level_keys = [
