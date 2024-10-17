@@ -15,6 +15,7 @@ token = None
 trade_id = None
 trade_ids = []
 reset_code = None
+verification_code = None
 
 class TestAPIs(unittest.TestCase):
     
@@ -81,6 +82,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],0)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],0)
         
     
     def test_04_toggle_account_value_tracking(self):
@@ -92,6 +94,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],1)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],0)
         
     
     def test_05_toggle_email_optin(self):
@@ -103,18 +106,20 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],1)
         self.assertEqual(response_data['email_optin'],0)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],0)
         
     
     def test_06_toggle_feature_flags(self):
         #/user/preferences/toggleff
         
-        request_body = ["email_optin","account_value_optin"]
+        request_body = ["email_optin","account_value_optin","2fa_optin"]
         response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(response_data['account_value_optin'],0)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],1)
         
         
     def test_07_update_currency(self):
@@ -129,6 +134,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],0)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"JPY")
+        self.assertEqual(response_data['2fa_optin'],1)
         
     
     def test_08_get_user_from_session(self):
@@ -839,8 +845,53 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['result'], "Trades Successfully Deleted")
         self.assertEqual(response_data['user_id'], user_id)
         
+
+    def test_34_2fa_flow(self):
+        #/user/verify2fa
+                
+        #Log back in, getting 2FA code created
+        request_body = {
+            "email": "registeruserapitest@gmail.com",
+            "password": "password11"
+        }
+        response = requests.post(f"{self.BASE_URL}/user/login", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 202)
+        response_data = response.json()
+        self.assertEqual(response_data['result'],"2FA Enabled, Verification Code Sent to Email")
+        
+        #Get 2fa code from db for verify2fa api
+        global verification_code, user_id
+        response = execute_db("SELECT * FROM verificationcode WHERE user_id = %s", (user_id,))
+        verification_code = response[0][0]['code']
+        self.assertEqual(response[0][0]['validated'],0)
+        
+        #Verify 2FA code and complete login
+
+        request_body = {
+            "email": "registeruserapitest@gmail.com",
+            "code": str(verification_code)
+        }
+        response = requests.post(f"{self.BASE_URL}/user/verify2fa", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['user_id'], user_id)
+        self.assertEqual(response_data['email'],"registeruserapitest@gmail.com")
+        global token
+        new_token = response_data['token']
+        token = new_token
+        
+        headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
+        headers_copy['Authorization'] = f'Bearer {new_token}'
+        
+        # Toggle 2fa_optin ff back to false before logging in again
+        request_body = ["2fa_optin"]
+        response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['2fa_optin'],0)
+        
     
-    def test_34_logout_use(self):
+    def test_35_logout_use(self):
         #/user/logout
         
         # Logout
@@ -851,7 +902,7 @@ class TestAPIs(unittest.TestCase):
         
         
     
-    def test_35_delete_user(self):
+    def test_36_delete_user(self):
         #/user 
         
         # Log back in to generate new token, logout expired the token
@@ -890,6 +941,7 @@ class TestAPIs(unittest.TestCase):
             execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM resetcode WHERE user_id = %s", (user_id,))
+            execute_db("DELETE FROM verificationcode WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM journalentry WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))

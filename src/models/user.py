@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 class User:
     
-    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin,preferredCurrency):
+    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin,preferredCurrency,twofaOptin):
         self.userID = userID
         self.firstName = firstName
         self.lastName = lastName
@@ -19,6 +19,7 @@ class User:
         self.accountValueOptin = accountValueOptin
         self.emailOptin = emailOptin
         self.preferredCurrency = preferredCurrency
+        self.twofaOptin = twofaOptin
     
     def getUserbyID(userID):
         
@@ -32,7 +33,7 @@ class User:
     def getPreferences(userID):
         
         logger.info("Entering Get User Preferences Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """SELECT account_value_optin, email_optin, preferred_currency FROM user WHERE user_id = %s"""
+        Query = """SELECT account_value_optin, email_optin, preferred_currency, `2fa_optin` FROM user WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Preferences Model Function: " + str(response))
@@ -249,7 +250,7 @@ class User:
     def addUser(newUser):
 
         logger.info("Entering Add User Model Function: " + "(new_user: {})".format(str(newUser)))
-        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)"""
+        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)"""
         Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)
@@ -317,6 +318,15 @@ class User:
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Toggle Email Alerts Feature Flag Model Function: " + str(response))
         return response 
+    
+    def toggle2FAOptin(userID):
+        
+        logger.info("Entering Toggle 2FA Feature Flag Model Function: " + "(user_id: {})".format(str(userID)))
+        Query = """UPDATE user SET `2fa_optin` = NOT `2fa_optin` WHERE user_id = %s"""
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Toggle 2FA Feature Flag Model Function: " + str(response))
+        return response
     
     def updateUserCurrency(userID,newCurrencyCode):
         

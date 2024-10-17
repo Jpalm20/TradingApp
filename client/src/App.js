@@ -90,7 +90,7 @@ export default function App() {
   }
 
   const evaluateError = async () => {
-    if(authError === true && info.response.data.result === "Auth Token Has Expired"){
+    if(authError === true && info?.response?.data?.result === "Auth Token Has Expired"){
       handleDeleteLocal();
       await dispatch(expiredLogout());
     }

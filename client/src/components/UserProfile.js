@@ -250,6 +250,16 @@ export default function UserProfile({ user }) {
     );
   }
 
+  const handleToggle2FA = async (e) => {
+    //await dispatch(toggleEmailOptin());
+    const flags = ["2fa_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
+  }
+
   const handleToggleCurrencyCode = async (currencyCode) => {
     //await dispatch(toggleEmailOptin());
     const preferred_currency = currencyCode;
@@ -419,6 +429,11 @@ export default function UserProfile({ user }) {
                       <FormLabel display="flex" alignItems="center">
                         <Text>Email Alerts {hasPreferences && preferences.email_optin === 1 ? 'On' : 'Off'}</Text>
                         <Switch marginLeft={3} isChecked={hasPreferences && preferences.email_optin === 1 ? true : false} onChange={handleToggleEmailOptin}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
+                        <Text>2FA {hasPreferences && preferences['2fa_optin'] === 1 ? 'On' : 'Off'}</Text>
+                        <Switch marginLeft={3} isChecked={hasPreferences && preferences['2fa_optin'] === 1 ? true : false} onChange={handleToggle2FA}/>
                       </FormLabel>
 
                       <FormLabel display="flex" alignItems="center">

@@ -55,7 +55,7 @@ class TestUserValidator(unittest.TestCase):
         response = validateNewUser(request)
         self.assertEqual(response[0]['result'], "Must Include a Valid Email Format, Please Try Again")
         # 4 fail on email existing check
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatenewuseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatenewuseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         request = {
             "first_name": "Test",
             "last_name": "Test",
@@ -114,7 +114,7 @@ class TestUserValidator(unittest.TestCase):
         response = validateEditUser(request)
         self.assertEqual(response[0]['result'], "Invalid Email Format, Try Upating Again")
         # 4 fail email existing
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateedituseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateedituseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         request = {
             "first_name": "",
             "last_name": "",
@@ -292,7 +292,7 @@ class TestUserValidator(unittest.TestCase):
     
     def test_validate_toggle_feature_flags(self):
         # 1 good path
-        request = ['email_optin','account_value_optin']
+        request = ['email_optin','account_value_optin','2fa_optin']
         response = validateToggleFeatureFlags(request)
         self.assertEqual(response, True)
         # 2 fail missing fields
@@ -320,6 +320,30 @@ class TestUserValidator(unittest.TestCase):
         }
         response = validateUpdatePreferredCurrency(request)
         self.assertEqual(response[0]['result'], "New Currency Code Missing")
+        
+        
+    def test_validate_2fa(self):
+        # 1 good path
+        request = {
+            'email': "validate2favalidatorunittest@gmail.com",
+            'code': "123456"
+        }
+        response = validate2FA(request)
+        self.assertEqual(response, True)
+        # 2 fail missing email
+        request = {
+            'emaill': "validate2favalidatorunittest@gmail.com",
+            'code': "123456"
+        }
+        response = validate2FA(request)
+        self.assertEqual(response[0]['result'], "Email is a required field, Try Again")
+        # 3 fail missing code
+        request = {
+            'email': "validate2favalidatorunittest@gmail.com",
+        }
+        response = validate2FA(request)
+        self.assertEqual(response[0]['result'], "2FA Code is a required field, Try Again")
+        
     
         
     #def tearDown(self):

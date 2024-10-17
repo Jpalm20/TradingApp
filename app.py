@@ -186,6 +186,8 @@ def validate_user():
     responses:
       200:
         description: Login successful, returns user session
+      202:
+        description: Login successful, but user has 2FA enabled, returns partial acceptance
       400:
         description: Invalid credentials or error in login process
     """
@@ -424,7 +426,7 @@ def toggle_feature_flags():
           properties:
             feature_name:
               type: string
-              example: "new_dashboard"
+              example: "email_optin"
             enabled:
               type: boolean
               example: true
@@ -2405,6 +2407,51 @@ def reset_password():
     except Exception as e:
         error_message = "An error occurred: " + str(e)
         logger.error("Leaving Reset Password: " + error_message)
+        return {
+            "result": error_message
+        }, 400
+        
+        
+@app.route('/user/verify2fa',methods = ['POST'])
+def verfiy_2fa():
+    """
+    Confirm the 2FA code provided by the user.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: 2fa_info
+        description: 2FA code information to validate.
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "user@example.com"
+            2fa_code:
+              type: string
+              example: "123456"
+    responses:
+      200:
+        description: 2FA code verified, user can proceed to their account.
+      400:
+        description: Invalid or expired verification code.
+    """
+    logger.info("Entering Verify 2FA Code - " + str(request.method) + ": " + str(utils.censor_log(request.json)))
+    try:
+        if request.method == 'POST':
+            response = userHandler.verify2FA(request.json)
+            logger.info("Leaving Verify 2FA Code: " + str(response))
+            return response
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        logger.error("Leaving Verify 2FA Code: " + error_message)
         return {
             "result": error_message
         }, 400

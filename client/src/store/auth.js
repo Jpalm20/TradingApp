@@ -69,7 +69,31 @@ export const authenticate = createAsyncThunk(
         email,
         password,
       });
-      await window.localStorage.setItem(TOKEN, res.data.token);
+      if (res.status === 200) {
+        await window.localStorage.setItem(TOKEN, res.data.token);
+      }
+      //dispatch(me());
+      console.log(res);
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const confirm2FA = createAsyncThunk(
+  "auth/confirm2FA",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { email, code } = formInfo;
+      const res = await axios.post(API_URL + `user/verify2fa`, {
+        email,
+        code,
+      });
+      if (res.status === 200) {
+        await window.localStorage.setItem(TOKEN, res.data.token);
+      }
       //dispatch(me());
       console.log(res);
       return res.data
@@ -1069,6 +1093,23 @@ const authSlice = createSlice({
       state.success = false;
     },
     [authenticate.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [confirm2FA.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.user = action.payload;
+      state.info = null;
+      state.error = false;
+    },
+    [confirm2FA.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [confirm2FA.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;

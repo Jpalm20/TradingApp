@@ -40,6 +40,11 @@ import resetcode
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'models',)
 sys.path.append( mymodule_dir )
+import verificationcode
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'models',)
+sys.path.append( mymodule_dir )
 import journalentry
 
 script_dir = os.path.dirname( __file__ )
@@ -79,7 +84,7 @@ def registerUser(requestBody):
     requestTransformed = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
                         requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
-                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None,None)
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None,None,None)
     response = user.User.addUser(newUser)
     if response[0]:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -114,6 +119,51 @@ def validateUser(requestBody):
     elif 'password' in response[0][0]:
         hashPass = userTransformer.hashPassword(requestBody['password'])
         if response[0][0]['password'] == hashPass:
+            if response[0][0]['2fa_optin'] == True:
+                #Logic to Handle Generating Verification Code and Sending it to Email
+                # 1 Create Verification Code for 2FA, Model Function (Look at Reset Code for simmilar logic), if success proceed to step 2, otherwise error message for issue creating 2FA Code
+                #expire all previous reset codes under this user so only one valid code at a tie
+                verificationCodeResponse = verificationcode.Verificationcode.expireVerificationCodes(response[0][0]['user_id'],datetime.now())
+                if verificationCodeResponse[0]:
+                    logger.warning("Leaving Validate User Handler: " + str(verificationCodeResponse))
+                    return {
+                        "result": str(verificationCodeResponse)
+                    }, 400
+                code = utils.generate_code()
+                newVerificationCode = verificationcode.Verificationcode(None,response[0][0]['user_id'],code,datetime.now()+timedelta(minutes=15),None)
+                verificationCodeResponse = verificationcode.Verificationcode.addVerificationCode(newVerificationCode)
+                if verificationCodeResponse[0]:
+                    logger.warning("Leaving Validate User Handler: " + str(verificationCodeResponse))
+                    return {
+                        "result": str(verificationCodeResponse)
+                    }, 400
+                # 2 Send email with code, can embed in the code here (Look at Reset Code Handler for simmilar logic and email styling), if success send 202 response below, otherwise error response for failure to send code to email
+                try:
+                    verification_code_email = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'resources', 'verificationcode.html')
+                    with open(verification_code_email, 'r') as file:
+                        verification_code_html = file.read()
+                    email_subject = 'MyTradingTracker - 2FA Verification Code'
+                    email_body = verification_code_html.replace('VERIFICATION_CODE', code)
+                    message = MIMEText(email_body, 'html')
+                    message['Subject'] = email_subject
+                    message['From'] = SMTP_USERNAME
+                    message['To'] = requestBody['email']
+                    # Send the email
+                    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                        server.starttls()
+                        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+                        server.sendmail(SMTP_USERNAME, requestBody['email'], message.as_string())
+                    response = "2FA Enabled, Verification Code Sent to Email"
+                    logger.info("Leaving Validate User Handler: " + response)
+                    return {
+                        "result": response
+                    }, 202
+                except Exception as e:
+                    response = "Error: " + str(e)
+                    logger.error("Leaving Validate User Handler: " + response)
+                    return {
+                        "result": response
+                    }, 403
             session.Session.expirePreviousSessions(response[0][0]['user_id'])
             access_token = create_access_token(identity=response[0][0]['user_id']) 
             newSession = session.Session(None,response[0][0]['user_id'],access_token,datetime.now()+timedelta(hours=24))
@@ -214,6 +264,7 @@ def getUserPreferences(user_id):
             "account_value_optin": response[0][0]['account_value_optin'],
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
+            "2fa_optin": response[0][0]['2fa_optin'],
         }
         logger.info("Leaving Get User Preferences Handler: " + str(response))
         return response
@@ -238,6 +289,7 @@ def toggleAvTracking(user_id):
             "account_value_optin": response[0][0]['account_value_optin'],
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
+            "2fa_optin": response[0][0]['2fa_optin'],
         }
         logger.info("Leaving Toggle Account Value Tracking Handler: " + str(response))
         return response
@@ -262,6 +314,7 @@ def toggleEmailOptInHandler(user_id):
             "account_value_optin": response[0][0]['account_value_optin'],
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
+            "2fa_optin": response[0][0]['2fa_optin'],
         }
         logger.info("Leaving Toggle Email Opt In Handler: " + str(response))
         return response
@@ -293,12 +346,20 @@ def toggleFeatureFlagsHandler(user_id,requestBody):
                 return {
                     "result": response
                 }, 400   
+        if ff == '2fa_optin':
+            response = user.User.toggle2FAOptin(user_id) 
+            if response[0]:
+                logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400   
     response = user.User.getPreferences(user_id)
     if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         response = {
             "account_value_optin": response[0][0]['account_value_optin'],
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
+            "2fa_optin": response[0][0]['2fa_optin'],
         }
         logger.info("Leaving Toggle Feature Flags Handler: " + str(response))
         return response
@@ -328,6 +389,7 @@ def updatePreferredCurrencyHandler(user_id,requestBody):
             "account_value_optin": response[0][0]['account_value_optin'],
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
+            "2fa_optin": response[0][0]['2fa_optin'],
         }
         logger.info("Leaving Update Preferred Currency Handler: " + str(response))
         return response
@@ -398,6 +460,7 @@ def deleteExistingUser(user_id):
     response = trade.Trade.deleteUserTrades(user_id)
     response = session.Session.deleteUserSessions(user_id)
     response = resetcode.Resetcode.deleteUserResetCodes(user_id)
+    response = verificationcode.Verificationcode.deleteUserVerificationCodes(user_id)
     response = accountvalue.Accountvalue.deleteUserAccountValues(user_id)
     response = journalentry.Journalentry.deleteUserJournalEntries(user_id)
     response = user.User.deleteUser(user_id)
@@ -917,6 +980,78 @@ def resetPassword(requestBody):
     else:
         response = "An Issue Occurred Resetting Password, Please Try Again"
         logger.warning("Leaving Reset Password Handler: " + response)
+        return {
+            "result": response
+        }, 403
+        
+        
+def verify2FA(requestBody):
+    logger.info("Entering Verify 2FA Handler: " + "(request: {})".format(str(utils.censor_log(requestBody))))
+    response = userValidator.validate2FA(requestBody)
+    if response != True:
+        logger.warning("Leaving Verify 2FA Handler: " + str(response))
+        return response
+    userResponse = user.User.getUserbyEmail(requestBody['email'])
+    if not userResponse[0]:
+        response = "No Account Found with this Email, Please Use a Valid Email or Create an Account"
+        logger.warning("Leaving Verify 2FA Handler: " + response)
+        return {
+            "result": response
+        }, 403
+    response = verificationcode.Verificationcode.getVerificationCode(requestBody['code'],userResponse[0][0]['user_id'])
+    if not response[0]:
+        response = "2FA Code Doesn't Exist"
+        logger.warning("Leaving Verify 2FA Handler: " + response)
+        return {
+            "result": response
+        }, 401
+    elif response[0][0] and 'validated' in response[0][0] and response[0][0]['validated'] == 1:
+        response = "2FA Code Has Already Been Used"
+        logger.warning("Leaving Verify 2FA Handler: " + response)
+        return {
+            "result": response
+        }, 401
+    elif response[0][0] and 'expiration' in response[0][0]:
+        if response[0][0]['expiration'] < datetime.now():
+            response = "2FA Code Has Expired"
+            logger.warning("Leaving Verify 2FA Handler: " + response)
+            return {
+                "result": response
+            }, 401
+        else:
+            validateResponse = verificationcode.Verificationcode.validateVerificationCode(response[0][0]['verificationcode_id'])
+            session.Session.expirePreviousSessions(userResponse[0][0]['user_id'])
+            access_token = create_access_token(identity=userResponse[0][0]['user_id']) 
+            newSession = session.Session(None,userResponse[0][0]['user_id'],access_token,datetime.now()+timedelta(hours=24))
+            sessionResponse = session.Session.addSession(newSession)
+            if sessionResponse[0]:
+                logger.warning("Leaving Verify 2FA Handler: " + str(sessionResponse))
+                return sessionResponse, 400
+            else:
+                response = verificationcode.Verificationcode.deleteVerificationCode(response[0][0]['verificationcode_id'])
+                if response[0]:
+                    logger.warning("Leaving Verify 2FA Handler: " + str(response))
+                    return {
+                        "result": str(response)
+                    }, 400
+                response = {
+                    "token": access_token,
+                    "user_id": userResponse[0][0]['user_id'],
+                    "first_name": userResponse[0][0]['first_name'],
+                    "last_name": userResponse[0][0]['last_name'],
+                    "birthday": userResponse[0][0]['birthday'],
+                    "email": userResponse[0][0]['email'],
+                    "street_address": userResponse[0][0]['street_address'],
+                    "city": userResponse[0][0]['city'],
+                    "state": userResponse[0][0]['state'],
+                    "country": userResponse[0][0]['country'],
+                    "created_at" : userResponse[0][0]['created_at'].strftime("%Y-%m-%d %H:%M:%S")
+                }
+                logger.info("Leaving Verify 2FA Handler: " + str(response))
+                return response
+    else:
+        response = "An Issue Occurred Validating 2FA Code, Please Try Again"
+        logger.warning("Leaving Verify 2FA Handler: " + response)
         return {
             "result": response
         }, 403

@@ -128,3 +128,21 @@ UPDATE resetcode SET validated = false;
 ALTER TABLE user ADD COLUMN preferred_currency VARCHAR(3) DEFAULT 'USD';
 -- Update existing users to set 'USD' as the default for existing records
 UPDATE user SET preferred_currency = 'USD' WHERE preferred_currency IS NULL;
+
+
+-- 10-07-2024 (1.1.1)
+
+ALTER TABLE user ADD COLUMN `2fa_optin` BOOLEAN DEFAULT FALSE;
+
+UPDATE user SET `2fa_optin` = false;
+
+CREATE TABLE `verificationcode` (
+  `verificationcode_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `code` varchar(255) NOT NULL,
+  `expiration` datetime NOT NULL,
+  `validated` BOOLEAN DEFAULT FALSE,  -- Add the new column with default value
+  PRIMARY KEY (`verificationcode_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `verificationcode_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

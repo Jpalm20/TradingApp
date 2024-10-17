@@ -168,7 +168,7 @@ def validateGetAccountValue(request):
 
 def validateToggleFeatureFlags(request):
     logger.info("Entering Validate Toggle Feature Flags Validator: " + "(request: {})".format(str(request)))
-    valid_featureflags = ['email_optin','account_value_optin']
+    valid_featureflags = ['email_optin','account_value_optin','2fa_optin']
     for ff in request:
         if(ff not in valid_featureflags):
             response = "Please provide only valid feature flags in your request"
@@ -195,4 +195,21 @@ def validateUpdatePreferredCurrency(request):
             "result": response
         }, 400
     logger.info("Leaving Validate Update Preferred Currency Validator: ")
+    return True
+
+def validate2FA(request):
+    logger.info("Entering Validate 2FA Validator: " + "(request: {})".format(str(request)))
+    if 'email' not in request or request['email'] == '':
+        response = "Email is a required field, Try Again"
+        logger.warning("Leaving Validate 2FA Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    if 'code' not in request or request['code'] == '':
+        response = "2FA Code is a required field, Try Again"
+        logger.warning("Leaving Validate 2FA Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    logger.info("Leaving Validate 2FA Validator: ")
     return True
