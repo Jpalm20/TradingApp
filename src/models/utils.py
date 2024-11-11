@@ -4,6 +4,9 @@ import random
 import mysql.connector
 from mysql.connector import pooling
 import logging
+from PIL import Image
+import io
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -173,3 +176,12 @@ def censor_log(request):
 
     logger.info("Leaving Censor Log Util: ")
     return censoredRequest
+
+
+def further_process_image(file, max_width=300, max_height=300):
+    image = Image.open(file)
+    image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS) 
+    output = io.BytesIO()
+    image.save(output, format='JPEG')
+    output.seek(0)
+    return output

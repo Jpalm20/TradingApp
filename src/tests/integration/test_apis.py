@@ -891,7 +891,71 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['2fa_optin'],0)
         
     
-    def test_35_logout_use(self):
+    def test_35_upload_profile_pic(self):
+        #/user/profilePicture
+                
+        boundary = '----WebKitFormBoundaryySqtS1tZeUD7xapy'
+        headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
+        
+        # Overwrite the Content-Type to multipart/form-data with the boundary
+        headers_copy['Content-Type'] = f'multipart/form-data; boundary={boundary}'
+
+        # Construct the file path for the test image
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_image.JPG")
+        
+        # Read the image file in binary mode
+        with open(file_path, "rb") as file:
+            file_content = file.read()
+
+        # Construct the body for the multipart/form-data
+        body = (
+            f'--{boundary}\r\n'
+            'Content-Disposition: form-data; name="profile_pic"; filename="test_image.JPG"\r\n'
+            'Content-Type: image/jpeg\r\n'
+            '\r\n'
+        ).encode('utf-8') + file_content + f'\r\n--{boundary}--\r\n'.encode('utf-8')
+
+        # Make the POST request with the constructed body
+        response = requests.post(
+            f"{self.BASE_URL}/user/profilePicture",
+            data=body,  # Use `data` instead of `files` since we're manually constructing the body
+            headers=headers_copy
+        )
+                    
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['result'], "Profile Picture Uploaded Successfully")
+            
+    
+    def test_36_get_profile_pic(self):
+        #/user/profilePicture
+
+        response = requests.get(
+            f"{self.BASE_URL}/user/profilePicture",
+            headers=self.headers
+        )
+    
+        # Assert response status and data
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual('profile_picture_url' in response_data,True)
+        
+    
+    def test_37_delete_profile_pic(self):
+        #/user/profilePicture
+        
+        response = requests.delete(
+            f"{self.BASE_URL}/user/profilePicture",
+            headers=self.headers
+        )
+    
+        # Assert response status and data
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['result'],"Profile Picture Deleted Successfully")
+        
+    
+    def test_38_logout_user(self):
         #/user/logout
         
         # Logout
@@ -901,8 +965,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_date['result'],"User Logged Out")
         
         
-    
-    def test_36_delete_user(self):
+    def test_39_delete_user(self):
         #/user 
         
         # Log back in to generate new token, logout expired the token

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues, getJournalEntries } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getProfilePicture, getAccountValues, getJournalEntries } from '../store/auth'
 import '../styles/navbar.css';
 import moment from 'moment'; 
 import 'moment-timezone';
@@ -81,6 +81,8 @@ export default function Navbar({ user }) {
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
   const isBugReported = ((info && Object.keys(info).length === 1 && info.result && info.result === "Feedback Submitted Successfully") ? (true):(false));
+  const { profilepic } = useSelector((state) => state.auth); 
+  const hasProfilePicture = ((profilepic && Object.keys(profilepic).length > 0) ? (true):(false)); 
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -167,6 +169,7 @@ export default function Navbar({ user }) {
   const handleProfile = async (e) => {
     navigate("/profile");
     await dispatch(getPreferences()); 
+    //await dispatch(getProfilePicture());
     handleDeleteLocal();
   }
 
@@ -485,7 +488,12 @@ export default function Navbar({ user }) {
         ) : (
           null
         )}
-        <Avatar  size="sm" m={2} onClick={(e) => handleProfile(e.target.value)}/>
+        <Avatar  
+          size="sm" 
+          src={hasProfilePicture ? profilepic.profile_picture_url : null}
+          m={2} 
+          onClick={(e) => handleProfile(e.target.value)}
+        />
         </HStack>
         </span>
         </Center>

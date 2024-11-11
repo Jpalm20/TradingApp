@@ -1,5 +1,7 @@
 from ftplib import error_reply
 import os
+import io
+import boto3
 from flask import Flask, jsonify, g
 from flasgger import Swagger
 from flask import request
@@ -63,6 +65,17 @@ else:
         port=REDIS_PORT,
         decode_responses=True
     )
+    
+# S3 Configuration
+s3 = boto3.client(
+    's3',
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+    region_name=os.getenv('AWS_REGION_NAME'),
+)
+
+BUCKET_NAME = os.environ.get('BUCKET_NAME')
+AWS_ENV = os.getenv('AWS_ENV', 'local') 
 
 logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger(__name__)
@@ -1705,13 +1718,16 @@ def logout_session():
                             'pnlyear',
                             'user',
                             'journalentry',
-                            'preferences'
+                            'preferences',
+                            'profilepictures'
                         ]
                     for key in top_level_keys:
                         pattern = f'{key}:{user_id}:*'
                         keys_to_delete = redis_client.keys(pattern)
                         if keys_to_delete:
                             redis_client.delete(*keys_to_delete)
+                        pattern = f'{key}:{user_id}'
+                        redis_client.delete(pattern)
                     logger.info("Leaving Logout Session: " + str(response))
                     return response
             elif not eval:
@@ -1815,13 +1831,16 @@ def existing_user():
                             'pnlyear',
                             'user',
                             'journalentry',
-                            'preferences'
+                            'preferences',
+                            'profilepictures'
                         ]
                         for key in top_level_keys:
                             pattern = f'{key}:{user_id}:*'
                             keys_to_delete = redis_client.keys(pattern)
                             if keys_to_delete:
                                 redis_client.delete(*keys_to_delete)
+                            pattern = f'{key}:{user_id}'
+                            redis_client.delete(pattern)
                     logger.info("Leaving Existing User: " + str(response))
                     return response
             elif not eval:
@@ -2595,6 +2614,165 @@ def existing_journalentry(date):
     except Exception as e:
         error_message = "An error occurred: " + str(e)
         logger.error("Leaving Existing Journal Entry: " + error_message)
+        return {
+            "result": error_message
+        }, 400
+
+
+@app.route('/user/profilePicture', methods=['GET', 'POST', 'DELETE'])
+def profile_picture():
+    """
+    Manage the retrieving and uploading/updating of a user's profile picture.
+    ---
+    tags:
+      - User Management
+    consumes:
+      - multipart/form-data
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: formData
+        name: profile_picture
+        description: The image file for uploading or updating the user's profile picture. Required for POST requests.
+        required: false
+        type: file
+    responses:
+      200:
+        description: Profile picture retrieved, uploaded, or updated successfully.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              description: Success message for upload/update.
+            profile_picture_url:
+              type: string
+              description: The URL of the user's profile picture, applicable for GET requests.
+            s3_key:
+              type: string
+              description: The S3 key of the uploaded/updated profile picture, applicable for POST requests.
+      400:
+        description: Bad request, data missing or format incorrect.
+      401:
+        description: Unauthorized access, invalid or missing token.
+      404:
+        description: No profile picture found for the specified user.
+      500:
+        description: Internal server error.
+    """
+    logger.info("Entering Profile Picture - " + str(request.method))
+    try:
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+            eval,message = sessionHandler.validateToken(auth_token)
+            if eval:
+                user_id = None
+                eval,message = sessionHandler.getUserFromToken(auth_token)
+                if not eval:
+                    logger.warning("Leaving Profile Picture: " + str(message))
+                    return {
+                        "result": message
+                    }, 401
+                user_id = message
+                # Handle GET request (Retrieve profile picture)
+                if request.method == 'GET':
+                    # Generate the S3 key using the user_id
+                    key = f'profilepictures:{user_id}'
+                    cached_data = redis_client.get(key)
+                    if cached_data:
+                        logger.info("Leaving Profile Picture (Cache Hit): " + cached_data)
+                        return json.loads(cached_data)
+                    s3_key = f"{AWS_ENV}/profile_pictures/{user_id}_profile.jpg"
+                    try:
+                        # Generate a pre-signed URL for the profile picture
+                        url = s3.generate_presigned_url(
+                            'get_object',
+                            Params={'Bucket': BUCKET_NAME, 'Key': s3_key},
+                            ExpiresIn=3600  # URL expires in 1 hour
+                        )
+                        response = {
+                          "profile_picture_url": url
+                        }
+                        redis_client.setex(key, 1200, json.dumps(response))
+                        logger.info("Leaving Profile Picture: " + str(response))
+                        return response
+                    except Exception as e:
+                        logger.warning("Leaving Profile Picture: " + str(e))
+                        return {
+                            "result": str(e)
+                        }, 400
+                # Handle POST request (Upload or update profile picture)
+                if request.method == 'POST':
+                    file = request.files['profile_pic']
+                    if not file:
+                        response = 'No File Provided'
+                        logger.warning("Leaving Profile Picture: " + response)
+                        return {
+                            "result": response
+                        }, 400
+                    # Further process the image on the server side
+                    processed_image = utils.further_process_image(file, max_width=300, max_height=300)
+                    # Generate the S3 key using the user_id
+                    s3_key = f"{AWS_ENV}/profile_pictures/{user_id}_profile.jpg"
+                    try:
+                        # Upload the processed image to S3
+                        s3.upload_fileobj(processed_image, BUCKET_NAME, s3_key)
+                        url = s3.generate_presigned_url(
+                            'get_object',
+                            Params={'Bucket': BUCKET_NAME, 'Key': s3_key},
+                            ExpiresIn=3600  # URL expires in 1 hour
+                        )
+                        response = {
+                            "result": "Profile Picture Uploaded Successfully",
+                            "s3_key": s3_key,
+                            "profile_picture_url": url
+                        }
+                        key = f'profilepictures:{user_id}'
+                        cache_response = {
+                            "profile_picture_url": url
+                        }
+                        redis_client.setex(key, 1200, json.dumps(cache_response))
+                        logger.info("Leaving Profile Picture: " + str(response))
+                        return response
+                    except Exception as e:
+                        logger.warning("Leaving Profile Picture: " + str(e))
+                        return {
+                            "result": str(e)
+                        }, 400
+                # Handle DELETE request (Delete profile picture)
+                if request.method == 'DELETE':
+                    s3_key = f"{AWS_ENV}/profile_pictures/{user_id}_profile.jpg"
+                    key = f'profilepictures:{user_id}'
+                    try:
+                        # Attempt to delete the object from S3
+                        s3.delete_object(Bucket=BUCKET_NAME, Key=s3_key)
+                        # Remove from cache if it exists
+                        redis_client.delete(key)
+                        response = {"result": "Profile Picture Deleted Successfully"}
+                        logger.info("Leaving Profile Picture: " + str(response))
+                        return response, 200
+                    except Exception as e:
+                        logger.warning("Leaving Profile Picture: " + str(e))
+                        return {
+                            "result": str(e)
+                        }, 400
+            else:
+                logger.warning("Leaving Profile Picture: " + str(message))
+                return {
+                    "result": message
+                }, 401
+        else:
+            response = "Authorization Header is Missing"
+            logger.warning("Leaving Profile Picture: " + response)
+            return {
+                "result": response
+            }, 401
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        logger.error("Leaving Profile Picture: " + error_message)
         return {
             "result": error_message
         }, 400

@@ -10,6 +10,7 @@ const initialState = {
   trades: [],
   stats: {},
   preferences: {},
+  profilepic: {},
   accountValues: {},
   journalentries: {},
   tradesOfDay: [],
@@ -144,6 +145,55 @@ export const getPreferences = createAsyncThunk(
     try {
       if (token) {
         const res = await axios.get(API_URL + `user/preferences`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getProfilePicture = createAsyncThunk(
+  "auth/getProfilePicture",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.get(API_URL + `user/profilePicture`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const setProfilePicture = createAsyncThunk(
+  "auth/setProfilePicture",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { selectedFile } = formInfo;
+        const formData = new FormData();
+        formData.append("profile_pic", selectedFile);
+        const res = await axios.post(API_URL + `user/profilePicture`, formData, {
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -810,6 +860,40 @@ const authSlice = createSlice({
       state.info = action.payload;
       state.loading = false;
     },
+    [getProfilePicture.fulfilled]: (state, action) => {
+      state.profilepic = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getProfilePicture.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getProfilePicture.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [setProfilePicture.fulfilled]: (state, action) => {
+      state.profilepic = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [setProfilePicture.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [setProfilePicture.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [toggleAvTracking.fulfilled]: (state, action) => {
       state.preferences = action.payload;
       state.success = true;
@@ -1221,6 +1305,7 @@ const authSlice = createSlice({
       state.trades = null;
       state.stats = null;
       state.preferences = null;
+      state.profilepic = null;
       state.accountValues = null;
       state.journalentries = null;
       state.tradesOfDay = null;
