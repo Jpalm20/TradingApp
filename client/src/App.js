@@ -19,6 +19,7 @@ import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
 import Journal from "./components/Journal";
+import Leaderboard from "./components/Leaderboard";
 import Signup from "./components/Signup";
 import LogTrade from "./components/LogTrade";
 import Navbar from "./components/Navbar";
@@ -89,6 +90,7 @@ export default function App() {
     window.localStorage.removeItem('HomeFilters');
     window.localStorage.removeItem('CalendarFilters');
     window.localStorage.removeItem('SummaryFilters');
+    window.localStorage.removeItem('LeaderboardFilters');
   }
 
   const evaluateError = async () => {
@@ -199,6 +201,7 @@ export default function App() {
               <Route path="/home" element={<Home user={user}/>} />
               <Route path="/PnlCalendar" element={<PnlCalendar user={user}/>} />
               <Route path="/journal" element={<Journal user={user}/>} />
+              <Route path="/leaderboard" element={<Leaderboard user={user}/>} />
               <Route path="/login" element={<Navigate to="/"/>} />
               <Route path="/resetpassword" element={<Navigate to="/"/>} />
               <Route path="/signup" element={<Navigate to="/"/>} />
@@ -212,6 +215,7 @@ export default function App() {
               <Route path="/home" element={<Navigate to="/login" />} />
               <Route path="/PnlCalendar" element={<Navigate to="/login" />} />
               <Route path="/journal" element={<Navigate to="/login" />} />
+              <Route path="/leaderboard" element={<Navigate to="/login" />} />
               <Route path="/profile" element={<Navigate to="/login"/>} />
               <Route path="/logTrade" element={<Navigate to="/login"/>} />
               <Route path='/summary' element={<Navigate to="/login"/>} />

@@ -20,6 +20,7 @@ const initialState = {
   error: false,
   loading: false,
   info: {},
+  leaderboard: [],
 };
 
 export const me = createAsyncThunk("auth/me", async () => {
@@ -833,6 +834,31 @@ export const clearJournalEntry = createAsyncThunk(
   }
 );
 
+export const getLeaderboard = createAsyncThunk(
+  "trade/getLeaderboard",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { filters } = formInfo;
+        const res = await axios.get(API_URL + `user/leaderboard`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -975,6 +1001,22 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getAccountValues.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getLeaderboard.fulfilled]: (state, action) => {
+      state.leaderboard = action.payload;
+      state.success = true;
+      state.error = false;
+      state.loading = false;
+    },
+    [getLeaderboard.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getLeaderboard.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;

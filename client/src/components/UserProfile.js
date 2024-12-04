@@ -120,8 +120,6 @@ export default function UserProfile({ user }) {
 
 
   const evaluateSuccess = () => {
-    console.log(selectPage);
-    console.log(updateInfo);
     if(success === true && user.result === "User Edited Successfully" && !(info && info.result && info.result === "Password Successfully Changed") && !(profilePicPopUp && profilepic && profilepic.result && profilepic.result === "Profile Picture Uploaded Successfully")){
       if(selectPage === false && updateInfo === true){
         clearFormStates();
@@ -310,6 +308,16 @@ export default function UserProfile({ user }) {
     );
   }
 
+  const handleTogglePublicProfile = async (e) => {
+    //await dispatch(toggleEmailOptin());
+    const flags = ["public_profile_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
+  }
+
   const handleToggleCurrencyCode = async (currencyCode) => {
     //await dispatch(toggleEmailOptin());
     const preferred_currency = currencyCode;
@@ -483,6 +491,11 @@ export default function UserProfile({ user }) {
                       <FormLabel display="flex" alignItems="center">
                         <Text>2FA {hasPreferences && preferences['2fa_optin'] === 1 ? 'On' : 'Off'}</Text>
                         <Switch marginLeft={3} isChecked={hasPreferences && preferences['2fa_optin'] === 1 ? true : false} onChange={handleToggle2FA}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
+                        <Text>Public Profile {hasPreferences && preferences['public_profile_optin'] === 1 ? 'On' : 'Off'}</Text>
+                        <Switch marginLeft={3} isChecked={hasPreferences && preferences['public_profile_optin'] === 1 ? true : false} onChange={handleTogglePublicProfile}/>
                       </FormLabel>
 
                       <FormLabel display="flex" alignItems="center">

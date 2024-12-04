@@ -9,6 +9,7 @@ import json
 import requests
 from flask_jwt_extended import create_access_token
 import logging
+from urllib.parse import unquote
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ def registerUser(requestBody):
     requestTransformed = userTransformer.transformNewUser(requestBody)
     newUser = user.User(None,requestTransformed['first_name'],requestTransformed['last_name'],requestTransformed['birthday'],
                         requestTransformed['email'],requestTransformed['password'],requestTransformed['street_address'],
-                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None,None,None)
+                        requestTransformed['city'],requestTransformed['state'],requestTransformed['country'],None,None,None,None,None)
     response = user.User.addUser(newUser)
     if response[0]:
         logger.warning("Leaving Register User Handler: " + str(response))
@@ -265,6 +266,7 @@ def getUserPreferences(user_id):
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
             "2fa_optin": response[0][0]['2fa_optin'],
+            "public_profile_optin": response[0][0]['public_profile_optin'],
         }
         logger.info("Leaving Get User Preferences Handler: " + str(response))
         return response
@@ -290,6 +292,7 @@ def toggleAvTracking(user_id):
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
             "2fa_optin": response[0][0]['2fa_optin'],
+            "public_profile_optin": response[0][0]['public_profile_optin'],
         }
         logger.info("Leaving Toggle Account Value Tracking Handler: " + str(response))
         return response
@@ -315,6 +318,7 @@ def toggleEmailOptInHandler(user_id):
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
             "2fa_optin": response[0][0]['2fa_optin'],
+            "public_profile_optin": response[0][0]['public_profile_optin'],
         }
         logger.info("Leaving Toggle Email Opt In Handler: " + str(response))
         return response
@@ -353,6 +357,13 @@ def toggleFeatureFlagsHandler(user_id,requestBody):
                 return {
                     "result": response
                 }, 400   
+        if ff == 'public_profile_optin':
+            response = user.User.togglePublicProfileOptin(user_id) 
+            if response[0]:
+                logger.warning("Leaving Toggle Feature Flags Handler: " + str(response))
+                return {
+                    "result": response
+                }, 400   
     response = user.User.getPreferences(user_id)
     if len(response[0]) != 0 and 'account_value_optin' in response[0][0]:
         response = {
@@ -360,6 +371,7 @@ def toggleFeatureFlagsHandler(user_id,requestBody):
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
             "2fa_optin": response[0][0]['2fa_optin'],
+            "public_profile_optin": response[0][0]['public_profile_optin'],
         }
         logger.info("Leaving Toggle Feature Flags Handler: " + str(response))
         return response
@@ -390,6 +402,7 @@ def updatePreferredCurrencyHandler(user_id,requestBody):
             "email_optin": response[0][0]['email_optin'],
             "preferred_currency": response[0][0]['preferred_currency'],
             "2fa_optin": response[0][0]['2fa_optin'],
+            "public_profile_optin": response[0][0]['public_profile_optin'],
         }
         logger.info("Leaving Update Preferred Currency Handler: " + str(response))
         return response
@@ -793,6 +806,33 @@ def getUserTradesPage(user_id,filters=None):
         }
         logger.info("Leaving Get User Trades Page Handler: " + str(response))
         return response
+
+
+def getUserLeaderboard(user_id,filters=None):
+    logger.info("Entering Get User Leaderboard Handler: " + "(user_id: {}, filters: {})".format(str(user_id),str(filters)))
+    response = userValidator.validateUserLeaderboardFilters(filters)
+    if response != True:
+        logger.warning("Leaving Get User Leaderboard Handler: " + str(response))
+        return response
+    else:
+        decoded_time_filter = unquote(filters.get("time_filter", ""))
+        decoded_value_filter = unquote(filters.get("value_filter", ""))
+        filterBody = {}
+        filterBody['time_filter'] = userTransformer.transformLeaderboardTimeFilter(decoded_time_filter)
+        filterBody['value_filter'] = userTransformer.transformLeaderboardValueFilter(decoded_value_filter)
+        response = user.User.getUserLeaderboard(filterBody)
+        if len(response[0]) != 0 and response[0][0] and "display_name" in response[0][0]:
+            response = {
+                "leaderboard": response[0],
+            }
+            logger.info("Leaving Get User Leaderboard Handler: " + str(response))
+            return response
+        else:
+            response = {
+                "leaderboard": [],
+            }
+            logger.info("Leaving Get User Leaderboard Handler: " + str(response))
+            return response
 
         
 def getPnLbyYear(user_id, date_year, filters=None):

@@ -146,3 +146,7 @@ CREATE TABLE `verificationcode` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `verificationcode_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE user ADD COLUMN `public_profile_optin` BOOLEAN DEFAULT TRUE;
+
+UPDATE user SET `public_profile_optin` = TRUE;

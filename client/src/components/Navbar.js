@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getProfilePicture, getAccountValues, getJournalEntries } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getProfilePicture, getAccountValues, getJournalEntries, getLeaderboard } from '../store/auth'
 import '../styles/navbar.css';
 import moment from 'moment'; 
 import 'moment-timezone';
@@ -38,7 +38,7 @@ import {
   HStack} from "@chakra-ui/react";
 import { Link as RouterLink, useNavigate, useLocation, parsePath} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
-import { BsSun, BsMoon } from "react-icons/bs";
+import { BsSun, BsMoon, BsWindowSidebar } from "react-icons/bs";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { SiSwagger } from "react-icons/si";
 import { useSelector, useDispatch } from "react-redux";
@@ -57,6 +57,7 @@ const PAGE_NAME = [
   {page:"/profile", text: "User Profile"},
   {page:"/summary", text: "Trade Summary"},
   {page:"/journal", text: "Journal"},
+  {page:"/leaderboard", text: "Leaderboard"},
 ]
 
 
@@ -166,6 +167,17 @@ export default function Navbar({ user }) {
     handleDeleteLocal();
   }
 
+  const handleLeaderboard = async (e) => {
+    navigate("/leaderboard");
+    const encodedTimeFilter = encodeURIComponent("All Time");
+    const encodedValueFilter = encodeURIComponent("Total PNL");
+    const filters = {};
+    filters.time_filter = encodedTimeFilter;
+    filters.value_filter = encodedValueFilter;
+    await dispatch(getLeaderboard({ filters }));
+    handleDeleteLocal();
+  }
+
   const handleProfile = async (e) => {
     navigate("/profile");
     await dispatch(getPreferences()); 
@@ -198,6 +210,7 @@ export default function Navbar({ user }) {
     window.localStorage.removeItem('HomeFilters');
     window.localStorage.removeItem('CalendarFilters');
     window.localStorage.removeItem('SummaryFilters');
+    window.localStorage.removeItem('LeaderboardFilters');
   } 
 
   
@@ -313,6 +326,9 @@ export default function Navbar({ user }) {
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleTrades(e.target.value)}>
               Trades
+            </Button>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleLeaderboard(e.target.value)}>
+              Leaderboard
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value)}>
               Calendar

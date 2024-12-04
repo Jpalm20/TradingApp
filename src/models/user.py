@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 class User:
     
-    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin,preferredCurrency,twofaOptin):
+    def __init__(self,userID,firstName,lastName,birthday,email,password,streetAddress,city,state,country,accountValueOptin,emailOptin,preferredCurrency,twofaOptin,publicProfileOptin):
         self.userID = userID
         self.firstName = firstName
         self.lastName = lastName
@@ -20,6 +20,7 @@ class User:
         self.emailOptin = emailOptin
         self.preferredCurrency = preferredCurrency
         self.twofaOptin = twofaOptin
+        self.publicProfileOptin = publicProfileOptin
     
     def getUserbyID(userID):
         
@@ -33,7 +34,7 @@ class User:
     def getPreferences(userID):
         
         logger.info("Entering Get User Preferences Model Function: " + "(user_id: {})".format(str(userID)))
-        Query = """SELECT account_value_optin, email_optin, preferred_currency, `2fa_optin` FROM user WHERE user_id = %s"""
+        Query = """SELECT account_value_optin, email_optin, preferred_currency, `2fa_optin`, public_profile_optin FROM user WHERE user_id = %s"""
         Args = (userID,)
         response = utils.execute_db(Query,Args)
         logger.info("Leaving Get User Preferences Model Function: " + str(response))
@@ -135,8 +136,8 @@ class User:
                     (SELECT COUNT(*) FROM trade WHERE user_id = %s and security_type = 'Shares' and pnl < 0) AS numShTLoss,
                     (SELECT SUM(units) FROM trade where user_id = %s and security_type = 'Shares') AS sumSharesUnits,
                     (SELECT SUM(units) FROM trade where user_id = %s and security_type = 'Options') AS sumOptionsUnits,
-                    (SELECT MAX(pnl) FROM trade WHERE user_id = %s) AS largestWin,
-                    (SELECT MIN(pnl) FROM trade WHERE user_id = %s) AS largestLoss,
+                    (SELECT MAX(pnl) FROM trade WHERE user_id = %s and pnl > 0) AS largestWin,
+                    (SELECT MIN(pnl) FROM trade WHERE user_id = %s and pnl < 0) AS largestLoss,
                     (SELECT SUM(pnl) FROM trade WHERE user_id = %s and pnl > 0) AS sumWin,
                     (SELECT SUM(pnl) FROM trade WHERE user_id = %s and pnl < 0) AS sumLoss,
                     (SELECT SUM(pnl) FROM trade WHERE user_id = %s) AS totalPNL;"""
@@ -166,9 +167,9 @@ class User:
                     utils.add_filters_to_query_sring( "(SELECT COUNT(*) FROM trade WHERE user_id = " + str(userID),filters) + " and security_type = 'Shares' and pnl < 0) AS numShTLoss," + \
                     utils.add_filters_to_query_sring("(SELECT SUM(units) FROM trade where user_id = " + str(userID),filters) + " and security_type = 'Shares') AS sumSharesUnits," + \
                     utils.add_filters_to_query_sring("(SELECT SUM(units) FROM trade where user_id = " + str(userID),filters) + " and security_type = 'Options') AS sumOptionsUnits," + \
-                    utils.add_filters_to_query_sring( "(SELECT MAX(pnl) FROM trade WHERE user_id = " + str(userID),filters) + ") AS largestWin," + \
-                    utils.add_filters_to_query_sring( "(SELECT MIN(pnl) FROM trade WHERE user_id = " + str(userID),filters) + ") AS largestLoss," + \
-                    utils.add_filters_to_query_sring( "(SELECT SUM(pnl) FROM trade WHERE user_id = " + str(userID),filters) + " and pnl > 0) AS sumWin," + \
+                    utils.add_filters_to_query_sring("(SELECT MAX(pnl) FROM trade WHERE user_id = " + str(userID),filters) + " and pnl > 0) AS largestWin," + \
+                    utils.add_filters_to_query_sring("(SELECT MIN(pnl) FROM trade WHERE user_id = " + str(userID),filters) + " and pnl < 0) AS largestLoss," + \
+                    utils.add_filters_to_query_sring("(SELECT SUM(pnl) FROM trade WHERE user_id = " + str(userID),filters) + " and pnl > 0) AS sumWin," + \
                     utils.add_filters_to_query_sring("(SELECT SUM(pnl) FROM trade WHERE user_id = " + str(userID),filters) + " and pnl < 0) AS sumLoss," + \
                     utils.add_filters_to_query_sring("(SELECT SUM(pnl) FROM trade WHERE user_id = " + str(userID),filters) + ") AS totalPNL"
         Args = ()
@@ -250,7 +251,7 @@ class User:
     def addUser(newUser):
 
         logger.info("Entering Add User Model Function: " + "(new_user: {})".format(str(newUser)))
-        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)"""
+        Query = """INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)"""
         Args = (newUser.firstName,newUser.lastName,newUser.birthday,newUser.email,
                                        newUser.password,newUser.streetAddress,newUser.city,
                                        newUser.state,newUser.country)
@@ -328,6 +329,15 @@ class User:
         logger.info("Leaving Toggle 2FA Feature Flag Model Function: " + str(response))
         return response
     
+    def togglePublicProfileOptin(userID):
+        
+        logger.info("Entering Toggle Public Profile Feature Flag Model Function: " + "(user_id: {})".format(str(userID)))
+        Query = """UPDATE user SET public_profile_optin = NOT public_profile_optin WHERE user_id = %s"""
+        Args = (userID,)
+        response = utils.execute_db(Query,Args)
+        logger.info("Leaving Toggle Public Profile Feature Flag Model Function: " + str(response))
+        return response
+    
     def updateUserCurrency(userID,newCurrencyCode):
         
         logger.info("Entering Update User Currency Model Function: " + "(user_id: {}, new_currency: {})".format(str(userID),str(newCurrencyCode)))
@@ -338,5 +348,32 @@ class User:
         return response 
  
  
+    def getUserLeaderboard(filterBody):
+        
+        logger.info("Entering Get User Leaderboard Model Function: " + "(filterBody: {})".format(str(filterBody)))
 
+        time_filter_query = filterBody['time_filter']
+        value_filter_query = filterBody['value_filter']
+        
+        Query = """SELECT  
+                    CONCAT(u.first_name, ' ', LEFT(u.last_name, 1), '.') AS display_name, 
+                    ROUND({}, 2) as leaderboard_value
+                FROM 
+                    user u
+                LEFT JOIN 
+                    trade t
+                ON 
+                    u.user_id = t.user_id
+                WHERE
+                    {} AND u.public_profile_optin = 1
+                GROUP BY 
+                    u.user_id
+                HAVING 
+                    {}
+                ORDER BY 
+                    leaderboard_value {};""".format(value_filter_query[0],time_filter_query,value_filter_query[1],value_filter_query[2])
+        response = utils.execute_db(Query)
+        
+        logger.info("Leaving Get User Leaderboard Model Function: " + str(response))
+        return response
     

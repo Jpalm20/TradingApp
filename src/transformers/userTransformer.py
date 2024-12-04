@@ -145,3 +145,64 @@ def transformAVtf(today_date,time_frame):
         last_dates.reverse()
     logger.info("Leaving Transform Account Value Timeframe Transformer: " + str(last_dates))
     return last_dates
+
+def transformLeaderboardTimeFilter(time_filter):
+    logger.info("Entering Transform Leaderboard Time Filter Transformer: " + "(time_filter: {})".format(str(time_filter)))
+    time_filter_query = ""
+    if time_filter == 'All Time':
+        time_filter_query = "t.trade_date is not NULL"
+        #pass
+    elif time_filter == "YTD":
+        current_year = date.today().year
+        ytd_start_date = date(current_year, 1, 1)
+        time_filter_query = "t.trade_date >= '{}'".format(str(ytd_start_date))
+    elif time_filter == "Quarter":
+        # Get today's date
+        today = date.today()
+        # Determine the start of the current quarter
+        current_month = today.month
+        current_year = today.year
+        # Map the month to the quarter's start month
+        if current_month in [1, 2, 3]:  # Q1
+            quarter_start_date = date(current_year, 1, 1)
+        elif current_month in [4, 5, 6]:  # Q2
+            quarter_start_date = date(current_year, 4, 1)
+        elif current_month in [7, 8, 9]:  # Q3
+            quarter_start_date = date(current_year, 7, 1)
+        else:  # Q4
+            quarter_start_date = date(current_year, 10, 1)
+        time_filter_query = "t.trade_date >= '{}'".format(str(quarter_start_date))
+    elif time_filter == "Month":
+        today = date.today()
+        month_start_date = date(today.year, today.month, 1)
+        time_filter_query = "t.trade_date >= '{}'".format(str(month_start_date))
+    elif time_filter == "Week":
+        # Get today's date
+        today = date.today()
+        # Calculate WTD start date (assuming week starts on Sunday)
+        days_since_sunday = today.weekday() + 1 if today.weekday() < 6 else 0
+        week_start_date = today - timedelta(days=days_since_sunday)
+        time_filter_query = "t.trade_date >= '{}'".format(str(week_start_date))
+    elif time_filter == "Today":
+        today = date.today()
+        time_filter_query = "t.trade_date >= '{}'".format(str(today))
+    logger.info("Leaving Transform Leaderboard Time Filter Transformer: " + "(time_filter_query: {})".format(str(time_filter_query)))
+    return time_filter_query
+
+def transformLeaderboardValueFilter(value_filter):
+    logger.info("Entering Transform Leaderboard Value Filter Transformer: " + "(value_filter: {})".format(str(value_filter)))
+    value_filter_query = []
+    if value_filter == "Total PNL":
+        value_filter_query = ["SUM(COALESCE(t.pnl, 0))","COUNT(t.trade_id) > 0","DESC"]
+    elif value_filter == "Avg PNL":
+        value_filter_query = ["SUM(COALESCE(t.pnl, 0)) / COUNT(t.trade_id)","COUNT(t.trade_id) > 0","DESC"]
+    elif value_filter == "Win %":
+        value_filter_query = ["COUNT(CASE WHEN t.pnl > 0 THEN 1 END) * 100.0 / COUNT(t.trade_id)","COUNT(t.trade_id) > 0","DESC"]
+    elif value_filter == "Largest Win":
+        value_filter_query = ["MAX(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END)","MAX(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END) IS NOT NULL","DESC"]   
+    elif value_filter == "Avg Win":
+        value_filter_query = ["AVG(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END)","AVG(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END) IS NOT NULL","DESC"]
+    elif value_filter == "Avg Loss":
+        value_filter_query = ["AVG(CASE WHEN t.pnl < 0 THEN t.pnl ELSE NULL END)","AVG(CASE WHEN t.pnl < 0 THEN t.pnl ELSE NULL END) IS NOT NULL","ASC"]
+    logger.info("Leaving Transform Leaderboard Value Filter Transformer: " + "(value_filter_query: {})".format(str(value_filter_query)))
+    return value_filter_query

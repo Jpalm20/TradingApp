@@ -1102,6 +1102,83 @@ def user_trades_page():
         }, 400
         
 
+@app.route('/user/leaderboard',methods = ['GET'])
+def user_leaderboard():
+    """
+    Return Leaderboard results for public user profiles based on on input filters
+    ---
+    tags:
+      - Leaderboard Information
+    produces:
+      - application/json
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: filters
+        description: Filters for leaderboard.
+        required: true
+        schema:
+          type: object
+          properties:
+            time_filter:
+              type: string
+              example: "All Time"
+            value_filter:
+              type: string
+              example: "Avg PnL"
+    responses:
+      200:
+        description: Leaderboard results retrieved successfully.
+      400:
+        description: Bad request, possibly due to missing or incorrect query parameters.
+      401:
+        description: Unauthorized access, invalid or missing token.
+    """
+    logger.info("Entering User Leaderboard - " + str(request.method))
+    try:
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+            eval,message = sessionHandler.validateToken(auth_token)
+            eval2,message2 = sessionHandler.getUserFromToken(auth_token)
+            if eval and eval2:
+                if request.args:
+                    if request.method == 'GET':
+                        user_id = message2
+                        response = userHandler.getUserLeaderboard(user_id, request.args) 
+                        logger.info("Leaving User Leaderboard: " + str(response))
+                        return response
+                else: 
+                    response = "Please include Necessary Time and Value Filters"
+                    logger.warning("Leaving User Leaderboard: " + response)
+                    return {
+                        "result": response
+                    }, 400
+            elif not eval:
+                logger.warning("Leaving User Leaderboard: " + str(message))
+                return {
+                    "result": message
+                }, 401
+            else:
+                logger.warning("Leaving User Leaderboard: " + str(message2))
+                return {
+                    "result": message2
+                }, 401
+        else:
+            response = "Authorization Header is Missing"
+            logger.warning("Leaving User Leaderboard: " + response)
+            return {
+                "result": response
+            }, 401
+    except Exception as e:
+        error_message = "An error occurred: " + str(e)
+        logger.error("Leaving User Leaderboard: " + error_message)
+        return {
+            "result": error_message
+        }, 400
+        
+
 @app.route('/trade/searchTicker',methods = ['GET'])
 def search_user_ticker():
     """

@@ -53,7 +53,7 @@ class TestUserHandler(unittest.TestCase):
         mock_create_access_token.return_value = 'mock_access_token'
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateuseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateuseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("validateuseruserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -106,7 +106,7 @@ class TestUserHandler(unittest.TestCase):
     def test_change_password(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","changepassworduserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","changepassworduserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("changepassworduserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -160,7 +160,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_existing_user(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getexistinguseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getexistinguseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getexistinguseruserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -179,7 +179,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_user_preferences(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserpreferencesuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserpreferencesuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getuserpreferencesuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -188,6 +188,7 @@ class TestUserHandler(unittest.TestCase):
         response = getUserPreferences(user_id)
         self.assertEqual(response['preferred_currency'], 'USD')
         self.assertEqual(response['2fa_optin'], False)
+        self.assertEqual(response['public_profile_optin'], True)
         
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
         
@@ -199,7 +200,7 @@ class TestUserHandler(unittest.TestCase):
     def test_toggle_av_tracking(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","toggleavtrackinguserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","toggleavtrackinguserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("toggleavtrackinguserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -218,7 +219,7 @@ class TestUserHandler(unittest.TestCase):
     def test_toggle_email_optin(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","toggleemailoptinuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","toggleemailoptinuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("toggleemailoptinuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -237,7 +238,7 @@ class TestUserHandler(unittest.TestCase):
     def test_toggle_feature_flags(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","togglefeatureflagsuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","togglefeatureflagsuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("togglefeatureflagsuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -257,14 +258,19 @@ class TestUserHandler(unittest.TestCase):
         response = toggleFeatureFlagsHandler(user_id,requestBody)
         self.assertEqual(response['2fa_optin'], True)
         
-        # 4 Bad Path - Fail validateToggleFeatureFlags
+        # 4 Good Path Public Profile Optin
+        requestBody = ['public_profile_optin']
+        response = toggleFeatureFlagsHandler(user_id,requestBody)
+        self.assertEqual(response['public_profile_optin'], False)
+        
+        # 5 Bad Path - Fail validateToggleFeatureFlags
         requestBody = ['test_flag']
         response = toggleFeatureFlagsHandler(user_id,requestBody)
         self.assertEqual(response[0]['result'], "Please provide only valid feature flags in your request")
         
         response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
         
-        # 5 Bad Path - No User with this user_id
+        # 6 Bad Path - No User with this user_id
         requestBody = ['account_value_optin']
         response = toggleFeatureFlagsHandler(user_id,requestBody)
         self.assertEqual(response[1], 400)
@@ -273,7 +279,7 @@ class TestUserHandler(unittest.TestCase):
     def test_update_preferred_currency(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","updatepreferredcurrencyuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","updatepreferredcurrencyuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("updatepreferredcurrencyuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -305,7 +311,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_user_from_session(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserfromsessionuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserfromsessionuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getuserfromsessionuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -327,7 +333,7 @@ class TestUserHandler(unittest.TestCase):
     def test_edit_existing_user(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","editexistinguseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","editexistinguseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("editexistinguseruserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -359,7 +365,7 @@ class TestUserHandler(unittest.TestCase):
     def test_delete_existing_user(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteexistinguseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","deleteexistinguseruserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("deleteexistinguseruserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -404,7 +410,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_user_trades(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertradesuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertradesuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getusertradesuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -438,7 +444,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_user_trades_stats(self):
     
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertradesstatsuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertradesstatsuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getusertradesstatsuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -472,7 +478,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_user_trades_page(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertradespageuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getusertradespageuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getusertradespageuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -509,7 +515,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_pnl_by_year(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getpnlbyyearuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getpnlbyyearuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getpnlbyyearuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -546,7 +552,7 @@ class TestUserHandler(unittest.TestCase):
     def test_generate_reset_code(self):
     
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","generateresetcodeuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","generateresetcodeuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("generateresetcodeuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -574,7 +580,7 @@ class TestUserHandler(unittest.TestCase):
     def test_validate_reset_code(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateresetcodeuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateresetcodeuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("validateresetcodeuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -626,7 +632,7 @@ class TestUserHandler(unittest.TestCase):
     def test_reset_password(self):
         
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","resetcodeuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","resetcodeuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("resetcodeuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -715,7 +721,7 @@ class TestUserHandler(unittest.TestCase):
         
         # setup queries
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","verify2fauserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","verify2fauserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("verify2fauserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -792,7 +798,7 @@ class TestUserHandler(unittest.TestCase):
     def test_set_account_value(self):
     
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","setaccountvalueuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","setaccountvalueuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("setaccountvalueuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -838,7 +844,7 @@ class TestUserHandler(unittest.TestCase):
     def test_get_account_value(self):
     
         hashPass = hashlib.sha256('password'.encode()).hexdigest()
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getaccountvalueuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getaccountvalueuserhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getaccountvalueuserhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
@@ -899,6 +905,49 @@ class TestUserHandler(unittest.TestCase):
         }
         response = getAccountValue(user_id,filters)
         self.assertEqual(response[1],400)
+        
+    
+    def test_get_user_leaderboard(self):
+        
+        #setup
+        hashPass = hashlib.sha256('password'.encode()).hexdigest()
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","getuserleaderboardhandlerunittest@gmail.com",hashPass,"11 Danand Lane","Patterson","NY","USA"))
+        self.assertEqual(response[0], [])
+        response = execute_db("SELECT * FROM user WHERE email = %s", ("getuserleaderboardhandlerunittest@gmail.com",))
+        user_id = response[0][0]['user_id']
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"getpnlbyyearuserhandlerunittest"))
+        self.assertEqual(response[0], [])
+        
+        #1 Good Path w/Results
+        filters = {
+            'time_filter': 'All%2520Time',
+            'value_filter': 'Total%2520PNL'
+        }
+        response = getUserLeaderboard(user_id,filters)
+        self.assertEqual(len(response[0]['leaderboard']),1)
+        self.assertEqual(response[0]['leaderboard']['leaderboard_value'],100)
+        
+        #2 Good Path w/o Results
+        filters = {
+            'time_filter': 'YTD',
+            'value_filter': 'Total%2520PNL'
+        }
+        response = getUserLeaderboard(user_id,filters)
+        self.assertEqual(len(response[0]['leaderboard']),0)
+        self.assertEqual(response[0]['leaderboard'],[])
+        
+        #3 Bad Path - Fail Validation
+        filters = {
+            'time_filterr': 'YTD',
+            'value_filter': 'Total%2520PNL'
+        }
+        response = getUserLeaderboard(user_id,filters)
+        self.assertEqual(response[0]['result'],"Please provide both a time and value filter")
+        self.assertEqual(response[1],400)
+        
+        #delete
+        response = execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
+        response = execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))
         
     #def tearDown(self):
         #self.transaction.rollback()
