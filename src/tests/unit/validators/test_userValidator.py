@@ -348,11 +348,11 @@ class TestUserValidator(unittest.TestCase):
     def test_validate_leaderboard_filters(self):
         #1 Good Path
         filters = {
-            'time_filter': 'All%2520Time',
-            'value_filter': 'Total%2520PNL'
+            'time_filter': 'All%20Time',
+            'value_filter': 'Total%20PNL'
         }
         response = validateUserLeaderboardFilters(filters)
-        self.assertEqual(response['result'], True)
+        self.assertEqual(response, True)
         
         #2 Fail on Empty Filters
         filters = {}
@@ -361,24 +361,24 @@ class TestUserValidator(unittest.TestCase):
         
         #3 Fail on time_filter or value_filter not in Filters
         filters = {
-            'time_filterr': 'All%2520Time',
-            'value_filter': 'Total%2520PNL'
+            'time_filterr': 'All%20Time',
+            'value_filter': 'Total%20PNL'
         }
         response = validateUserLeaderboardFilters(filters)
         self.assertEqual(response[0]['result'], "Please provide both a time and value filter")
         
         #4 Fail on not valid time_filter
         filters = {
-            'time_filter': 'All%2520Timee',
-            'value_filter': 'Total%2520PNL'
+            'time_filter': 'All%20Timee',
+            'value_filter': 'Total%20PNL'
         }
         response = validateUserLeaderboardFilters(filters)
         self.assertEqual(response[0]['result'], "Please provide only valid time filter options")
         
         #5 Fail on not valid value_filter
         filters = {
-            'time_filter': 'All%2520Time',
-            'value_filter': 'Total%2520PNLL'
+            'time_filter': 'All%20Time',
+            'value_filter': 'Total%20PNLL'
         }
         response = validateUserLeaderboardFilters(filters)
         self.assertEqual(response[0]['result'], "Please provide only valid value filter options")

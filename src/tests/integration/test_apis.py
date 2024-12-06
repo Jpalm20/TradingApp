@@ -606,11 +606,18 @@ class TestAPIs(unittest.TestCase):
     def test_21_get_leaderboard(self):
         #/user/leaderboard
         
+        #toggle public profile flag
+        request_body = ["public_profile_optin"]
+        response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['public_profile_optin'],1)
+        
         response = requests.get(f"{self.BASE_URL}/user/leaderboard?time_filter=All%2520Time&value_filter=Total%2520PNL", headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(len(response_data['leaderboard']),1)
-        self.assertEqual(response_data['leaderboard'][0]['display_name'],"Registern U.")
+        self.assertEqual(response_data['leaderboard'][0]['display_name'],"Register U.")
         #self.assertEqual(response_data['leaderboard'][0]['leaderboard_value'],)
     
     
@@ -901,7 +908,7 @@ class TestAPIs(unittest.TestCase):
         
         # Toggle 2fa_optin ff back to false before logging in again
         request_body = ["2fa_optin"]
-        response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=self.headers)
+        response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=headers_copy)
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(response_data['2fa_optin'],0)

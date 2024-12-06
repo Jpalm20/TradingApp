@@ -182,7 +182,7 @@ class TestUserTransformer(unittest.TestCase):
         # First day of the month
         first_day_of_month = date(today.year, today.month, 1)
         # First day of the week (assuming week starts on Monday)
-        first_day_of_week = today - timedelta(days=today.weekday())
+        first_day_of_week = today - timedelta(days=today.weekday()+1)
                 
         #1 All Time
         result = transformLeaderboardTimeFilter("All Time")

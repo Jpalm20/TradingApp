@@ -915,31 +915,31 @@ class TestUserHandler(unittest.TestCase):
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("getuserleaderboardhandlerunittest@gmail.com",))
         user_id = response[0][0]['user_id']
-        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"getpnlbyyearuserhandlerunittest"))
+        response = execute_db("INSERT INTO trade VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user_id,"Day Trade","Options","SPY","2023-01-01","2023-01-01",410,400,1,"1:3",100,25,"getuserleaderboardhandlerunittest"))
         self.assertEqual(response[0], [])
         
         #1 Good Path w/Results
         filters = {
-            'time_filter': 'All%2520Time',
-            'value_filter': 'Total%2520PNL'
+            'time_filter': 'All%20Time',
+            'value_filter': 'Total%20PNL'
         }
         response = getUserLeaderboard(user_id,filters)
-        self.assertEqual(len(response[0]['leaderboard']),1)
-        self.assertEqual(response[0]['leaderboard']['leaderboard_value'],100)
+        self.assertEqual(len(response['leaderboard']),1)
+        self.assertEqual(response['leaderboard'][0]['leaderboard_value'],100)
         
         #2 Good Path w/o Results
         filters = {
             'time_filter': 'YTD',
-            'value_filter': 'Total%2520PNL'
+            'value_filter': 'Total%20PNL'
         }
         response = getUserLeaderboard(user_id,filters)
-        self.assertEqual(len(response[0]['leaderboard']),0)
-        self.assertEqual(response[0]['leaderboard'],[])
+        self.assertEqual(len(response['leaderboard']),0)
+        self.assertEqual(response['leaderboard'],[])
         
         #3 Bad Path - Fail Validation
         filters = {
             'time_filterr': 'YTD',
-            'value_filter': 'Total%2520PNL'
+            'value_filter': 'Total%20PNL'
         }
         response = getUserLeaderboard(user_id,filters)
         self.assertEqual(response[0]['result'],"Please provide both a time and value filter")

@@ -13,7 +13,7 @@ class TestUser(unittest.TestCase):
         ## Need all logic paths tested
         ## 1. Good Path
         ## 2. DB Level Failures
-        testUser = User(None,"Jon","Palmieri","08-30-2020","adduserunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA",None,None,None,None)
+        testUser = User(None,"Jon","Palmieri","08-30-2020","adduserunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA",None,None,None,None,None)
         response = User.addUser(testUser)
         self.assertEqual(response[0], [])
         response = execute_db("SELECT * FROM user WHERE email = %s", ("adduserunittest@gmail.com",))
