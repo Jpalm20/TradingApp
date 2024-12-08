@@ -3,7 +3,7 @@ name: CI Pipeline for MyTradingTracking
 on:
   push:
     branches:
-      - stagingpass
+      - staging
 
 jobs:
   build-and-test:
