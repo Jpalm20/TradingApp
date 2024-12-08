@@ -53,6 +53,11 @@ jobs:
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         POOL_NAME: ${{ secrets.POOL_NAME }}
         ENV: ${{ secrets.ENV }}
+        BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+        AWS_ENV: ${{ secrets.AWS_ENV }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
         pytest -v --log-cli-level=INFO src/tests/unit
@@ -97,6 +102,11 @@ jobs:
         REDIS_URL: ${{ secrets.REDIS_URL }}
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         ENV: ${{ secrets.ENV }}
+        BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+        AWS_ENV: ${{ secrets.AWS_ENV }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       run: |
         pytest -v src/tests/integration 
 
