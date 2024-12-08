@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getAccountValues, getJournalEntries } from '../store/auth'
+import { getPnlByYear, getTrades, getTradesPage, reportBug, getTradesStats, getPreferences, getProfilePicture, getAccountValues, getJournalEntries, getLeaderboard } from '../store/auth'
 import '../styles/navbar.css';
 import moment from 'moment'; 
 import 'moment-timezone';
@@ -38,7 +38,7 @@ import {
   HStack} from "@chakra-ui/react";
 import { Link as RouterLink, useNavigate, useLocation, parsePath} from "react-router-dom";
 import { RiStockFill } from "react-icons/ri";
-import { BsSun, BsMoon } from "react-icons/bs";
+import { BsSun, BsMoon, BsWindowSidebar } from "react-icons/bs";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { SiSwagger } from "react-icons/si";
 import { useSelector, useDispatch } from "react-redux";
@@ -46,7 +46,7 @@ import logo from '../logo/mttlogo512.png';
 
 const API_URL = process.env.REACT_APP_API_URL;
 const SWAGGER_URL = API_URL+'apidocs/';
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 
 const PAGE_NAME = [
   {page:"/home", text: "Home"}, 
@@ -57,6 +57,7 @@ const PAGE_NAME = [
   {page:"/profile", text: "User Profile"},
   {page:"/summary", text: "Trade Summary"},
   {page:"/journal", text: "Journal"},
+  {page:"/leaderboard", text: "Leaderboard"},
 ]
 
 
@@ -81,6 +82,8 @@ export default function Navbar({ user }) {
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
   const isBugReported = ((info && Object.keys(info).length === 1 && info.result && info.result === "Feedback Submitted Successfully") ? (true):(false));
+  const { profilepic } = useSelector((state) => state.auth); 
+  const hasProfilePicture = ((profilepic && Object.keys(profilepic).length > 0) ? (true):(false)); 
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -116,7 +119,7 @@ export default function Navbar({ user }) {
         title: toastMessage,
         variant: 'solid',
         status: 'success',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -164,9 +167,21 @@ export default function Navbar({ user }) {
     handleDeleteLocal();
   }
 
+  const handleLeaderboard = async (e) => {
+    navigate("/leaderboard");
+    const encodedTimeFilter = encodeURIComponent("All Time");
+    const encodedValueFilter = encodeURIComponent("Total PNL");
+    const filters = {};
+    filters.time_filter = encodedTimeFilter;
+    filters.value_filter = encodedValueFilter;
+    await dispatch(getLeaderboard({ filters }));
+    handleDeleteLocal();
+  }
+
   const handleProfile = async (e) => {
     navigate("/profile");
     await dispatch(getPreferences()); 
+    //await dispatch(getProfilePicture());
     handleDeleteLocal();
   }
 
@@ -195,6 +210,7 @@ export default function Navbar({ user }) {
     window.localStorage.removeItem('HomeFilters');
     window.localStorage.removeItem('CalendarFilters');
     window.localStorage.removeItem('SummaryFilters');
+    window.localStorage.removeItem('LeaderboardFilters');
   } 
 
   
@@ -310,6 +326,9 @@ export default function Navbar({ user }) {
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleTrades(e.target.value)}>
               Trades
+            </Button>
+            <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handleLeaderboard(e.target.value)}>
+              Leaderboard
             </Button>
             <Button size="sm" colorScheme="blackAlpha" onClick={(e) => handlePnlCalendar(e.target.value)}>
               Calendar
@@ -485,7 +504,12 @@ export default function Navbar({ user }) {
         ) : (
           null
         )}
-        <Avatar  size="sm" m={2} onClick={(e) => handleProfile(e.target.value)}/>
+        <Avatar  
+          size="sm" 
+          src={hasProfilePicture ? profilepic.profile_picture_url : null}
+          m={2} 
+          onClick={(e) => handleProfile(e.target.value)}
+        />
         </HStack>
         </span>
         </Center>

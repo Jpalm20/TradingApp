@@ -2,8 +2,12 @@ import os
 from dotenv import load_dotenv
 import random
 import mysql.connector
-from mysql.connector import pooling
+from mysql.connector import pooling, errors
 import logging
+from PIL import Image
+import io
+import time
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,21 +53,48 @@ def get_connection_pool():
         logger.info("Initializing connection pool")
         connection_pool = mysql.connector.pooling.MySQLConnectionPool(
             pool_name=POOL_NAME,  # Use a short pool name
-            pool_size=5,  # Reasonable default pool size
+            pool_size=10,  # Reasonable default pool size
             pool_reset_session=True,
             **db_config
         )
         logger.info("Connection pool initialized")
     return connection_pool
 
+"""
 def get_db_connection():
     logger.info("Getting connection pool")
     pool = get_connection_pool()
-    #logger.info(f"Connection pool status: {pool.status()}")
+    logger.info(f"Connection pool status: {pool.status()}")
     logger.info("Getting database connection")
     connection = pool.get_connection()
     logger.info("Got database connection")
     return connection
+"""
+
+def get_db_connection(retry_timeout=30, retry_interval=1):
+    """
+    Get a database connection from the pool with retry logic.
+    :param retry_timeout: Total time to retry before raising an error.
+    :param retry_interval: Time to wait between retries.
+    :return: A database connection from the pool.
+    """
+    logger.info("Getting connection pool")
+    pool = get_connection_pool()
+
+    start_time = time.time()
+    while True:
+        try:
+            logger.info("Attempting to get a database connection")
+            connection = pool.get_connection()
+            logger.info("Successfully got a database connection")
+            return connection
+        except mysql.connector.errors.PoolError as err:
+            elapsed_time = time.time() - start_time
+            if elapsed_time > retry_timeout:
+                logger.error(f"Failed to get a database connection after {retry_timeout} seconds: {err}")
+                raise TimeoutError(f"Failed to get a database connection after {retry_timeout} seconds") from err
+            logger.warning(f"Connection pool exhausted. Retrying in {retry_interval} seconds...")
+            time.sleep(retry_interval)
 
 def close_db_connection(connection):
     if connection is not None and connection.is_connected():
@@ -173,3 +204,12 @@ def censor_log(request):
 
     logger.info("Leaving Censor Log Util: ")
     return censoredRequest
+
+
+def further_process_image(file, max_width=300, max_height=300):
+    image = Image.open(file)
+    image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS) 
+    output = io.BytesIO()
+    image.save(output, format='JPEG')
+    output.seek(0)
+    return output

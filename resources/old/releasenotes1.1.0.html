@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Release Notes</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 2px solid #555;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    h1 {
+      color: #333;
+      font-family: "Fredoka One", sans-serif;;
+      font-size: 36px;
+      margin: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    h2 {
+      color: #555;
+      font-size: 24px;
+      margin: 20px 0 10px;
+    }
+
+    p {
+      color: #777;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      list-style-type: disc;
+    }
+
+    li {
+      color: #555;
+      font-size: 18px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .section-title {
+      color: #333;
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .emoji {
+      font-size: 20px;
+      margin-right: 5px;
+    }
+
+    .feature {
+      color: #52ca76;
+    }
+
+    .bug {
+      color: #f5766d;
+    }
+
+    .improvement {
+      color: #f8b653;
+    }
+
+    .next {
+      color: #65baff;
+    }
+
+    .my-button {
+      background-color: rgb(100, 100, 100); /* A green color to match the .feature class */
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      display: inline-block;
+      font-family: "Poppins", sans-serif;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .my-button:hover {
+      background-color: rgb(126, 125, 125); /* A darker shade of green for hover effect */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📣 MyTradingTracker Release Notes - Version 1.1.0</h1>
+    <p class="section">We are excited to present the latest update for MyTradingTracker!
+
+      <br>This version comes packed with new features, improvements, and bug fixes to enhance your trading experience. Here are the highlights:<br> 
+    </p>
+
+    <div class="section">
+      <h2 class="section-title">New Features</h2>
+      <ul>
+        <li><span class="emoji">⭐</span><span class="feature">TRADE-193 - GitHub Actions - Automated Unit & Integration Tests Prior to Deployment.</span></li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Bug Fixes</h2>
+      <ul>
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-467 - Resolved Max DB Connection Issue that was occurring on Staging and Production Environments.</span></li>
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-469 - Fixed Error when trying to display r:r for Imported Trades with no Risk/Reward specified, backend logic now defaults to 1:1 when saving Trade entry instead of null.</span></li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Improvements</h2>
+      <ul>
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-437 - Added Support for additional currencies and ability to update currency in User Preferences.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-443 - Enhanced Import Trade functionality so that imported trades affect Account Value balance.</span></li>
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-450 - Enhanced PnL Calendar to provide additional visbility at the weekly and monthly level.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-463 - Enhanced Trade Update Functionality so users can now Bulk Update/Overwrite Trade data on the Trade Summary Page.</span></li>      
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-466 - Enhanced Update Trade functionality so now Account Value updates will take place for Trades where PnL and Trade Close Date were initially null but now provided in update.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-472 - Implemented Connection Pooling DB to avoid possibility of Max Connection Issues.</span></li>    
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-477 - Added Date Range (From and To) Filters to the Home & Trade Summary Pages.</span></li>  
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-483 - Added applied Filter Parameters to URL at the top of Web Browser.</span></li>    
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-484 - Fixed Mobile spacing for Open Trades component, buttons were hidden and overlapping.</span></li>  
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-500 - Trade Summary and Open Trades Tables are now sortable by clicking the filter icon on the desired column name.</span></li>    
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">What's Coming Next</h2>
+      <ul>
+        <li><span class="emoji">🧑‍💻</span><span class="next">Addition of commision/fees in each trade entry for more accurracy on accout value calculation, and opportunity for insight into long term spending on fees.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Additional classification for each trade entry with PUT/CALL for options and LONG/SHORT for equity trades.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Ability for Users to upload Profile Pictures to their profile.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Two-Factor Authentication Integration.</span></li>        
+      </ul>
+    </div>
+    
+    <div class="section">
+    <p class="next">🚀 Check out the latest version now and take your trading journey to new heights! Happy trading! 📈💰
+        
+      <br><br>Stay tuned for more exciting updates in the future! 💪 
+    </p>
+    </div>
+    <p style="text-align: center;">Thank you for your continued support! ❤️</p>
+    <p style="text-align: center;">Contact us at: <a href="mailto:mytradingtrackerapp@gmail.com">mytradingtrackerapp@gmail.com</a></p>
+    <p style="text-align: center;">
+      <a href="https://mytradingtracker.netlify.app/" class="my-button">Go to MyTradingTracker</a>
+    </p>
+  </div>
+</body>
+</html>

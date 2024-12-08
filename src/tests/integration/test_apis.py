@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from cgitb import reset
 import unittest
 import time
@@ -14,6 +15,7 @@ token = None
 trade_id = None
 trade_ids = []
 reset_code = None
+verification_code = None
 
 class TestAPIs(unittest.TestCase):
     
@@ -38,8 +40,8 @@ class TestAPIs(unittest.TestCase):
         # /user/register
         
         request_body = {
-            "first_name": "",
-            "last_name": "",
+            "first_name": "Register",
+            "last_name": "User",
             "birthday": "",
             "email": "registeruserapitest@gmail.com",
             "password": "password",
@@ -80,6 +82,8 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],0)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],0)
+        self.assertEqual(response_data['public_profile_optin'],1)
         
     
     def test_04_toggle_account_value_tracking(self):
@@ -91,6 +95,8 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],1)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],0)
+        self.assertEqual(response_data['public_profile_optin'],1)
         
     
     def test_05_toggle_email_optin(self):
@@ -102,18 +108,22 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],1)
         self.assertEqual(response_data['email_optin'],0)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],0)
+        self.assertEqual(response_data['public_profile_optin'],1)
         
     
     def test_06_toggle_feature_flags(self):
         #/user/preferences/toggleff
         
-        request_body = ["email_optin","account_value_optin"]
+        request_body = ["email_optin","account_value_optin","2fa_optin","public_profile_optin"]
         response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(response_data['account_value_optin'],0)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"USD")
+        self.assertEqual(response_data['2fa_optin'],1)
+        self.assertEqual(response_data['public_profile_optin'],0)
         
         
     def test_07_update_currency(self):
@@ -128,6 +138,8 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['account_value_optin'],0)
         self.assertEqual(response_data['email_optin'],1)
         self.assertEqual(response_data['preferred_currency'],"JPY")
+        self.assertEqual(response_data['2fa_optin'],1)
+        self.assertEqual(response_data['public_profile_optin'],0)
         
     
     def test_08_get_user_from_session(self):
@@ -340,7 +352,9 @@ class TestAPIs(unittest.TestCase):
         
     
     def test_19_import_csv(self):
-        #/trade/importCsv
+        #/trade/importCsv/<string:account_value_import_enable>
+        
+        account_value_import_enable = 'true'
         
         boundary = '----WebKitFormBoundaryySqtS1tZeUD7xapy'
         headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
@@ -367,8 +381,7 @@ class TestAPIs(unittest.TestCase):
             f'--{boundary}--\r\n'
         )
         
-        response = requests.post(f'{self.BASE_URL}/trade/importCsv', data=body, headers=headers_copy)
-
+        response = requests.post(f'{self.BASE_URL}/trade/importCsv/{account_value_import_enable}', data=body, headers=headers_copy)
         response_data = response.json()
         self.assertEqual(response_data['result'],"Trades Imported Successfully")
         self.assertEqual(len(response_data['trades']),5)
@@ -578,19 +591,37 @@ class TestAPIs(unittest.TestCase):
 
         # Verify the headers
         expected_headers = [
-            "trade_date", "trade_type", "security_type", "ticker_name",
+            "trade_id", "trade_date", "trade_type", "security_type", "ticker_name",
             "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"
         ]
         self.assertEqual(csv_data[0], expected_headers)
 
         # Verify the first row of data (you can add more rows as needed)
         expected_first_row = [
-            "2023-07-04", "Day Trade", "Shares", "PSQ", "234", "4", "None", "None", "234", "25", "1:3"
+            "236", "2023-07-04", "Day Trade", "Shares", "PSQ", "234", "4", "None", "None", "234", "25", "1:3"
         ]
         self.assertEqual(csv_data[1], expected_first_row)
+        
+
+    def test_21_get_leaderboard(self):
+        #/user/leaderboard
+        
+        #toggle public profile flag
+        request_body = ["public_profile_optin"]
+        response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['public_profile_optin'],1)
+        
+        response = requests.get(f"{self.BASE_URL}/user/leaderboard?time_filter=All%2520Time&value_filter=Total%2520PNL", headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(len(response_data['leaderboard']),1)
+        self.assertEqual(response_data['leaderboard'][0]['display_name'],"Register U.")
+        #self.assertEqual(response_data['leaderboard'][0]['leaderboard_value'],)
     
     
-    def test_21_report_bug(self):
+    def test_22_report_bug(self):
         #/user/reportBug
         
         request_body = {
@@ -606,7 +637,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['result'],"Feedback Submitted Successfully")
         
     
-    def test_22_change_password(self):
+    def test_23_change_password(self):
         #/user/changePassword
 
         request_body = {
@@ -621,7 +652,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['result'],"Password Successfully Changed")
         
     
-    def test_23_get_user(self):
+    def test_24_get_user(self):
         #/user
         
         response = requests.get(f"{self.BASE_URL}/user", headers=self.headers)
@@ -631,7 +662,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['user_id'],user_id)
     
     
-    def test_24_update_trades(self):
+    def test_25_update_trades(self):
         #/trade/updateTrades
         
         global trade_ids
@@ -672,7 +703,42 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['ticker_name'],'QQQ')
     
     
-    def test_25_generate_reset_code(self):
+    def test_26_bulk_update_csv(self):
+        #/trade/bulkUpdateCsv
+    
+        boundary = '----WebKitFormBoundaryySqtS1tZeUD7xapy'
+        headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
+
+        # Overwrite the Content-Type to multipart/form-data
+        headers_copy['Content-Type'] = f'multipart/form-data; boundary={boundary}'
+        
+        global trade_ids
+        trade_id_0 = str(trade_ids[0])
+        
+        body = (
+            f'--{boundary}\r\n'
+            'Content-Disposition: form-data; name="csv_file"; filename="trades.csv"\r\n'
+            'Content-Type: text/csv\r\n'
+            '\r\n'
+            'trade_id,trade_date,trade_type,security_type,ticker_name,buy_value,units,expiry,strike,pnl,percent_wl,rr\n'
+            f'{trade_id_0},None,Day Trade,Shares,SPY,250,3,None,None,230,30.67,1:1\n'
+            f'0,None,Day Trade,Options,NVDA,120,3,13-Dec-22,393,25,6.94,1:1\n'
+            f'--{boundary}--\r\n'
+        )
+        
+        response = requests.post(f'{self.BASE_URL}/trade/bulkUpdateCsv', data=body, headers=headers_copy)
+
+        response_data = response.json()
+        trade_array = [trade_id_0]
+        expected_message = f"Trades Updates Imported Successfully: {', '.join(map(str, trade_array))}"
+        self.assertEqual(response_data['result'], expected_message)
+        self.assertEqual(len(response_data['updated_ids']), 1)
+        self.assertEqual(len(response_data['error_ids']), 1)
+        self.assertEqual(response_data['error_ids'][0]['trade_id'], '0')
+        self.assertEqual(response_data['error_ids'][0]['error_message'], "trade_id: 0 does not exist")
+        
+    
+    def test_27_generate_reset_code(self):
         #/user/generateResetCode
         
         request_body = {
@@ -688,7 +754,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response[0][0]['validated'],0)
         
     
-    def test_26_validate_reset_code(self):
+    def test_28_validate_reset_code(self):
         #/user/confirmResetCode
         
         global reset_code
@@ -706,7 +772,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response[0][0]['validated'],1)
     
     
-    def test_27_reset_password(self):
+    def test_29_reset_password(self):
         #/user/resetPassword
         
         global reset_code
@@ -722,7 +788,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['result'], "Password Reset Successfully")
         
     
-    def test_28_post_journal_entry(self):
+    def test_30_post_journal_entry(self):
         #/journal/<string:date>
         
         # Create Journal
@@ -737,7 +803,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['entry'], "TESTING")
         
     
-    def test_29_get_journal_entries(self):
+    def test_31_get_journal_entries(self):
         #/journal/<string:date>
         
         # Get Journal
@@ -758,7 +824,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['entries'][0]['entrytext'], "TESTING")
         
     
-    def test_30_delete_journal_entry(self):
+    def test_32_delete_journal_entry(self):
         #/journal/<string:date>
         
         # Delete Journal
@@ -769,7 +835,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['date'], "2024-01-01")
     
     
-    def test_31_delete_trade(self):
+    def test_33_delete_trade(self):
         #/trade/<int:trade_id>
         
         # Delete trade_id global variable
@@ -781,7 +847,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['user_id'], user_id)
 
     
-    def test_32_delete_trades(self):
+    def test_34_delete_trades(self):
         #/trade/deleteTrades
         
         # Delete all remaining trade_id by calling user_trades_page API
@@ -802,8 +868,117 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_data['result'], "Trades Successfully Deleted")
         self.assertEqual(response_data['user_id'], user_id)
         
+
+    def test_35_2fa_flow(self):
+        #/user/verify2fa
+                
+        #Log back in, getting 2FA code created
+        request_body = {
+            "email": "registeruserapitest@gmail.com",
+            "password": "password11"
+        }
+        response = requests.post(f"{self.BASE_URL}/user/login", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 202)
+        response_data = response.json()
+        self.assertEqual(response_data['result'],"2FA Enabled, Verification Code Sent to Email")
+        
+        #Get 2fa code from db for verify2fa api
+        global verification_code, user_id
+        response = execute_db("SELECT * FROM verificationcode WHERE user_id = %s", (user_id,))
+        verification_code = response[0][0]['code']
+        self.assertEqual(response[0][0]['validated'],0)
+        
+        #Verify 2FA code and complete login
+
+        request_body = {
+            "email": "registeruserapitest@gmail.com",
+            "code": str(verification_code)
+        }
+        response = requests.post(f"{self.BASE_URL}/user/verify2fa", json=request_body, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['user_id'], user_id)
+        self.assertEqual(response_data['email'],"registeruserapitest@gmail.com")
+        global token
+        new_token = response_data['token']
+        token = new_token
+        
+        headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
+        headers_copy['Authorization'] = f'Bearer {new_token}'
+        
+        # Toggle 2fa_optin ff back to false before logging in again
+        request_body = ["2fa_optin"]
+        response = requests.post(f"{self.BASE_URL}/user/preferences/toggleff", json=request_body, headers=headers_copy)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['2fa_optin'],0)
+        
     
-    def test_33_logout_use(self):
+    def test_36_upload_profile_pic(self):
+        #/user/profilePicture
+                
+        boundary = '----WebKitFormBoundaryySqtS1tZeUD7xapy'
+        headers_copy = copy.deepcopy(self.headers)  # Create a deep copy of the headers
+        
+        # Overwrite the Content-Type to multipart/form-data with the boundary
+        headers_copy['Content-Type'] = f'multipart/form-data; boundary={boundary}'
+
+        # Construct the file path for the test image
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_image.JPG")
+        
+        # Read the image file in binary mode
+        with open(file_path, "rb") as file:
+            file_content = file.read()
+
+        # Construct the body for the multipart/form-data
+        body = (
+            f'--{boundary}\r\n'
+            'Content-Disposition: form-data; name="profile_pic"; filename="test_image.JPG"\r\n'
+            'Content-Type: image/jpeg\r\n'
+            '\r\n'
+        ).encode('utf-8') + file_content + f'\r\n--{boundary}--\r\n'.encode('utf-8')
+
+        # Make the POST request with the constructed body
+        response = requests.post(
+            f"{self.BASE_URL}/user/profilePicture",
+            data=body,  # Use `data` instead of `files` since we're manually constructing the body
+            headers=headers_copy
+        )
+                    
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['result'], "Profile Picture Uploaded Successfully")
+            
+    
+    def test_37_get_profile_pic(self):
+        #/user/profilePicture
+
+        response = requests.get(
+            f"{self.BASE_URL}/user/profilePicture",
+            headers=self.headers
+        )
+    
+        # Assert response status and data
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual('profile_picture_url' in response_data,True)
+        
+    
+    def test_38_delete_profile_pic(self):
+        #/user/profilePicture
+        
+        response = requests.delete(
+            f"{self.BASE_URL}/user/profilePicture",
+            headers=self.headers
+        )
+    
+        # Assert response status and data
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data['result'],"Profile Picture Deleted Successfully")
+        
+    
+    def test_39_logout_user(self):
         #/user/logout
         
         # Logout
@@ -813,8 +988,7 @@ class TestAPIs(unittest.TestCase):
         self.assertEqual(response_date['result'],"User Logged Out")
         
         
-    
-    def test_34_delete_user(self):
+    def test_40_delete_user(self):
         #/user 
         
         # Log back in to generate new token, logout expired the token
@@ -853,6 +1027,7 @@ class TestAPIs(unittest.TestCase):
             execute_db("DELETE FROM trade WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM session WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM resetcode WHERE user_id = %s", (user_id,))
+            execute_db("DELETE FROM verificationcode WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM accountvalue WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM journalentry WHERE user_id = %s", (user_id,))
             execute_db("DELETE FROM user WHERE user_id = %s", (user_id,))

@@ -1,0 +1,106 @@
+/* CurrencySelector.css */
+
+/*Light Mode*/
+/* Style the outer container */
+.currency-selector {
+    width: 120px;
+    padding-left: 12px;
+  }
+  
+  /* Prefix-based styling */
+  .currency-selector .currency__control {
+    border: 1px solid rgb(229, 231, 235);
+    background-color: rgb(255, 255, 255);
+    min-height: 30px;
+    font-size: 14px;
+  }
+  
+  .currency-selector .currency__control:hover {
+    border-color: rgb(229, 231, 235);
+  }
+  
+  .currency-selector .currency__menu {
+    z-index: 9999;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(229, 231, 235);
+  }
+  
+  .currency-selector .currency__option {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .currency-selector .currency__option--is-selected {
+    background-color: rgb(207, 209, 212);
+    color: rgb(29, 34, 35);
+  }
+  
+  .currency-selector .currency__option--is-focused {
+    background-color: rgb(229, 231, 235);
+  }
+
+  .currency-selector .currency__single-value {
+    color: rgb(29, 34, 35);
+  }
+  
+  .currency-selector .currency__clear-indicator {
+    color: red;
+    cursor: pointer;
+  }
+  
+  .currency-selector .currency__indicator-separator {
+    background-color: rgb(229, 231, 235);
+  }
+
+/*Dark Mode*/
+/* Style the outer container */
+.currency-selector-dark {
+    width: 120px;
+    margin: 10px 0;
+    padding-left: 12px;
+  }
+  
+  /* Prefix-based styling */
+  .currency-selector-dark .currency__control {
+    border: 1px solid rgb(79, 89, 105);
+    background-color: rgb(45, 55, 71);
+    min-height: 30px;
+    font-size: 14px;
+  }
+  
+  .currency-selector-dark .currency__control:hover {
+    border-color: rgb(79, 89, 105);
+  }
+  
+  .currency-selector-dark .currency__menu {
+    z-index: 9999;
+    background-color: rgb(45, 55, 71);
+    border: 1px solid rgb(79, 89, 105);
+  }
+  
+  .currency-selector-dark .currency__option {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .currency-selector-dark .currency__option--is-selected {
+    background-color: rgb(66, 65, 65);
+    color: rgb(223, 223, 223);
+  }
+  
+  .currency-selector-dark .currency__option--is-focused {
+    background-color: rgb(80, 80, 80);
+  }
+
+  .currency-selector-dark .currency__single-value {
+    color: rgb(223, 223, 223);
+  }
+  
+  .currency-selector-dark .currency__clear-indicator {
+    color: red;
+    cursor: pointer;
+  }
+  
+  .currency-selector-dark .currency__indicator-separator {
+    background-color: rgb(79, 89, 105);
+  }

@@ -1,0 +1,106 @@
+/* Outer container: .paper-box */
+.paper-board-box, .paper-board-box-dark {
+    background-color: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    margin: auto;
+    width: 80%;
+    min-height: 70vh;
+    max-width: 800px;
+}
+
+.paper-board-box-dark {
+    background-color: #333;
+    box-shadow: 0px 0px 10px rgba(238, 238, 238, 0.3);
+    color: #fff;
+}
+
+/* Inner button containers: .paper-box-small */
+.paper-box-small, .paper-box-small-dark {
+    background-color: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    margin: auto;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px; /* Default gap for desktop */
+    max-width: 800px;
+}
+
+.paper-box-small-dark {
+    background-color: #333;
+    box-shadow: 0px 0px 10px rgba(238, 238, 238, 0.3);
+    color: #fff;
+}
+
+/* Desktop (min-width: 1024px) */
+@media (min-width: 1024px) {
+    .paper-board-box, .paper-board-box-dark {
+        max-width: 800px; /* Larger width for main container */
+    }
+    .paper-box-small, .paper-box-small-dark {
+        max-width: 800px; /* Larger width for button container */
+        gap: 15px; /* Default button gap */
+    }
+}
+
+/* Tablet (max-width: 1023px) */
+@media (max-width: 1023px) {
+    .paper-board-box, .paper-board-box-dark {
+        max-width: 600px;
+        width: 90%; /* Adjust width to avoid excessive margins */
+    }
+    .paper-box-small, .paper-box-small-dark {
+        max-width: 600px;
+        gap: 10px; /* Reduced gap for tighter layout */
+    }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+    .paper-board-box, .paper-board-box-dark {
+        max-width: 90%;
+        width: 100%;
+        padding: 15px; /* Adjust padding for mobile */
+    }
+    .paper-box-small, .paper-box-small-dark {
+        max-width: 100%; /* Full width on mobile */
+        gap: 8px; /* Narrower gap between buttons */
+    }
+}
+
+/* Extra small screens (max-width: 480px) */
+@media (max-width: 480px) {
+    .paper-board-box, .paper-board-box-dark {
+        max-width: 100%; /* Use full width */
+        padding: 10px; /* Minimal padding */
+    }
+    .paper-box-small, .paper-box-small-dark {
+        max-width: 100%;
+        gap: 5px; /* Minimal gap */
+    }
+    /* Buttons go full-width in single column */
+    .paper-box-small button, .paper-box-small-dark button {
+        width: 40%;
+    }
+}
+
+/* Extra small screens (max-width: 480px) */
+@media (max-width: 350px) {
+    .paper-board-box, .paper-board-box-dark {
+        max-width: 100%; /* Use full width */
+        padding: 5px; /* Minimal padding */
+    }
+    .paper-box-small, .paper-box-small-dark {
+        max-width: 100%;
+        gap: 5px; /* Minimal gap */
+    }
+    /* Buttons go full-width in single column */
+    .paper-box-small button, .paper-box-small-dark button {
+        width: 100%;
+    }
+}

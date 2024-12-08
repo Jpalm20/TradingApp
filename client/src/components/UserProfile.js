@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/profile.css';
+import '../styles/landingpage.css';
 import { FiSettings } from "react-icons/fi";
 import moment from 'moment'; 
 import 'moment-timezone';
@@ -41,13 +42,15 @@ import {
   InputRightElement,
   HStack,
   ButtonGroup,
-  useColorMode 
+  useColorMode, 
+  VStack
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom"
-import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, toggleFeatureFlags, updatePreferredCurrency } from '../store/auth';
+import { logout, update, deleteUser, changePassword, expiredLogout, toggleAvTracking, toggleEmailOptin, setProfilePicture, toggleFeatureFlags, updatePreferredCurrency } from '../store/auth';
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import CurrencySelector from './CurrencySelector'; 
 import states from "../data/states";
 import currencies from "../data/currencies";
 
@@ -61,7 +64,9 @@ export default function UserProfile({ user }) {
   const { error } = useSelector((state) => state.auth);
   const { info } = useSelector((state) => state.auth);
   const { preferences } = useSelector((state) => state.auth); 
+  const { profilepic } = useSelector((state) => state.auth); 
   const hasPreferences = ((preferences && Object.keys(preferences).length > 0) ? (true):(false)); 
+  const hasProfilePicture = ((profilepic && Object.keys(profilepic).length > 0) ? (true):(false)); 
   const { success } = useSelector((state) => state.auth);
   const toast = useToast();
   const navigate = useNavigate();
@@ -90,6 +95,10 @@ export default function UserProfile({ user }) {
   const [deletealertdialog, setDeleteAlertDialog] = useState(false);
 
   const [settingsPopUp, setSettingsPopUp] = useState(false);
+
+  const [profilePicPopUp, setProfilePicPopUp] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
@@ -111,11 +120,13 @@ export default function UserProfile({ user }) {
 
 
   const evaluateSuccess = () => {
-    if(success === true && user.result === "User Edited Successfully" && !(info && info.result && info.result === "Password Successfully Changed")){
-      clearFormStates();
-      setSelectPage(true);
-      selectUpdateInfo(false);
-      setToastMessage(user.result);
+    if(success === true && user.result === "User Edited Successfully" && !(info && info.result && info.result === "Password Successfully Changed") && !(profilePicPopUp && profilepic && profilepic.result && profilepic.result === "Profile Picture Uploaded Successfully")){
+      if(selectPage === false && updateInfo === true){
+        clearFormStates();
+        setSelectPage(true);
+        selectUpdateInfo(false);
+        setToastMessage(user.result);
+      }
     }else if(success === true && info && info.result && info.result === "Password Successfully Changed"){
       setToastMessage(info.result);
       setChangePwAlertDialog(false);
@@ -126,6 +137,11 @@ export default function UserProfile({ user }) {
       dispatch(expiredLogout());    
       setDeleteAlertDialog(false);
       onClose();
+    }else if (success === true && profilepic && profilepic.result && profilepic.result === "Profile Picture Uploaded Successfully"){
+      if (profilePicPopUp == true){
+        setToastMessage(profilepic.result);
+        setProfilePicPopUp(false);
+      }
     }
   }
 
@@ -135,7 +151,7 @@ export default function UserProfile({ user }) {
         title: toastMessage,
         variant: 'solid',
         status: 'success',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -158,7 +174,7 @@ export default function UserProfile({ user }) {
         title: toastErrorMessage,
         variant: 'solid',
         status: 'error',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -229,6 +245,39 @@ export default function UserProfile({ user }) {
     setSettingsPopUp(false);
   };
 
+  const handleProfilePicPopUp = (e) => {
+    setProfilePicPopUp(true);
+    setSelectedFile(null);
+  };
+
+  const handleCloseProfilePicPopUp = (e) => {
+    setProfilePicPopUp(false);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      alert("Please select an image file.");
+    }
+  };
+
+  const handleConfirmUpdatePP = async (e) => {
+    await dispatch(
+      setProfilePicture({
+        selectedFile
+      })
+    );
+    setSelectedFile(null);
+  };
+
+
   const handleToggleAvTracking = async (e) => {
     //await dispatch(toggleAvTracking());
     const flags = ["account_value_optin"];
@@ -242,6 +291,26 @@ export default function UserProfile({ user }) {
   const handleToggleEmailOptin = async (e) => {
     //await dispatch(toggleEmailOptin());
     const flags = ["email_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
+  }
+
+  const handleToggle2FA = async (e) => {
+    //await dispatch(toggleEmailOptin());
+    const flags = ["2fa_optin"];
+    await dispatch(
+      toggleFeatureFlags({
+        flags
+      })
+    );
+  }
+
+  const handleTogglePublicProfile = async (e) => {
+    //await dispatch(toggleEmailOptin());
+    const flags = ["public_profile_optin"];
     await dispatch(
       toggleFeatureFlags({
         flags
@@ -343,10 +412,10 @@ export default function UserProfile({ user }) {
           <Stack 
             class='profilestack'
           >
-          <Avatar class='avatar' />
+          
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Profile Information</Heading>
           <Box minW={{ base: "90%", md: "500px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
-          {authLoading && !changepwdialog && !deletealertdialog && !settingsPopUp? 
+          {authLoading && !changepwdialog && !deletealertdialog && !settingsPopUp && !profilePicPopUp? 
             <Stack
                 spacing={4}
                 p="1rem"
@@ -370,7 +439,6 @@ export default function UserProfile({ user }) {
               backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
-
               <Card>
               <div class='top-right-component'>
                 <Icon padding="5px" as={FiSettings} boxSize={8} onClick={handleSettingsPopUp}/>
@@ -421,11 +489,22 @@ export default function UserProfile({ user }) {
                       </FormLabel>
 
                       <FormLabel display="flex" alignItems="center">
+                        <Text>2FA {hasPreferences && preferences['2fa_optin'] === 1 ? 'On' : 'Off'}</Text>
+                        <Switch marginLeft={3} isChecked={hasPreferences && preferences['2fa_optin'] === 1 ? true : false} onChange={handleToggle2FA}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
+                        <Text>Public Profile {hasPreferences && preferences['public_profile_optin'] === 1 ? 'On' : 'Off'}</Text>
+                        <Switch marginLeft={3} isChecked={hasPreferences && preferences['public_profile_optin'] === 1 ? true : false} onChange={handleTogglePublicProfile}/>
+                      </FormLabel>
+
+                      <FormLabel display="flex" alignItems="center">
                         <Text>Currency</Text>
-                        <Select marginLeft={3} value={hasPreferences && preferences.preferred_currency ? preferences.preferred_currency : 'None'} onChange={(e) => handleToggleCurrencyCode(e.target.value)}>
-                          <option value="" disabled selected>{preferences.preferred_currency}</option>
-                          {currencies.map((currency) => (<option key={currency}>{currency}</option>))}
-                        </Select>
+                        <CurrencySelector
+                          currencies={currencies}  // Pass the currency options
+                          preferences={preferences}  // Pass the preferences (including selected currency)
+                          handleToggleCurrencyCode={handleToggleCurrencyCode}  // Function to update selected currency
+                        />
                       </FormLabel>
                     </SimpleGrid>
                     </AlertDialogBody>
@@ -441,6 +520,95 @@ export default function UserProfile({ user }) {
                 </AlertDialog>
               </div>
                 <CardBody>
+                <Center>
+                  <div className="avatar-container" /*onClick={onEditProfilePicture}*/>
+                    <Avatar 
+                      class='avatar'
+                      src={hasProfilePicture ? profilepic.profile_picture_url : null}
+                      alt="Profile"
+                      size='lg'
+                      onClick={handleProfilePicPopUp}
+                    />
+                    <AlertDialog
+                      motionPreset='slideInBottom'
+                      isOpen={profilePicPopUp}
+                      leastDestructiveRef={cancelRef}
+                      onClose={e => handleCloseProfilePicPopUp(e)}
+                      isCentered={true}
+                      closeOnOverlayClick={true}
+                    >
+                    <AlertDialogOverlay>
+                    <AlertDialogContent>
+                      <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                        Change Profile Picture
+                      </AlertDialogHeader>
+      
+                      <AlertDialogBody>
+                      <Center>
+                      <Avatar 
+                        class='avatar'
+                        src={hasProfilePicture ? profilepic.profile_picture_url : null}
+                        alt="Profile"
+                        size='xl'
+                      />
+                      </Center>
+                      </AlertDialogBody>
+                      <Center paddingTop={2}>
+                      <VStack>
+                      <Input
+                        paddingTop={1}
+                        type="file"
+                        id="file"
+                        accept="image/*"  // Allows any image format
+                        maxWidth="350px"
+                        onChange={handleFileInputChange}
+                      />
+                      {previewUrl && (
+                        <div style={{ marginTop: "10px", paddingTop: '20px' }}>
+                          <img
+                            src={previewUrl}
+                            alt="Selected Preview"
+                            style={{
+                              width: "150px",
+                              height: "150px",
+                              objectFit: "cover", // Choose between "cover", "contain", or "scale-down"
+                              borderRadius: "8px" // Optional: to make the preview image rounded or square
+                            }}
+                          />
+                          <Center>
+                            <Text as='b'>Image Preview</Text>
+                          </Center>
+                        </div>
+                      )}
+                      </VStack>
+                      </Center>
+                      <AlertDialogFooter paddingTop={10}>
+                        <Button ref={cancelRef} minWidth='150px' onClick={e => handleCloseProfilePicPopUp(e)}>
+                          Cancel
+                        </Button>
+                        {authLoading ?
+                          <Button colorScheme='blue' minWidth='150px' ml={3}>
+                            <Center>
+                              <Spinner
+                                thickness='2px'
+                                speed='0.65s'
+                                emptyColor='gray.200'
+                                color='grey.500'
+                                size='sm'
+                              />
+                            </Center>
+                          </Button>
+                        :
+                          <Button colorScheme='blue' minWidth='150px' isDisabled={!selectedFile} onClick={e => handleConfirmUpdatePP(e)} ml={3}>
+                            Submit
+                          </Button>
+                        } 
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialogOverlay>
+                    </AlertDialog>
+                  </div>
+                </Center>
                   <Stack divider={<StackDivider />} spacing='3'>
                     {user.first_name !== "" && user.last_name !== "" ? (
                     <Box>
@@ -705,10 +873,10 @@ export default function UserProfile({ user }) {
           <Stack
             class='profilestack'
           >
-          <Avatar class='avatar' />
+          
           <Heading class={colorMode === 'light' ? 'profileheader' : 'profileheaderdark'}>Update Information</Heading>
           <Box minW={{ base: "90%", md: "468px" }} rounded="lg" overflow="hidden" style={{ boxShadow: '2px 4px 4px rgba(0,0,0,0.2)' }}>
-          {authLoading && !changepwdialog && !deletealertdialog? 
+          {authLoading && !changepwdialog && !deletealertdialog && !profilePicPopUp? 
             <Stack
                 spacing={4}
                 p="1rem"
@@ -728,15 +896,107 @@ export default function UserProfile({ user }) {
           :
           <form>
             <Stack
-              spacing={4}
+              spacing={3}
               p="1rem"
               backgroundColor={colorMode === 'light' ? "whiteAlpha.900" : "whiteAlpha.100"}
               boxShadow="md"
             >
+            <Center>
+              <VStack>
+                <div className="avatar-container">
+                  <Avatar 
+                    class='avatar'
+                    src={hasProfilePicture ? profilepic.profile_picture_url : null}
+                    alt="Profile"
+                    size='lg'
+                    onClick={handleProfilePicPopUp}
+                  />
+                  <AlertDialog
+                      motionPreset='slideInBottom'
+                      isOpen={profilePicPopUp}
+                      leastDestructiveRef={cancelRef}
+                      onClose={e => handleCloseProfilePicPopUp(e)}
+                      isCentered={true}
+                      closeOnOverlayClick={true}
+                    >
+                    <AlertDialogOverlay>
+                    <AlertDialogContent>
+                      <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                        Change Profile Picture
+                      </AlertDialogHeader>
+      
+                      <AlertDialogBody>
+                      <Center>
+                      <Avatar 
+                        class='avatar'
+                        src={hasProfilePicture ? profilepic.profile_picture_url : null}
+                        alt="Profile"
+                        size='xl'
+                      />
+                      </Center>
+                      </AlertDialogBody>
+                      <Center paddingTop={2}>
+                      <VStack>
+                      <Input
+                        paddingTop={1}
+                        type="file"
+                        id="file"
+                        accept="image/*"  // Allows any image format
+                        maxWidth="350px"
+                        onChange={handleFileInputChange}
+                      />
+                      {previewUrl && (
+                        <div style={{ marginTop: "10px", paddingTop: '20px' }}>
+                          <img
+                            src={previewUrl}
+                            alt="Selected Preview"
+                            style={{
+                              width: "150px",
+                              height: "150px",
+                              objectFit: "cover", // Choose between "cover", "contain", or "scale-down"
+                              borderRadius: "8px" // Optional: to make the preview image rounded or square
+                            }}
+                          />
+                          <Center>
+                            <Text as='b'>Image Preview</Text>
+                          </Center>
+                        </div>
+                      )}
+                      </VStack>
+                      </Center>
+                      <AlertDialogFooter paddingTop={10}>
+                        <Button ref={cancelRef} minWidth='150px' onClick={e => handleCloseProfilePicPopUp(e)}>
+                          Cancel
+                        </Button>
+                        {authLoading ?
+                          <Button colorScheme='blue' minWidth='150px' ml={3}>
+                            <Center>
+                              <Spinner
+                                thickness='2px'
+                                speed='0.65s'
+                                emptyColor='gray.200'
+                                color='grey.500'
+                                size='sm'
+                              />
+                            </Center>
+                          </Button>
+                        :
+                          <Button colorScheme='blue' minWidth='150px' isDisabled={!selectedFile} onClick={e => handleConfirmUpdatePP(e)} ml={3}>
+                            Submit
+                          </Button>
+                        } 
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialogOverlay>
+                    </AlertDialog>
+                </div>
+                <Text style={{ color: 'rgb(137, 143, 153)', fontSize: 15}}>Profile Picture</Text>
+              </VStack>
+            </Center>
               <Box display="flex">
                 <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    First Name *
+                  <FormHelperText mb={1} ml={1}>
+                    First Name
                   </FormHelperText>
                   <Input
                     type="name"
@@ -746,8 +1006,8 @@ export default function UserProfile({ user }) {
                   />
                 </FormControl>
                 <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Last Name *
+                  <FormHelperText mb={1} ml={1}>
+                    Last Name
                   </FormHelperText>
                   <Input
                     type="name"
@@ -758,15 +1018,15 @@ export default function UserProfile({ user }) {
                 </FormControl>
               </Box>
               <FormControl>
-                <FormHelperText mb={2} ml={1}>
-                  Email *
+                <FormHelperText mb={1} ml={1}>
+                  Email
                 </FormHelperText>
                 <Input value={email} type="name" placeholder={user.email} onChange={(e) => setEmail(e.target.value)} />
               </FormControl>
 
               <FormControl>
-                <FormHelperText mb={2} ml={1}>
-                  Birthday *
+                <FormHelperText mb={1} ml={1}>
+                  Birthday
                 </FormHelperText>
                 <InputGroup>
                   <Input
@@ -783,8 +1043,8 @@ export default function UserProfile({ user }) {
 
               <Box display="flex">
               <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Street Address *
+                  <FormHelperText mb={1} ml={1}>
+                    Street Address
                   </FormHelperText>
                   <Input
                     type="name"
@@ -795,8 +1055,8 @@ export default function UserProfile({ user }) {
               </FormControl>
 
               <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    City *
+                  <FormHelperText mb={1} ml={1}>
+                    City
                   </FormHelperText>
                   <Input
                     type="name"
@@ -809,8 +1069,8 @@ export default function UserProfile({ user }) {
 
               <Box display="flex">
               <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    State *
+                  <FormHelperText mb={1} ml={1}>
+                    State
                   </FormHelperText>
                   <Select value={state} onChange={(e) => setState(e.target.value)}>
                     <option value="" disabled selected>{user.state}</option>
@@ -819,8 +1079,8 @@ export default function UserProfile({ user }) {
               </FormControl>
 
               <FormControl>
-                  <FormHelperText mb={2} ml={1}>
-                    Country *
+                  <FormHelperText mb={1} ml={1}>
+                    Country
                   </FormHelperText>
                   <Select value={country} onChange={(e) => setCountry(e.target.value)}>
                     <option value="" disabled selected>{user.country}</option>
