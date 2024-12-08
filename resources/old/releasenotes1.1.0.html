@@ -115,7 +115,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>📣 MyTradingTracker Release Notes - Version 1.1.1</h1>
+    <h1>📣 MyTradingTracker Release Notes - Version 1.1.0</h1>
     <p class="section">We are excited to present the latest update for MyTradingTracker!
 
       <br>This version comes packed with new features, improvements, and bug fixes to enhance your trading experience. Here are the highlights:<br> 
@@ -124,29 +124,31 @@
     <div class="section">
       <h2 class="section-title">New Features</h2>
       <ul>
-        <li><span class="emoji">⭐</span><span class="feature">TRADE-139 - Profile Pictures - Users can now Upload and Update their Profile Icon to any image of their choosing.</span></li>
-        <li><span class="emoji">⭐</span><span class="feature">TRADE-157 - 2FA - Two-Factor Authentication via email can now be enbaled in User Preferences.</span></li>      
-        <li><span class="emoji">⭐</span><span class="feature">TRADE-264 - Leaderboard - User Leaderboard that compares various statistic values over different periods of time for Public Profiles only. Users can make their profile public or private in User Preferences.</span></li>            
-        <li><span class="emoji">⭐</span><span class="feature">TRADE-496 - CSV Bulk Trade Updates - You can now update specific values on existing trades in bulk via CSV.</span></li>                  
+        <li><span class="emoji">⭐</span><span class="feature">TRADE-193 - GitHub Actions - Automated Unit & Integration Tests Prior to Deployment.</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">Bug Fixes</h2>
       <ul>
-        <li><span class="emoji">🐛</span><span class="bug">TRADE-541 - Trade Date formats are now stored and displayed uniformly, accomodating multiple date formats as input and invalid date formats will be blocked.</span></li>
-        <li><span class="emoji">🐛</span><span class="bug">TRADE-558 - Resolved any combination of Updating a Trade(s) (Bulk, Single, CSV) where you could update Options/Shares and inappropriately fail on Expiry & Strike Validation.</span></li>      
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-467 - Resolved Max DB Connection Issue that was occurring on Staging and Production Environments.</span></li>
+        <li><span class="emoji">🐛</span><span class="bug">TRADE-469 - Fixed Error when trying to display r:r for Imported Trades with no Risk/Reward specified, backend logic now defaults to 1:1 when saving Trade entry instead of null.</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2 class="section-title">Improvements</h2>
       <ul>
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-539 - Updates made to support Heroku's changes for their Redis component.</span></li>
-        <li><span class="emoji">🚀</span><span class="improvement">TRADE-543 - When Importing Trades via CSV, users can now specify if these imports should affect their Account Value data or not via a checkbox.</span></li>  
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-544 - Preferred Currency dropdown is now a searchbar, making it easier to find your desired Currency Code.</span></li>      
-        <li><span class="emoji">🚀</span><span class="improvement">TRADE-545 - Added an additional check if a user is Updating a Trade(s) that pnl, # of units and % win/loss are all present for more accurate calculations.</span></li>  
-        <li><span class="emoji">🔧</span><span class="improvement">TRADE-629 - Emergency Database Migration from ClearDB provider to JawsDB, this is what unfortauntely led to ~3 days of downtime for MyTradingTracker. You may need to manually update your Account Value, as it was likely overwritten to 0 over the downtime period and week prior. Historical data prior to this date are still preserved and only Account Value was affected.</span></li>        
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-437 - Added Support for additional currencies and ability to update currency in User Preferences.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-443 - Enhanced Import Trade functionality so that imported trades affect Account Value balance.</span></li>
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-450 - Enhanced PnL Calendar to provide additional visbility at the weekly and monthly level.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-463 - Enhanced Trade Update Functionality so users can now Bulk Update/Overwrite Trade data on the Trade Summary Page.</span></li>      
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-466 - Enhanced Update Trade functionality so now Account Value updates will take place for Trades where PnL and Trade Close Date were initially null but now provided in update.</span></li>
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-472 - Implemented Connection Pooling DB to avoid possibility of Max Connection Issues.</span></li>    
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-477 - Added Date Range (From and To) Filters to the Home & Trade Summary Pages.</span></li>  
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-483 - Added applied Filter Parameters to URL at the top of Web Browser.</span></li>    
+        <li><span class="emoji">🔧</span><span class="improvement">TRADE-484 - Fixed Mobile spacing for Open Trades component, buttons were hidden and overlapping.</span></li>  
+        <li><span class="emoji">🚀</span><span class="improvement">TRADE-500 - Trade Summary and Open Trades Tables are now sortable by clicking the filter icon on the desired column name.</span></li>    
       </ul>
     </div>
 
@@ -154,11 +156,9 @@
       <h2 class="section-title">What's Coming Next</h2>
       <ul>
         <li><span class="emoji">🧑‍💻</span><span class="next">Addition of commision/fees in each trade entry for more accurracy on accout value calculation, and opportunity for insight into long term spending on fees.</span></li>      
-        <li><span class="emoji">🧑‍💻</span><span class="next">Additional classification for each trade entry with PUT/CALL for options and LONG/SHORT for equity trades.</span></li>
-        <li><span class="emoji">🧑‍💻</span><span class="next">Addition of Front End automated testing.</span></li>    
-        <li><span class="emoji">🧑‍💻</span><span class="next">Addition of Trade reccomendations based on your trade history, providing insight into your best trades and trading strategy.</span></li>         
-        <li><span class="emoji">🧑‍💻</span><span class="next">Increased security for Reset and 2FA codes.</span></li>         
-        <li><span class="emoji">🧑‍💻</span><span class="next">2FA enchanements, adding Phone Number and other 2FA options.</span></li>         
+        <li><span class="emoji">🧑‍💻</span><span class="next">Additional classification for each trade entry with PUT/CALL for options and LONG/SHORT for equity trades.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Ability for Users to upload Profile Pictures to their profile.</span></li>      
+        <li><span class="emoji">🧑‍💻</span><span class="next">Two-Factor Authentication Integration.</span></li>        
       </ul>
     </div>
     
