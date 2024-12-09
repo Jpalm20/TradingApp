@@ -53,7 +53,7 @@ def get_connection_pool():
         logger.info("Initializing connection pool")
         connection_pool = mysql.connector.pooling.MySQLConnectionPool(
             pool_name=POOL_NAME,  # Use a short pool name
-            pool_size=7,  # Reasonable default pool size
+            pool_size=6,  # Reasonable default pool size
             pool_reset_session=True,
             **db_config
         )
