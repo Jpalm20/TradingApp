@@ -616,8 +616,8 @@ class TestAPIs(unittest.TestCase):
         response = requests.get(f"{self.BASE_URL}/user/leaderboard?time_filter=All%2520Time&value_filter=Total%2520PNL", headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
-        self.assertEqual(len(response_data['leaderboard']),1)
-        self.assertEqual(response_data['leaderboard'][0]['display_name'],"Register U.")
+        self.assertEqual(len(response_data['leaderboard']),2)
+        self.assertEqual(response_data['leaderboard'][1]['display_name'],"Register U.")
         #self.assertEqual(response_data['leaderboard'][0]['leaderboard_value'],)
     
     
