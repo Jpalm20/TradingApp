@@ -10,6 +10,7 @@ const initialState = {
   trades: [],
   stats: {},
   preferences: {},
+  profilepic: {},
   accountValues: {},
   journalentries: {},
   tradesOfDay: [],
@@ -19,6 +20,7 @@ const initialState = {
   error: false,
   loading: false,
   info: {},
+  leaderboard: [],
 };
 
 export const me = createAsyncThunk("auth/me", async () => {
@@ -69,7 +71,31 @@ export const authenticate = createAsyncThunk(
         email,
         password,
       });
-      await window.localStorage.setItem(TOKEN, res.data.token);
+      if (res.status === 200) {
+        await window.localStorage.setItem(TOKEN, res.data.token);
+      }
+      //dispatch(me());
+      console.log(res);
+      return res.data
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const confirm2FA = createAsyncThunk(
+  "auth/confirm2FA",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    try {
+      const { email, code } = formInfo;
+      const res = await axios.post(API_URL + `user/verify2fa`, {
+        email,
+        code,
+      });
+      if (res.status === 200) {
+        await window.localStorage.setItem(TOKEN, res.data.token);
+      }
       //dispatch(me());
       console.log(res);
       return res.data
@@ -120,6 +146,55 @@ export const getPreferences = createAsyncThunk(
     try {
       if (token) {
         const res = await axios.get(API_URL + `user/preferences`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getProfilePicture = createAsyncThunk(
+  "auth/getProfilePicture",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const res = await axios.get(API_URL + `user/profilePicture`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          }
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const setProfilePicture = createAsyncThunk(
+  "auth/setProfilePicture",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { selectedFile } = formInfo;
+        const formData = new FormData();
+        formData.append("profile_pic", selectedFile);
+        const res = await axios.post(API_URL + `user/profilePicture`, formData, {
           headers: {
             Authorization: "Bearer " + token,
           }
@@ -759,6 +834,31 @@ export const clearJournalEntry = createAsyncThunk(
   }
 );
 
+export const getLeaderboard = createAsyncThunk(
+  "trade/getLeaderboard",
+  async (formInfo, { dispatch, rejectWithValue }) => {
+    const token = await window.localStorage.getItem(TOKEN);
+    try {
+      if (token) {
+        const { filters } = formInfo;
+        const res = await axios.get(API_URL + `user/leaderboard`,{
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          params: filters
+        });
+        //await window.localStorage.setItem(TOKEN, res.data.token);
+        //dispatch(me());
+        console.log(res);
+        return res.data
+      }
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -782,6 +882,40 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getPreferences.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getProfilePicture.fulfilled]: (state, action) => {
+      state.profilepic = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [getProfilePicture.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getProfilePicture.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [setProfilePicture.fulfilled]: (state, action) => {
+      state.profilepic = action.payload;
+      state.success = true;
+      state.loading = false;
+      state.info = null;
+      state.error = false;
+    },
+    [setProfilePicture.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [setProfilePicture.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;
@@ -867,6 +1001,22 @@ const authSlice = createSlice({
       state.success = false;
     },
     [getAccountValues.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
+    [getLeaderboard.fulfilled]: (state, action) => {
+      state.leaderboard = action.payload;
+      state.success = true;
+      state.error = false;
+      state.loading = false;
+    },
+    [getLeaderboard.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [getLeaderboard.rejected]: (state, action) => {
       state.error = true;
       state.info = action.payload;
       state.loading = false;
@@ -1073,6 +1223,23 @@ const authSlice = createSlice({
       state.info = action.payload;
       state.loading = false;
     },
+    [confirm2FA.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.user = action.payload;
+      state.info = null;
+      state.error = false;
+    },
+    [confirm2FA.pending]: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.success = false;
+    },
+    [confirm2FA.rejected]: (state, action) => {
+      state.error = true;
+      state.info = action.payload;
+      state.loading = false;
+    },
     [getUserFromSession.fulfilled]: (state, action) => {
       state.loading = false;
       state.success = true;
@@ -1180,6 +1347,7 @@ const authSlice = createSlice({
       state.trades = null;
       state.stats = null;
       state.preferences = null;
+      state.profilepic = null;
       state.accountValues = null;
       state.journalentries = null;
       state.tradesOfDay = null;

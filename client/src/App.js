@@ -14,11 +14,12 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { me, getTrades, getJournalEntries, getTradesPage, getUserFromSession, expiredLogout, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues } from "./store/auth";
+import { me, getTrades, getJournalEntries, getTradesPage, getUserFromSession, expiredLogout, getProfilePicture, getTradesStats, getTradesStatsFiltered, getPreferences, getAccountValues } from "./store/auth";
 import Home from "./components/Home";
 import PnlCalendar  from "./components/PnlCalendar";
 import Login from "./components/Login";
 import Journal from "./components/Journal";
+import Leaderboard from "./components/Leaderboard";
 import Signup from "./components/Signup";
 import LogTrade from "./components/LogTrade";
 import Navbar from "./components/Navbar";
@@ -37,6 +38,7 @@ export default function App() {
   const { info } = useSelector((state) => state.auth);
   const { trades } = useSelector((state) => state.auth);
   const { stats } = useSelector((state) => state.auth);
+  const { profilepic } = useSelector((state) => state.auth); 
   const authError = useSelector((state) => state.auth.error);
   const tradeError = useSelector((state) => state.trade.error);
   const tradeInfo = useSelector((state) => state.trade.info);
@@ -52,6 +54,7 @@ export default function App() {
   const hasTrades = ((trades && trades.trades && Object.keys(trades.trades).length > 0) ? (true):(false));
   const noTrades = ((trades && trades.trades && Object.keys(trades.trades).length === 0) ? (true):(false)); 
   const hasStats = ((stats && stats.stats && Object.keys(stats.stats).length > 0) ? (true):(false));
+  const hasProfilePicture = ((profilepic && Object.keys(profilepic).length > 0) ? (true):(false)); 
   
   if(isRegistered === true && registered === true){
     const savedUserInfo = window.localStorage.getItem('userInfo');
@@ -87,10 +90,11 @@ export default function App() {
     window.localStorage.removeItem('HomeFilters');
     window.localStorage.removeItem('CalendarFilters');
     window.localStorage.removeItem('SummaryFilters');
+    window.localStorage.removeItem('LeaderboardFilters');
   }
 
   const evaluateError = async () => {
-    if(authError === true && info.response.data.result === "Auth Token Has Expired"){
+    if(authError === true && info?.response?.data?.result === "Auth Token Has Expired"){
       handleDeleteLocal();
       await dispatch(expiredLogout());
     }
@@ -116,6 +120,9 @@ export default function App() {
   
   useEffect(() => {
     async function getUserTrades(){
+      if(isLoggedIn && user.user_id && !hasProfilePicture){
+        await dispatch(getProfilePicture());
+      }
       if(isLoggedIn && !hasTrades && !noTrades && user.user_id && !hasStats){
         const user_id = user.user_id;
         if (window.location.pathname === "/home" || window.location.pathname === "/"){
@@ -175,7 +182,7 @@ export default function App() {
         title: toastMessage,
         variant: 'solid',
         status: 'success',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -194,6 +201,7 @@ export default function App() {
               <Route path="/home" element={<Home user={user}/>} />
               <Route path="/PnlCalendar" element={<PnlCalendar user={user}/>} />
               <Route path="/journal" element={<Journal user={user}/>} />
+              <Route path="/leaderboard" element={<Leaderboard user={user}/>} />
               <Route path="/login" element={<Navigate to="/"/>} />
               <Route path="/resetpassword" element={<Navigate to="/"/>} />
               <Route path="/signup" element={<Navigate to="/"/>} />
@@ -207,6 +215,7 @@ export default function App() {
               <Route path="/home" element={<Navigate to="/login" />} />
               <Route path="/PnlCalendar" element={<Navigate to="/login" />} />
               <Route path="/journal" element={<Navigate to="/login" />} />
+              <Route path="/leaderboard" element={<Navigate to="/login" />} />
               <Route path="/profile" element={<Navigate to="/login"/>} />
               <Route path="/logTrade" element={<Navigate to="/login"/>} />
               <Route path='/summary' element={<Navigate to="/login"/>} />

@@ -45,6 +45,12 @@ def validateNewTrade(request):
         return {
             "result": response
         }, 400
+    elif (('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != "")) and (request['security_type'] not in ["Options"]):
+        response = "Must Set Security Type as Options if adding Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate New Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
     elif ('ticker_name' not in request or request['ticker_name'] == "" or request['ticker_name'] == " " ):
         response = "Must Include a Valid Ticker Symbol"
         logger.warning("Leaving Validate New Trade Validator: " + response)
@@ -81,7 +87,7 @@ def validateEditTrade(user_id,trade_id,request):
         return {
             "result": response
         }, 400
-    elif (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
+    elif (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['expiry'] == None or request['strike'] == "" or request['strike'] == None):
         response = "Options require Strike Price and Expiry, Try Again"
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
         return {
@@ -105,7 +111,17 @@ def validateEditTrade(user_id,trade_id,request):
         return {
             "result": response
         }, 400
-    elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
+    # add check for trade date and expiry valid format like in importcsv check
+    elif ('trade_date' in request and request['trade_date'] not in ["",None]):
+        try:
+            datetime.strptime(request['trade_date'], "%Y-%m-%d")
+        except ValueError:
+            response = "Trade Date {} is not an accepted Date Format, Try Again".format(str(request['trade_date']))
+            logger.warning("Leaving Validate Edit Trade Validator: " + response)
+            return {
+                "result": response
+            }, 400
+    if ('trade_date' in request and request['trade_date'] != "" and request['trade_date'] != None and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
         response = "Trade Closure Date Can't be in the Future"
         logger.warning("Leaving Validate Edit Trade Validator: " + response)
         return {
@@ -126,6 +142,21 @@ def validateEditTrade(user_id,trade_id,request):
         return {
             "result": formatted_string
         }, 400
+    #make sure below accounts for case where request is from bulk csv and None
+    if ('security_type' in request and request['security_type'] != 'Options') and (trade_info['security_type'] != 'Options') and ((('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != ""))):
+        response = "Must Update Security Type as Options if updating Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate Edit Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    '''
+    if (('expiry' in request and request['expiry'] != "") or ('strike' in request and request['strike'] != "")) and (request['security_type'] not in ["Options"]):
+        response = "Must Set Security Type as Options if updating Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate Edit Trade Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    '''
     logger.info("Leaving Validate Edit Trade Validator: ")
     return True
 
@@ -152,39 +183,76 @@ def validateCsv(file):
     logger.info("Leaving Validate CSV Validator: ")
     return True
 
+def validateUpdateCsv(file):
+    logger.info("Entering Validate Update CSV Validator: " + "(file: {})".format(str(file)))
+    if isinstance(file, FileStorage):
+        file.stream.seek(0)
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
+    reader = csv.DictReader(csv_string.splitlines())
+    headers = next(reader, None) 
+    required_headers = ["trade_id", "trade_date", "trade_type", "security_type", "ticker_name", "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"]
+    if headers is None:
+        logger.warning("Empty CSV")
+        return False
+    for header in required_headers:
+        if header not in headers:
+            logger.warning("Leaving Validate Update CSV Validator: ")
+            return False
+    logger.info("Leaving Validate Update CSV Validator: ")
+    return True
+
 def validateNewTradeFromCsv(request):
-    logger.info("Entering Validate New Trade Validator: " + "(request: {})".format(str(request)))
+    logger.info("Entering Validate New Trade From CSV Validator: " + "(request: {})".format(str(request)))
     if (request['security_type'] == "Options") and ('expiry' not in request or 'strike' not in request or request['expiry'] == "" or request['strike'] == "" ):
         response = "Options require Strike Price and Expiry, Try Again"
-        logger.warning("Leaving Validate New Trade Validator: " + response)
+        logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
         return {
             "result": response
         }, 400
     elif (request['security_type'] == "Shares") and (('expiry' in request and request['expiry'] != None) or ('strike' in request and request['strike'] != None)):
         response = "Shares require no Strike Price or Expiry, Try Again"
-        logger.warning("Leaving Validate New Trade Validator: " + response)
+        logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
         return {
             "result": response
         }, 400
     elif (request['security_type'] != "Shares" and request['security_type'] != "Options"):
         response = "Security Type is either Shares or Options, Try Again"
-        logger.warning("Leaving Validate New Trade Validator: " + response)
+        logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    elif (('expiry' in request and request['expiry'] not in ["",None]) or ('strike' in request and request['strike'] not in ["",None])) and (request['security_type'] not in ["Options"]):
+        response = "Must Set Security Type as Options if updating Expiry or Strike Price, Try Again"
+        logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
         return {
             "result": response
         }, 400
     elif ('ticker_name' not in request or request['ticker_name'] == "" or request['ticker_name'] == " " ):
         response = "Must Include a Valid Ticker Symbol"
-        logger.warning("Leaving Validate New Trade Validator: " + response)
+        logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
         return {
             "result": response
         }, 400
     elif ('trade_date' in request and request['trade_date'] != "" and datetime.strptime(request['trade_date'], '%Y-%m-%d').date() > datetime.now().date() + timedelta(days=1)):
         response = "Trade Closure Date Can't be in the Future"
-        logger.warning("Leaving Validate New Trade Validator: " + response)
+        logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
         return {
             "result": response
         }, 400
-    logger.info("Leaving Validate New Trade Validator: ")
+    elif ('expiry' in request and request['expiry'] not in ["",None]):
+        try:
+            datetime.strptime(request['expiry'], "%Y-%m-%d")
+        except ValueError:
+            response = "Expiry {} is not an accepted Date Format, Try Again".format(str(request['expiry']))
+            logger.warning("Leaving Validate New Trade From CSV Validator: " + response)
+            return {
+                "result": response
+            }, 400
+    logger.info("Leaving Validate New Trade From CSV Validator: ")
     return True
 
 

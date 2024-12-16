@@ -55,7 +55,7 @@ class TestUserValidator(unittest.TestCase):
         response = validateNewUser(request)
         self.assertEqual(response[0]['result'], "Must Include a Valid Email Format, Please Try Again")
         # 4 fail on email existing check
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatenewuseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validatenewuseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         request = {
             "first_name": "Test",
             "last_name": "Test",
@@ -114,7 +114,7 @@ class TestUserValidator(unittest.TestCase):
         response = validateEditUser(request)
         self.assertEqual(response[0]['result'], "Invalid Email Format, Try Upating Again")
         # 4 fail email existing
-        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateedituseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
+        response = execute_db("INSERT INTO user VALUES (null,%s,%s,%s,%s,%s,%s,%s,%s,%s,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT)",("Jon","Palmieri","08-30-2020","validateedituseruservalidatorunittest@gmail.com","password","11 Danand Lane","Patterson","NY","USA"))
         request = {
             "first_name": "",
             "last_name": "",
@@ -292,10 +292,10 @@ class TestUserValidator(unittest.TestCase):
     
     def test_validate_toggle_feature_flags(self):
         # 1 good path
-        request = ['email_optin','account_value_optin']
+        request = ['email_optin','account_value_optin','2fa_optin','public_profile_optin']
         response = validateToggleFeatureFlags(request)
         self.assertEqual(response, True)
-        # 2 fail missing fields
+        # 2 fail invalid flag name
         request = ['email_optin','account_value_optins']
         response = validateToggleFeatureFlags(request)
         self.assertEqual(response[0]['result'], "Please provide only valid feature flags in your request")
@@ -320,6 +320,68 @@ class TestUserValidator(unittest.TestCase):
         }
         response = validateUpdatePreferredCurrency(request)
         self.assertEqual(response[0]['result'], "New Currency Code Missing")
+        
+        
+    def test_validate_2fa(self):
+        # 1 good path
+        request = {
+            'email': "validate2favalidatorunittest@gmail.com",
+            'code': "123456"
+        }
+        response = validate2FA(request)
+        self.assertEqual(response, True)
+        # 2 fail missing email
+        request = {
+            'emaill': "validate2favalidatorunittest@gmail.com",
+            'code': "123456"
+        }
+        response = validate2FA(request)
+        self.assertEqual(response[0]['result'], "Email is a required field, Try Again")
+        # 3 fail missing code
+        request = {
+            'email': "validate2favalidatorunittest@gmail.com",
+        }
+        response = validate2FA(request)
+        self.assertEqual(response[0]['result'], "2FA Code is a required field, Try Again")
+        
+    
+    def test_validate_leaderboard_filters(self):
+        #1 Good Path
+        filters = {
+            'time_filter': 'All%20Time',
+            'value_filter': 'Total%20PNL'
+        }
+        response = validateUserLeaderboardFilters(filters)
+        self.assertEqual(response, True)
+        
+        #2 Fail on Empty Filters
+        filters = {}
+        response = validateUserLeaderboardFilters(filters)
+        self.assertEqual(response[0]['result'], "Please include Necessary Time and Value Filters")
+        
+        #3 Fail on time_filter or value_filter not in Filters
+        filters = {
+            'time_filterr': 'All%20Time',
+            'value_filter': 'Total%20PNL'
+        }
+        response = validateUserLeaderboardFilters(filters)
+        self.assertEqual(response[0]['result'], "Please provide both a time and value filter")
+        
+        #4 Fail on not valid time_filter
+        filters = {
+            'time_filter': 'All%20Timee',
+            'value_filter': 'Total%20PNL'
+        }
+        response = validateUserLeaderboardFilters(filters)
+        self.assertEqual(response[0]['result'], "Please provide only valid time filter options")
+        
+        #5 Fail on not valid value_filter
+        filters = {
+            'time_filter': 'All%20Time',
+            'value_filter': 'Total%20PNLL'
+        }
+        response = validateUserLeaderboardFilters(filters)
+        self.assertEqual(response[0]['result'], "Please provide only valid value filter options")
     
         
     #def tearDown(self):

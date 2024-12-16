@@ -1,5 +1,4 @@
 flask
-mysql-client
 mysql-connector-python
 flask_cors
 numpy
@@ -11,3 +10,5 @@ redis
 flasgger
 forex-python
 pytest
+boto3
+Pillow

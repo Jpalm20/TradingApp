@@ -3,7 +3,7 @@ name: CI Pipeline for MyTradingTracking
 on:
   push:
     branches:
-      - stagingpass
+      - staging
 
 jobs:
   build-and-test:
@@ -49,10 +49,15 @@ jobs:
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
         REDIS_PORT: ${{ secrets.REDIS_PORT }}
         REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         POOL_NAME: ${{ secrets.POOL_NAME }}
         ENV: ${{ secrets.ENV }}
+        BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+        AWS_ENV: ${{ secrets.AWS_ENV }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
         pytest -v --log-cli-level=INFO src/tests/unit
@@ -94,9 +99,14 @@ jobs:
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
         REDIS_PORT: ${{ secrets.REDIS_PORT }}
         REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-        REDIS_TLS_URL: ${{ secrets.REDIS_TLS_URL }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
         INTEGRATION_TEST_URL: ${{ secrets.INTEGRATION_TEST_URL }}
         ENV: ${{ secrets.ENV }}
+        BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+        AWS_ENV: ${{ secrets.AWS_ENV }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       run: |
         pytest -v src/tests/integration 
 

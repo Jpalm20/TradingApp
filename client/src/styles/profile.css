@@ -14,6 +14,40 @@
   }
 */
 
+/* Avatar Container for Hover Effect */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  width: fit-content;
+}
+
+/* Overlay Effect with Centered "Edit" Text */
+.avatar-container::after {
+  content: "Edit";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent overlay color */
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%; /* Make sure the overlay is circular like the avatar */
+  pointer-events: none; /* Ensures "Edit" text does not interfere with clicking */
+}
+
+/* Show Overlay and Text on Hover */
+.avatar-container:hover::after {
+  opacity: 1;
+}
+
   .avatar {
     background-color: rgb(99, 99, 99);
   }
@@ -25,10 +59,26 @@
     align-items: center;
   }
 
-  @media (max-height: 550px) {
+  @media (max-height: 800px) {
 
     .profilestack {
-      padding-top: 325px;
+      padding-top: 125px;
+    }
+
+  }
+
+  @media (max-height: 675px) {
+
+    .profilestack {
+      padding-top: 300px;
+    }
+
+  }
+
+  @media (max-height: 525px) {
+
+    .profilestack {
+      padding-top: 475px;
     }
 
   }

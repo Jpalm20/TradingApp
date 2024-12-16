@@ -349,7 +349,7 @@ export default function Home({ user }) {
         title: toastMessage,
         variant: 'solid',
         status: 'success',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }
@@ -1696,7 +1696,7 @@ export default function Home({ user }) {
         title: toastErrorMessage,
         variant: 'solid',
         status: 'error',
-        duration: 3000,
+        duration: 10000,
         isClosable: true
       });
     }

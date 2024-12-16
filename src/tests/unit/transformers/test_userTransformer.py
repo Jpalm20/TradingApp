@@ -169,7 +169,72 @@ class TestUserTransformer(unittest.TestCase):
             date(2023, 1, 1)
         ]
         self.assertEqual(dates, expected_dates)
-
+        
+    
+    def test_transform_leaderboard_time_filter(self):
+        # Today's date
+        today = date.today()
+        # First day of the year
+        first_day_of_year = date(today.year, 1, 1)
+        # First day of the quarter
+        quarter_start_month = 3 * ((today.month - 1) // 3) + 1
+        first_day_of_quarter = date(today.year, quarter_start_month, 1)
+        # First day of the month
+        first_day_of_month = date(today.year, today.month, 1)
+        # First day of the week (assuming week starts on Monday)
+        first_day_of_week = today - timedelta(days=today.weekday()+1)
+                
+        #1 All Time
+        result = transformLeaderboardTimeFilter("All Time")
+        self.assertEqual(result, "t.trade_date is not NULL")
+        
+        #2 YTD
+        result = transformLeaderboardTimeFilter("YTD")
+        self.assertEqual(result, "t.trade_date >= '{}'".format(str(first_day_of_year)))
+        
+        #3 Quarter
+        result = transformLeaderboardTimeFilter("Quarter")
+        self.assertEqual(result, "t.trade_date >= '{}'".format(str(first_day_of_quarter)))
+        
+        #4 Quarter
+        result = transformLeaderboardTimeFilter("Month")
+        self.assertEqual(result, "t.trade_date >= '{}'".format(str(first_day_of_month)))
+        
+        #5 Week
+        result = transformLeaderboardTimeFilter("Week")
+        self.assertEqual(result, "t.trade_date >= '{}'".format(str(first_day_of_week)))
+        
+        #6 Today
+        result = transformLeaderboardTimeFilter("Today")
+        self.assertEqual(result, "t.trade_date >= '{}'".format(str(today)))
+                
+    
+    def test_transform_leaderboard_value_filter(self):
+                
+        #1 Total PNL
+        result = transformLeaderboardValueFilter("Total PNL")
+        self.assertEqual(result, ["SUM(COALESCE(t.pnl, 0))","COUNT(t.trade_id) > 0","DESC"])
+        
+        #2 Avg PNL
+        result = transformLeaderboardValueFilter("Avg PNL")
+        self.assertEqual(result, ["SUM(COALESCE(t.pnl, 0)) / COUNT(t.trade_id)","COUNT(t.trade_id) > 0","DESC"])
+        
+        #3 Win %
+        result = transformLeaderboardValueFilter("Win %")
+        self.assertEqual(result, ["COUNT(CASE WHEN t.pnl > 0 THEN 1 END) * 100.0 / COUNT(t.trade_id)","COUNT(t.trade_id) > 0","DESC"])
+        
+        #4 Largest Win
+        result = transformLeaderboardValueFilter("Largest Win")
+        self.assertEqual(result, ["MAX(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END)","MAX(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END) IS NOT NULL","DESC"])
+        
+        #5 Avg Win
+        result = transformLeaderboardValueFilter("Avg Win")
+        self.assertEqual(result, ["AVG(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END)","AVG(CASE WHEN t.pnl > 0 THEN t.pnl ELSE NULL END) IS NOT NULL","DESC"])
+        
+        #6 Avg Loss
+        result = transformLeaderboardValueFilter("Avg Loss")
+        self.assertEqual(result, ["AVG(CASE WHEN t.pnl < 0 THEN t.pnl ELSE NULL END)","AVG(CASE WHEN t.pnl < 0 THEN t.pnl ELSE NULL END) IS NOT NULL","ASC"])
+                
         
     #def tearDown(self):
         #self.transaction.rollback()

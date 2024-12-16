@@ -4,6 +4,7 @@ import re
 from datetime import date, datetime, timedelta
 import logging
 from forex_python.converter import CurrencyCodes
+from urllib.parse import unquote
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,7 @@ def validateGetAccountValue(request):
 
 def validateToggleFeatureFlags(request):
     logger.info("Entering Validate Toggle Feature Flags Validator: " + "(request: {})".format(str(request)))
-    valid_featureflags = ['email_optin','account_value_optin']
+    valid_featureflags = ['email_optin','account_value_optin','2fa_optin','public_profile_optin']
     for ff in request:
         if(ff not in valid_featureflags):
             response = "Please provide only valid feature flags in your request"
@@ -177,6 +178,39 @@ def validateToggleFeatureFlags(request):
                 "result": response
             }, 400
     logger.info("Leaving Validate Toggle Feature Flags Validator: ")
+    return True
+
+def validateUserLeaderboardFilters(filters):
+    logger.info("Entering Validate User Leaderboard Filters Validator: " + "(request: {})".format(str(filters)))
+    valid_time_filters = ["All Time", "YTD", "Quarter", "Month", "Week", "Today"]
+    valid_value_filters = ["Total PNL", "Avg PNL", "Win %", "Largest Win", "Avg Win", "Avg Loss"]
+    decoded_time_filter = unquote(filters.get("time_filter", ""))
+    decoded_value_filter = unquote(filters.get("value_filter", ""))
+    if not filters:
+        response = "Please include Necessary Time and Value Filters"
+        logger.warning("Leaving Validate User Leaderboard Filters Validator: " + str(response))
+        return {
+            "result": response
+        }, 400
+    if ("time_filter" not in filters or "value_filter" not in filters):
+        response = "Please provide both a time and value filter"
+        logger.warning("Leaving Validate User Leaderboard Filters Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    if ("time_filter" in filters and decoded_time_filter not in valid_time_filters):
+        response = "Please provide only valid time filter options"
+        logger.warning("Leaving Validate User Leaderboard Filters Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    if ("value_filter" in filters and decoded_value_filter not in valid_value_filters):
+        response = "Please provide only valid value filter options"
+        logger.warning("Leaving Validate User Leaderboard Filters Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    logger.info("Leaving Validate User Leaderboard Filters Validator: ")
     return True
 
 def validateUpdatePreferredCurrency(request):
@@ -195,4 +229,21 @@ def validateUpdatePreferredCurrency(request):
             "result": response
         }, 400
     logger.info("Leaving Validate Update Preferred Currency Validator: ")
+    return True
+
+def validate2FA(request):
+    logger.info("Entering Validate 2FA Validator: " + "(request: {})".format(str(request)))
+    if 'email' not in request or request['email'] == '':
+        response = "Email is a required field, Try Again"
+        logger.warning("Leaving Validate 2FA Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    if 'code' not in request or request['code'] == '':
+        response = "2FA Code is a required field, Try Again"
+        logger.warning("Leaving Validate 2FA Validator: " + response)
+        return {
+            "result": response
+        }, 400
+    logger.info("Leaving Validate 2FA Validator: ")
     return True

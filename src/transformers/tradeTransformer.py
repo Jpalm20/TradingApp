@@ -20,6 +20,11 @@ mymodule_dir = os.path.join( script_dir, '..', 'validators',)
 sys.path.append( mymodule_dir )
 import tradeValidator
 
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'handlers',)
+sys.path.append( mymodule_dir )
+import tradeHandler
+
 def transformNewTrade(request):
     logger.info("Entering Transform New Trade Transformer: " + "(request: {})".format(str(request)))
     if request['security_type'] == "Shares":
@@ -33,27 +38,126 @@ def transformNewTrade(request):
         request['units'] = None
     if 'strike' in request and request['strike'] == "":
         request['strike'] = None
-    if 'percent_wl' in request and request['percent_wl'] == "":
-        request['percent_wl'] = None
     if 'buy_value' in request and request['buy_value'] == "":
         request['buy_value'] = None
+    if 'percent_wl' in request and request['percent_wl'] == "":
+        request['percent_wl'] = None
+        if ('pnl' in request and request['pnl'] not in ["",None]) and ('units' in request and request['units'] not in ["",None]) and ('buy_value' in request and request['buy_value'] not in ["",None]):
+            pnl_float = float(request['pnl'])
+            units_float = float(request['units'])
+            buy_value_float = float(request['buy_value'])
+            request['percent_wl'] = round((pnl_float / (buy_value_float * units_float)) * 100, 2)
     request['ticker_name'] = request['ticker_name'].upper()
     logger.info("Leaving Transform New Trade Transformer: " + "(transformed_request: {})".format(str(request)))
     return request
 
-def transformEditTrade(request):
+def transformEditTrade(trade_id,request):
     logger.info("Entering Transform Edit Trade Transformer: " + "(request: {})".format(str(request)))
     transformedRequest = {}
+                
     for key in request:
         if request[key] != "" and request[key] != None:
             transformedRequest[key] = request[key]
         if key == 'ticker_name' and request['ticker_name'] != '':
             transformedRequest['ticker_name'] = request['ticker_name'].upper()
+        if request[key] == None:
+            transformedRequest[key] = 'NULL'
     if ('security_type' in transformedRequest) and (transformedRequest['security_type'] == "Shares"):
         transformedRequest['expiry'] = 'NULL'
         transformedRequest['strike'] = 'NULL'
+    
+    # Autocalculating perccent_wl
+    # Step 1: Check if '%wl' is missing in the request data
+    if 'percent_wl' not in request or request['percent_wl'] in ["", None]:
+        
+        # Step 2: Check if at least one of PNL, units, or buy_value is present in the new request
+        valid_pnl = 'pnl' in request and request['pnl'] not in [None]
+        valid_units = 'units' in request and request['units'] not in [None]
+        valid_buy_value = 'buy_value' in request and request['buy_value'] not in [None]
+        
+        if valid_pnl and valid_units and valid_buy_value:
+            # Step 3: Get the existing trade data (assume `trade_data` has previous values)
+            trade_info = tradeHandler.getExistingTrade(trade_id)
+            existing_pnl = trade_info.get('pnl') if trade_info.get('pnl') not in ["", None] else None
+            existing_units = trade_info.get('units') if trade_info.get('units') not in ["", None] else None
+            existing_buy_value = trade_info.get('buy_value') if trade_info.get('buy_value') not in ["", None] else None
+
+            # Step 4: Determine which fields are missing from the request and calculate the missing value
+            pnl = request.get('pnl') if request.get('pnl') not in ["", None] else existing_pnl
+            units = request.get('units') if request.get('units') not in ["", None] else existing_units
+            buy_value = request.get('buy_value') if request.get('buy_value') not in ["", None] else existing_buy_value
+            
+            # Ensure we have at least two fields to calculate the third
+            if pnl is not None and units is not None and buy_value is not None:
+                # Calculate the % win/loss
+                percent_wl = round((float(pnl) / (float(buy_value) * float(units))) * 100, 2)
+                
+                # Update the request data with the calculated % win/loss
+                transformedRequest['percent_wl'] = percent_wl
+        else:
+            transformedRequest['percent_wl'] = 'NULL'
+    
     logger.info("Leaving Transform Edit Trade Transformer: " + "(transformed_request: {})".format(str(transformedRequest)))
     return transformedRequest
+
+def processUpdateCsv(file):
+    #setup file to be ready for development
+    logger.info("Entering Process Update CSV Transformer: " + "(file: {})".format(str(file)))
+    trades_to_update = []
+    
+    if isinstance(file, FileStorage):
+        logger.info("FileStorage Type")
+        file.stream.seek(0)
+        csv_string = file.stream.read().decode("utf-8-sig")
+    else:
+        # Assuming it's a standard file object
+        logger.info("Standard File Type")
+        file.seek(0)  # Reset the file pointer
+        csv_string = file.read()
+    #loop through entries and setup updates
+    reader = csv.DictReader(csv_string.splitlines())
+    rows = list(reader)
+    
+    for row in rows:
+        #if not all(col in row for col in ["trade_id", "trade_date", "trade_type", "security_type", "ticker_name", "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"]):
+        if not all(col in row and row.get(col) not in [''] for col in ["trade_id", "trade_date", "trade_type", "security_type", "ticker_name", "buy_value", "units", "expiry", "strike", "pnl", "percent_wl", "rr"]):
+            continue
+        logger.info("Row: {})".format(str(row)))
+        #just need to map row of csv to trade object and then sent all the trades back
+        trade = {
+            "trade_id": row['trade_id'],
+            "trade_type": row['trade_type'],
+            "security_type": row['security_type'],
+            "ticker_name": row['ticker_name'],
+            "trade_date": row['trade_date'],
+            "expiry": row['expiry'],
+            "strike": row['strike'],
+            "buy_value": row['buy_value'],
+            "units": row['units'],
+            "rr": row['rr'],
+            "pnl": row['pnl'],
+            "percent_wl": row['percent_wl'],
+            "comments": ""
+        }
+        for key in trade: 
+            if trade[key] == 'None':
+                trade[key] = None
+        if trade['security_type'] == "Shares" and trade['expiry'] == None and trade['strike'] == None:
+            trade['expiry'] = ''
+            trade['strike'] = ''
+        if trade['trade_date'] != None:
+            trade['trade_date'] = transformDateFormart(trade['trade_date'])
+        if trade['expiry'] != None:
+            trade['expiry'] = transformDateFormart(trade['expiry'])
+        if trade['pnl'] not in ["",None] and trade['units'] not in ["",None] and trade['buy_value'] not in ["",None]:
+            trade['percent_wl'] = None
+        trades_to_update.append(trade)
+    if len(trades_to_update) == 0:
+        result = "No Valid Rows in CSV"
+        logger.warning("Leaving Process Update CSV Transformer: " + "(result: {})".format(str(result)))
+        return False, result
+    logger.info("Leaving Process Update CSV Transformer: " + "(trades_to_update: {})".format(str(trades_to_update)))
+    return True, trades_to_update
 
 def processCsv(user_id, file):
     logger.info("Entering Process CSV Transformer: " + "(user_id: {}, file: {})".format(str(user_id),str(file)))
@@ -79,7 +183,8 @@ def processCsv(user_id, file):
     sorted_rows = sorted(rows, key=lambda row: (row['execution_time'], row['side']))
 
     for row in sorted_rows:
-        if not all(col in row for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
+        #if not all(col in row for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
+        if not all(col in row and row.get(col) not in [None, ''] for col in ['security_type', 'ticker_name', 'execution_time', 'side', 'quantity', 'cost_basis']):
             continue
         logger.info("Row: {})".format(str(row)))
         if row['quantity'] == '' or row['security_type'] == '' or row['ticker_name'] == '' or row['execution_time'] == '' or row['side'] == '' or row['cost_basis'] == '':
@@ -227,7 +332,8 @@ def processCsv(user_id, file):
                 else:
                     trade['trade_type'] = "Day Trade"
                 trade['buy_value'] = buy_trades[ticker_name][row['security_type']][expiry][strike]['cost_basis']
-                trade['expiry'] = expiry
+                final_expiry = transformDateFormart(expiry)
+                trade['expiry'] = final_expiry
                 trade['security_type'] = security_type
                 trade['strike'] = strike
                 trade['ticker_name'] = ticker_name
@@ -246,7 +352,7 @@ def processCsv(user_id, file):
                     sell_trades[ticker_name][row['security_type']][expiry][strike] = {}
                 else:
                     logger.warning("Leaving Process CSV Transformer: " + str(response))
-                    return False, response
+                    return False, response[0]['result']
         else:
             if 'quantity' in buy_trades[ticker_name][row['security_type']] and 'quantity' in sell_trades[ticker_name][row['security_type']] and buy_trades[ticker_name][row['security_type']]['quantity'] == sell_trades[ticker_name][row['security_type']]['quantity']:
                 # Determine if trade is a day trade or swing trade
@@ -274,7 +380,49 @@ def processCsv(user_id, file):
                     sell_trades[ticker_name][row['security_type']] = {}
                 else:
                     logger.warning("Leaving Process CSV Transformer: " + str(response))
-                    return False, response
+                    return False, response[0]['result']
         
     logger.info("Leaving Process CSV Transformer: " + str(trades))
     return True, trades
+
+def transformDateFormart(input_date):
+    logger.info("Enter Transform Date Format - Input Date: {}".format(str(input_date)))
+    
+    accepted_formats = [
+        "%d-%b-%y",   # 21-Dec-22
+        "%Y-%m-%d",   # 2022-12-21
+        "%m/%d/%Y",   # 12/21/2022
+        "%d/%m/%Y",   # 21/12/2022
+        "%b %d, %Y",  # Dec 21, 2022
+        "%d-%m-%Y",   # 21-12-2022
+        "%m-%d-%Y",   # 12-21-2022
+        "%Y/%m/%d",   # 2022/12/21
+        "%Y.%m.%d",   # 2022.12.21
+        "%d.%m.%Y",   # 21.12.2022
+        "%m.%d.%Y",   # 12.21.2022
+        "%m/%d/%y",   # 12/21/22
+    ]
+    
+    parts = input_date.split('/')
+    if len(parts) == 3:
+        month, day, year = parts
+        # Check if month or day is a single digit (i.e., without leading zero)
+        if len(year) == 2 and year.isdigit() and month.isdigit() and day.isdigit() and (len(month) == 1 or len(day) == 1):
+            month = parts[0].zfill(2)  # Add leading zero to month if needed
+            day = parts[1].zfill(2)    # Add leading zero to day if needed
+            year = parts[2]
+            input_date = f"{month}/{day}/{year}"
+            
+    final_expiry = input_date
+    for fmt in accepted_formats:
+        logger.info("Checking... Date: {}, Tested Format: {}".format(str(input_date),str(fmt)))
+        try:
+            parsed_date = datetime.strptime(input_date, fmt)
+            final_expiry = parsed_date.strftime("%Y-%m-%d")  # Convert to standard format
+            logger.info("Date Format Match Found... Date: {}, Format: {}".format(str(input_date),str(fmt)))
+            break
+        except ValueError:
+            logger.warning("Date Format Match Failed... Date: {}, Format: {}".format(str(input_date),str(fmt)))
+            pass
+    logger.info("Leaving Transform Date Format - Final Expiry Date: {}".format(str(final_expiry)))
+    return final_expiry
